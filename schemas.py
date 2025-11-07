@@ -11,7 +11,7 @@ class UserSignUp(BaseModel):
     email: str 
     password: str
     
-class UserModel(BaseModel):
+class UserRead(BaseModel):
     username: str
     email: str | None = None
     disabled: bool | None = False
@@ -48,3 +48,17 @@ class WorkoutResponse(BaseModel):
     workout_name: str | None = None
     date: datetime
     exercises: list[ExerciseResponse]
+    
+class SetUpdate(BaseModel):
+    weight: float | None = None
+    reps: int | None = None
+
+class ExerciseUpdate(BaseModel):
+    exercise_name: str | None = None
+    sets: list[SetUpdate] | None = None
+    
+class WorkoutUpdate(BaseModel):
+    workout_name: str | None = None
+    date: datetime | None = None
+    exercises: list[ExerciseUpdate] | None = None
+    

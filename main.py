@@ -12,7 +12,7 @@ from database import create_db_and_tables, SessionDep
 from sqlmodel import Session
 
 from models import Workout, Exercise, SetDetails, User
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
 
@@ -77,7 +77,7 @@ async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user
     session.refresh(db_workout)
     return db_workout
     
-@app.get("/users/me", response_model=User)
+@app.get("/users/me", response_model=UserRead)
 async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
 
@@ -93,3 +93,14 @@ async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_cur
     if not user_workout:
         raise HTTPException(404, "Nonexistent")
     return user_workout 
+
+# @app.put()
+
+@app.delete("/workouts/{workout_id}")
+async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    workout = session.exec(select(Workout).where(Workout.user == current_user).where(Workout.id == workout_id)).first()
+    if not workout:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    session.delete(workout)
+    session.commit()
+    return {"Success": True}
