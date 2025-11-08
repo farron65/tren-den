@@ -12,7 +12,9 @@ from database import create_db_and_tables, SessionDep
 from sqlmodel import Session
 
 from models import Workout, Exercise, SetDetails, User
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead
+
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate
+
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
 
@@ -94,7 +96,23 @@ async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_cur
         raise HTTPException(404, "Nonexistent")
     return user_workout 
 
-# @app.put()
+@app.patch("/users/me/sets{set_id}", response_model=SetUpdate)
+async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
+    if not user_set:
+        raise HTTPException(404, "Set doesn't exist")
+    
+    if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id
+        raise HTTPException(401, "Not authorized")
+    
+    if updated_set.weight:
+        user_set.weight = updated_set.weight
+    if updated_set.reps:
+        user_set.reps = updated_set.reps
+        
+    session.commit()
+    return updated_set
+    
 
 @app.delete("/workouts/{workout_id}")
 async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):

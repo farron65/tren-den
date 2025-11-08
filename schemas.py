@@ -29,6 +29,9 @@ class Set(BaseModel):
     weight: float
     reps: int
     
+class SetInDB(Set):
+    id: int
+
 class ExerciseCreate(BaseModel):
     exercise_name: str
     sets: list[Set]
@@ -41,7 +44,7 @@ class WorkoutCreate(BaseModel):
 class ExerciseResponse(BaseModel):
     id: int
     exercise_name: str
-    sets: list[Set]
+    sets: list[SetInDB]
     
 class WorkoutResponse(BaseModel):
     id: int
