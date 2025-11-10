@@ -58,10 +58,8 @@ class SetUpdate(BaseModel):
 
 class ExerciseUpdate(BaseModel):
     exercise_name: str | None = None
-    sets: list[SetUpdate] | None = None
     
 class WorkoutUpdate(BaseModel):
     workout_name: str | None = None
     date: datetime | None = None
-    exercises: list[ExerciseUpdate] | None = None
     
