@@ -4,12 +4,11 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlmodel import select
-from datetime import timedelta
+from datetime import timedelta, date
 
-from typing import Annotated
+from typing import Annotated, Optional
 
 from database import create_db_and_tables, SessionDep
-from sqlmodel import Session
 
 from models import Workout, Exercise, SetDetails, User
 
@@ -83,10 +82,27 @@ async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
 
 @app.get("/workouts")
-async def get_own_workouts(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_workouts = session.exec(select(Workout).where(Workout.user == current_user)).all()
+async def get_own_workouts(
+    current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    workout_name: Optional[str] = None,
+    exercise_name: Optional[str] = None
+    ):
+    query = select(Workout).where(Workout.user == current_user)
+    
+    if date_from:
+        query = query.where(Workout.date >= date_from)
+    if date_to:
+        query = query.where(Workout.date <= date_to)
+    if workout_name:
+        query = query.where(Workout.workout_name == workout_name)
+    if exercise_name:
+        query = query.join(Exercise).where(Exercise.exercise_name == exercise_name)
+    
+    user_workouts = session.exec(query).all()
         
-    return user_workouts if user_workouts else "0 workouts have been done"
+    return user_workouts if user_workouts else "0 workouts have been found"
 
 @app.get("/workouts/{id}", response_model=WorkoutResponse)
 async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
