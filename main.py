@@ -23,14 +23,13 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
     
-
-
+    
 app = FastAPI(lifespan=lifespan)
-
 
 @app.get("/predict")
 async def predict():
     return "Success"
+
 
 @app.post("/signup", response_model=UserSignUp)
 async def signup(user: UserSignUp, session: SessionDep):
@@ -62,7 +61,7 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.post("/workout", response_model=WorkoutResponse)
+@app.post("/workouts", response_model=WorkoutResponse)
 async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
     
     db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
@@ -79,24 +78,24 @@ async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user
     session.refresh(db_workout)
     return db_workout
     
-@app.get("/users/me", response_model=UserRead)
+@app.get("/me", response_model=UserRead)
 async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
 
-@app.get("/users/me/workouts/")
+@app.get("/workouts")
 async def get_own_workouts(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_workouts = session.exec(select(Workout).where(Workout.user == current_user)).all()
         
     return user_workouts if user_workouts else "0 workouts have been done"
 
-@app.get("/users/me/workouts/{id}", response_model=WorkoutResponse)
+@app.get("/workouts/{id}", response_model=WorkoutResponse)
 async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_workout = session.exec(select(Workout).where(Workout.user == current_user).where(Workout.id == id)).first()
     if not user_workout:
         raise HTTPException(404, "Nonexistent")
     return user_workout 
 
-@app.patch("/users/me/sets/{set_id}", response_model=SetUpdate)
+@app.patch("/sets/{set_id}", response_model=SetUpdate)
 async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
     if updated_set.weight is None and updated_set.reps is None:
@@ -117,7 +116,7 @@ async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: 
     session.commit()
     return updated_set
 
-@app.patch("/users/me/exercise/{exercise_id}", response_model=ExerciseUpdate)
+@app.patch("/exercise/{exercise_id}", response_model=ExerciseUpdate)
 async def update_workout_exercise(exercise_id: int, updated_exercise: ExerciseUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
     if updated_exercise.exercise_name is None:
@@ -136,7 +135,7 @@ async def update_workout_exercise(exercise_id: int, updated_exercise: ExerciseUp
     session.commit()
     return updated_exercise
 
-@app.patch("/users/me/workout/{workout_id}", response_model=WorkoutUpdate)
+@app.patch("/workouts/{workout_id}", response_model=WorkoutUpdate)
 async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
     if updated_workout.workout_name is None and updated_workout.date is None:
@@ -163,5 +162,33 @@ async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
     session.delete(workout)
+    session.commit()
+    return {"Success": True}
+
+@app.delete("/exercises/{exercise_id}")
+async def delete_exercise(exercise_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_exercise = session.exec(select(Exercise).where(Exercise.id == exercise_id)).first()
+    
+    if not user_exercise:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    
+    if user_exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
+        raise HTTPException(401, "Not authorized")
+
+    session.delete(user_exercise)
+    session.commit()
+    return {"Success": True}
+
+@app.delete("/sets/{set_id}")
+async def delete_set(set_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
+    
+    if not user_set:
+        raise HTTPException(status_code=404, detail="Set not found")
+    
+    if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
+        raise HTTPException(401, "Not authorized")
+
+    session.delete(user_set)
     session.commit()
     return {"Success": True}
