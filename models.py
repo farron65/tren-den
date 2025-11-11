@@ -17,7 +17,7 @@ class Workout(SQLModel, table=True):
     user_id: int | None = Field(default=None, foreign_key="user.id")
     user: User | None = Relationship(back_populates="workouts")
     
-    exercises: list["Exercise"] = Relationship(back_populates="workout")
+    exercises: list["Exercise"] = Relationship(back_populates="workout", cascade_delete=True)
     
 class Exercise(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -26,7 +26,7 @@ class Exercise(SQLModel, table=True):
     workout_id: int | None = Field(default=None, foreign_key="workout.id")
     workout: Workout | None = Relationship(back_populates="exercises")
     
-    sets: list["SetDetails"] = Relationship(back_populates="exercise")
+    sets: list["SetDetails"] = Relationship(back_populates="exercise", cascade_delete=True)
 
 class SetDetails(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
