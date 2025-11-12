@@ -4,6 +4,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlmodel import select
+from sqlalchemy import func
+
 from datetime import timedelta, date
 
 from typing import Annotated, Optional
@@ -96,9 +98,9 @@ async def get_own_workouts(
     if date_to:
         query = query.where(Workout.date <= date_to)
     if workout_name:
-        query = query.where(Workout.workout_name == workout_name)
+        query = query.where(func.lower(Workout.workout_name) == workout_name)
     if exercise_name:
-        query = query.join(Exercise).where(Exercise.exercise_name == exercise_name)
+        query = query.join(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
     
     user_workouts = session.exec(query).all()
         
