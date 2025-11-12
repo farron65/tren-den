@@ -98,7 +98,7 @@ async def get_own_workouts(
     if date_to:
         query = query.where(Workout.date <= date_to)
     if workout_name:
-        query = query.where(func.lower(Workout.workout_name) == workout_name)
+        query = query.where(func.lower(Workout.workout_name) == workout_name.lower())
     if exercise_name:
         query = query.join(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
     
