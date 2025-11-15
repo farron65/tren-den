@@ -1,5 +1,4 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 class Token(BaseModel):
@@ -26,8 +25,8 @@ class UserResponse(BaseModel):
     message: str
     
 class Set(BaseModel):
-    weight: float
-    reps: int
+    weight: float = Field(ge=0, le=1000)
+    reps: int = Field(ge=1, le=1000)
     
 class SetInDB(Set):
     id: int
@@ -53,8 +52,8 @@ class WorkoutResponse(BaseModel):
     exercises: list[ExerciseResponse]
     
 class SetUpdate(BaseModel):
-    weight: float | None = None
-    reps: int | None = None
+    weight: float | None = Field(None, ge=0, le=1000)
+    reps: int | None = Field(None, ge=0, le=1000)
 
 class ExerciseUpdate(BaseModel):
     exercise_name: str | None = None

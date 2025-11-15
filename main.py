@@ -93,18 +93,21 @@ async def get_own_workouts(
     ):
     query = select(Workout).where(Workout.user == current_user)
     
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(400, "date_from cannot be after date_to")
     if date_from:
         query = query.where(Workout.date >= date_from)
     if date_to:
         query = query.where(Workout.date <= date_to)
+        
     if workout_name:
-        query = query.where(func.lower(Workout.workout_name) == workout_name.lower())
+        query = query.where(func.lower(Workout.workout_name).contains(workout_name.lower()))
     if exercise_name:
-        query = query.join(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+        query = query.join(Exercise).where(func.lower(Exercise.exercise_name).contains(exercise_name.lower()))
     
     user_workouts = session.exec(query).all()
         
-    return user_workouts if user_workouts else "0 workouts have been found"
+    return user_workouts if user_workouts else []
 
 @app.get("/workouts/{id}", response_model=WorkoutResponse)
 async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
