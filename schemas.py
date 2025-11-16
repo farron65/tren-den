@@ -25,8 +25,8 @@ class UserResponse(BaseModel):
     message: str
     
 class Set(BaseModel):
-    weight: float = Field(default=0, ge=0, le=1000)
-    reps: int = Field(default=0, ge=1, le=1000)
+    weight: float = Field(ge=0, le=1000)
+    reps: int = Field(ge=1, le=1000)
     
 class SetInDB(Set):
     id: int
