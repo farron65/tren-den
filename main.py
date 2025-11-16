@@ -116,6 +116,27 @@ async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_cur
         raise HTTPException(404, "Nonexistent")
     return user_workout 
 
+@app.get("/analytics/{exercise_name}")
+async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    
+    user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user)).all()
+    
+    if not user_exercises:
+        raise HTTPException(404, "Not Found")
+    
+    user_exercise_data = []
+    
+    for exercise in user_exercises:
+        for set in exercise.sets:
+            user_exercise_data.append({
+                "date": exercise.workout.date,
+                "workout name": exercise.workout.workout_name,
+                "weight": set.weight,
+                "reps": set.reps
+            })
+    
+    return user_exercise_data
+
 @app.patch("/sets/{set_id}", response_model=SetUpdate)
 async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     

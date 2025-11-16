@@ -36,7 +36,7 @@ class ExerciseCreate(BaseModel):
     sets: list[Set]
     
 class WorkoutCreate(BaseModel):
-    workout_name: str | None = None
+    workout_name: str
     date: datetime
     exercises: list[ExerciseCreate]
     
