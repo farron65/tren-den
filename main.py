@@ -14,7 +14,7 @@ from database import create_db_and_tables, SessionDep
 
 from models import Workout, Exercise, SetDetails, User
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
@@ -177,12 +177,17 @@ async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, curren
     session.commit()
     return updated_workout
 
-@app.delete("/workouts/{workout_id}")
-async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    workout = session.exec(select(Workout).where(Workout.user == current_user).where(Workout.id == workout_id)).first()
-    if not workout:
-        raise HTTPException(status_code=404, detail="Workout not found")
-    session.delete(workout)
+@app.delete("/sets/{set_id}")
+async def delete_set(set_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
+    
+    if not user_set:
+        raise HTTPException(status_code=404, detail="Set not found")
+    
+    if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
+        raise HTTPException(401, "Not authorized")
+
+    session.delete(user_set)
     session.commit()
     return {"Success": True}
 
@@ -200,16 +205,23 @@ async def delete_exercise(exercise_id: int, current_user: Annotated[User, Depend
     session.commit()
     return {"Success": True}
 
-@app.delete("/sets/{set_id}")
-async def delete_set(set_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
-    
-    if not user_set:
-        raise HTTPException(status_code=404, detail="Set not found")
-    
-    if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
-        raise HTTPException(401, "Not authorized")
-
-    session.delete(user_set)
+@app.delete("/workouts/{workout_id}")
+async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    workout = session.exec(select(Workout).where(Workout.user == current_user).where(Workout.id == workout_id)).first()
+    if not workout:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    session.delete(workout)
     session.commit()
     return {"Success": True}
+
+@app.delete("/delete/me")
+async def delete_user(deletion_conf: DeleteAccountRequest, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user = authenticate_user(session, current_user.username, deletion_conf.password)
+    if user:
+        if deletion_conf.confirmation.lower() == "yes":
+            session.delete(user)
+            session.commit()
+            return {"Success": True}
+        
+        raise HTTPException(400, "Bad Request")    
+    raise HTTPException(401, "Invalid Credentials")
