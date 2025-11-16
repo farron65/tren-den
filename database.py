@@ -3,7 +3,6 @@ from models import Workout, Exercise, SetDetails
 from typing import Annotated
 from fastapi import Depends
 
-
 sqlite_db_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_db_name}"
 connect_args = {"check_same_thread": False}
