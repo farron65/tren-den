@@ -71,37 +71,3 @@ def get_current_active_user(user: Annotated[User, Depends(get_current_user)]):
     if not user.disabled:
         return user
     raise HTTPException(400, "Inactive")
-
-# @app.post("/signup", response_model=UserResponse)
-# async def signup(user: UserBase, session: SessionDep):
-#     # if user.username in fake_users_db:
-#     #     raise HTTPException(409, "User already exists")
-        
-#     # user_password = hash_password(user.password)
-#     # fake_users_db[user.username] = {"username": user.username, "email": user.email, "hashed_password": user_password, "disabled": False}
-    
-#     # return UserResponse(message="Successfully created a new user")
-#     existing_user = session.exec(select(UserBase).where(UserBase.user_name == user.user_name)).first()
-#     if existing_user:
-#         raise HTTPException(409, "User already exists")
-#     session.add(user)
-#     session.commit()
-#     session.refresh(user)
-#     return user
-
-# @app.post("/login", response_model=Token)
-# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-#     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-#     if not user:
-#         raise HTTPException(401, "Not authorized")
-    
-    
-#     access_token_expire = timedelta(minutes=15)
-#     access_token = create_access_token(
-#         data={"sub": user.username}, expires_delta=access_token_expire
-#     )
-#     return Token(access_token=access_token, token_type="bearer")
-    
-# @app.get("/users/me", response_model=User)
-# async def read_users_me(current_user = Depends(get_current_active_user)):
-#     return current_user
