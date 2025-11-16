@@ -7,7 +7,7 @@ class User(SQLModel, table=True):
     email: str = Field(index=True)
     hashed_password: str
     disabled: bool | None = Field(default=False, index=True)
-    workouts: list["Workout"] = Relationship(back_populates="user")
+    workouts: list["Workout"] = Relationship(back_populates="user", cascade_delete=True)
 
 class Workout(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
