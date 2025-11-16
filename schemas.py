@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 
 class Token(BaseModel):
@@ -7,26 +7,26 @@ class Token(BaseModel):
     
 class UserSignUp(BaseModel):
     username: str
-    email: str 
+    email: EmailStr
     password: str
     
 class UserRead(BaseModel):
     username: str
-    email: str | None = None
+    email: EmailStr
     disabled: bool | None = False
 
 class UserInDB(BaseModel):
     username: str
     hashed_password: str
-    email: str | None
+    email: EmailStr
     disabled: bool = False
     
 class UserResponse(BaseModel):
     message: str
     
 class Set(BaseModel):
-    weight: float = Field(ge=0, le=1000)
-    reps: int = Field(ge=1, le=1000)
+    weight: float = Field(default=0, ge=0, le=1000)
+    reps: int = Field(default=0, ge=1, le=1000)
     
 class SetInDB(Set):
     id: int
@@ -62,3 +62,6 @@ class WorkoutUpdate(BaseModel):
     workout_name: str | None = None
     date: datetime | None = None
     
+class DeleteAccountRequest(BaseModel):
+    password: str
+    confirmation: str
