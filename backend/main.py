@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlmodel import select
@@ -24,13 +26,23 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
     
-    
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.get("/predict")
 async def predict():
     return "Success"
-
 
 @app.post("/signup", response_model=UserSignUp)
 async def signup(user: UserSignUp, session: SessionDep):
