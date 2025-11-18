@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from hashlib import sha256
 import jwt
 
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
@@ -13,18 +13,24 @@ from database import SessionDep
 from sqlmodel import select
 from models import User
 
-
+# OAuth2 scheme that extracts JWT tokens from Authorization headers
+# tokenUrl tells FastAPI docs where to authenticate (the /login endpoint)
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 
 def hash_password(password: str):
+    # TODO: Replace SHA-256 with bcrypt for proper password hashing
+    # Current approach uses SHA-256 and Secret key as salt
+    # Now passwords are vulnerable to brute force attacks
     combined = password + SECRET_KEY
     hashed_password = sha256(combined.encode("UTF-8")).hexdigest()
     return hashed_password
 
-def verify_password(plain_password: str, hashed_password):
+def verify_password(plain_password: str, hashed_password: str):
     return hash_password(plain_password) == hashed_password
 
 def get_user(session: SessionDep, username: str):
+    # Returns None instead of raising exception to prevent username enumeration
+    # Callers can check for None and provide a generic "invalid credentials" error
     existing_user = session.exec(select(User).where(User.username == username)).first()
     return existing_user if existing_user else None
 
@@ -38,6 +44,8 @@ def authenticate_user(session, username: str, password: str):
     return user
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    if "sub" not in data:
+        raise ValueError("Sub is required")
     payload = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -56,6 +64,8 @@ def get_current_user(token: Annotated[str, Depends(oauth2)], session: SessionDep
     )
     
     try:
+        # Verify and decode the JWT token using the SECRET_KEY
+        # Raises exception if token is invalid, expired, or tampered with
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
