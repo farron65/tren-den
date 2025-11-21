@@ -8,12 +8,18 @@ function App() {
 
     const [isSignUpMode, setSignUpMode] = useState(false);
 
-    async function handleSubmit(e: React.MouseEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         
-        let url = "http://127.0.0.1:8000/";
+        const url = `http://127.0.0.1:8000/${isSignUpMode ? "signup" : "login"}`;
+        if (userName.trim().length === 0 || userPassword.trim().length === 0) {
+            return alert("All fields must be filled.");
+        }
 
         if (isSignUpMode) {
+            if (userEmail.trim().length === 0) {
+                return alert("All fields must be filled.");
+            }
             const data = {
                 username: userName,
                 email: userEmail,
@@ -21,7 +27,6 @@ function App() {
             }
 
             const jsonData = JSON.stringify(data);
-            url += "signup"
 
             try {
                 const response = await fetch(url, {
@@ -35,8 +40,13 @@ function App() {
                 }
                 const result = await response.json();
                 alert(
-                    "SUCCESS\nUsername: " + result.username + "\nEmail" + result.email + "\nPassword: " + result.password
+                    "SUCCESS\nUsername: " + result.username + "\nEmail" + result.email
                 );
+
+                setUserName("");
+                setUserPassword("");
+                setUserEmail("");
+
             }
             catch(error) {
                 alert(error);
@@ -48,7 +58,6 @@ function App() {
             formData.append("username", userName);
             formData.append("password", userPassword);
 
-            url += "login";
             const requestOptions = {
                     method: "POST",
                     headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -62,7 +71,11 @@ function App() {
                 }
     
                 const result = await response.json();
-                localStorage.setItem("Token", result.access_token);
+                localStorage.setItem("access_token", result.access_token);
+
+                setUserName("");
+                setUserPassword("");
+                setUserEmail("");
             }
             catch(error) {
                 alert(error);
@@ -72,7 +85,9 @@ function App() {
 
     function handleSignUpMode(e: React.MouseEvent) {
         e.preventDefault();
-
+        setUserName("");
+        setUserPassword("");
+        setUserEmail("");
         setSignUpMode(!isSignUpMode);
     }
 
