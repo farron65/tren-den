@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import { useState } from "react";
 
 export default function Login() {
@@ -39,17 +41,22 @@ export default function Login() {
     }
 
     return (
-        <div>
-            <h1>Login</h1>
+        <>
             <div>
-                <label>Username</label>
-                <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
+                <h1>Login</h1>
+                <div>
+                    <label>Username</label>
+                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
+                </div>
+                <div>
+                    <label>Password</label>
+                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
+                </div>
+                <button onClick={(e) => handleSubmit(e)}>Submit</button>
             </div>
-            <div>
-                <label>Password</label>
-                <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
-            </div>
-            <button onClick={(e) => handleSubmit(e)}>Submit</button>
-        </div>
+            <Link to="/signup">
+                <h3>Don't have an account?</h3>
+            </Link>
+        </>
     )
 }

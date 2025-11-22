@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Signup() {
     const [userName, setUserName] = useState("");
@@ -67,6 +68,9 @@ export default function Signup() {
             </div>
             <button onClick={(e) => handleSubmit(e)}>Submit</button>
         </div>
+        <Link to="/login">
+                <h3>Already have an account</h3>
+        </Link>
         </>
     )
 }
