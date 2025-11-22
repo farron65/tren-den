@@ -1,135 +1,15 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 
 function App() {
-
-    const [userName, setUserName] = useState("");    
-    const [userPassword, setUserPassword] = useState("");
-    const [userEmail, setUserEmail] = useState("");
-
-    const [isSignUpMode, setSignUpMode] = useState(false);
-
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        
-        const url = `http://127.0.0.1:8000/${isSignUpMode ? "signup" : "login"}`;
-        if (userName.trim().length === 0 || userPassword.trim().length === 0) {
-            return alert("All fields must be filled.");
-        }
-
-        if (isSignUpMode) {
-            if (userEmail.trim().length === 0) {
-                return alert("All fields must be filled.");
-            }
-            const data = {
-                username: userName,
-                email: userEmail,
-                password: userPassword
-            }
-
-            const jsonData = JSON.stringify(data);
-
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: jsonData
-                });
-    
-                if (!response.ok) {
-                    throw new Error(`Response status:${response.status}`);
-                }
-                const result = await response.json();
-                alert(
-                    "SUCCESS\nUsername: " + result.username + "\nEmail" + result.email
-                );
-
-                setUserName("");
-                setUserPassword("");
-                setUserEmail("");
-
-            }
-            catch(error) {
-                alert(error);
-            }
-        }
-        else {
-            const formData = new URLSearchParams();
-
-            formData.append("username", userName);
-            formData.append("password", userPassword);
-
-            const requestOptions = {
-                    method: "POST",
-                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                    body: formData
-                }
-
-            try {
-                const response = await fetch(url, requestOptions);
-                if (!response.ok) {
-                    throw new Error(`Response status:${response.status}`);
-                }
-    
-                const result = await response.json();
-                localStorage.setItem("access_token", result.access_token);
-
-                setUserName("");
-                setUserPassword("");
-                setUserEmail("");
-            }
-            catch(error) {
-                alert(error);
-            }
-        }
-    }
-
-    function handleSignUpMode(e: React.MouseEvent) {
-        e.preventDefault();
-        setUserName("");
-        setUserPassword("");
-        setUserEmail("");
-        setSignUpMode(!isSignUpMode);
-    }
-
-    if (!isSignUpMode) {
-        return (
-            <>
-            <div>
-                <h1>Login</h1>
-                <div>
-                    <label>Username</label>
-                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
-                </div>
-                <button onClick={(e) => handleSubmit(e)}>Submit</button>
-            </div>
-            <button onClick={(e) => handleSignUpMode(e)}>Don't have an account?</button>
-            </>
-        )
-    }
     return (
-        <>
-        <div>
-            <h1>Signup</h1>
-            <div>
-                <label>Username</label>
-                <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
-            </div>
-            <div>
-                <label>Email</label>
-                <input type="text" value={userEmail} onChange={(e) => setUserEmail(e.target.value)}/> 
-            </div>
-            <div>
-                <label>Password</label>
-                <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
-            </div>
-            <button onClick={(e) => handleSubmit(e)}>Submit</button>
-        </div>
-        <button onClick={(e) => handleSignUpMode(e)}>Log in?</button>
-        </>
+        <BrowserRouter>
+            <Routes>
+                <Route path={"/signup"} element={<Signup />}></Route>
+                <Route path={"/login"} element={<Login />}></Route>
+            </Routes>
+        </BrowserRouter>
     )
 }
 
