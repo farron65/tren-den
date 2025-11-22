@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 
 import { useState } from "react";
 
@@ -6,6 +6,7 @@ export default function Login() {
 
     const [userName, setUserName] = useState("");    
     const [userPassword, setUserPassword] = useState("");
+    const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
 
@@ -34,6 +35,10 @@ export default function Login() {
     
             setUserName("");
             setUserPassword("");
+
+            return (
+                navigate("/workouts")
+            );
         }
         catch(error) {
             alert(error);
