@@ -103,7 +103,7 @@ async def get_own_workouts(
     workout_name: Optional[str] = None,
     exercise_name: Optional[str] = None
     ):
-    query = select(Workout).where(Workout.user == current_user)
+    query = select(Workout).order_by(Workout.date.desc()).where(Workout.user == current_user) # type: ignore -- .order_by(Workout.date.desc()) typer checker 😭
     
     if date_from and date_to and date_from > date_to:
         raise HTTPException(400, "date_from cannot be after date_to")
