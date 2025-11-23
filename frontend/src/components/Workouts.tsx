@@ -19,7 +19,6 @@ export default function Workouts() {
                 }
                 
                 const result = await response.json();
-                console.log(result);
                 setWorkouts(result);
             }
             catch(error) {
