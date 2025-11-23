@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom";
 
 export default function Workouts() {
 
@@ -42,7 +43,9 @@ export default function Workouts() {
             <ul>
                 {workouts.map(workout => (
                     <li key={workout.id}>
-                        {workout.workout_name}
+                        <Link to={`/workouts/${workout.id}`}>
+                            {workout.workout_name}   
+                        </Link>
                         {workout.date}
                     </li>  
                 ))}
