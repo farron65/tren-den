@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Set {
     id: string
@@ -14,7 +15,6 @@ interface Exercise {
 
 
 interface Workout {
-    id: string
     workout_name: string,
     date: string,
     exercises: Exercise[]
@@ -23,11 +23,62 @@ interface Workout {
 export default function CreateWorkout() {
 
     const [workout, setWorkout] = useState<Workout>({
-        id: crypto.randomUUID(),
         workout_name: "",
         date: "",
         exercises: []
     });
+    const navigate = useNavigate();
+    const access_token = localStorage.getItem("access_token");
+
+    async function handleSubmit(e: React.FormEvent) {
+
+        e.preventDefault();
+
+        const url = "http://127.0.0.1:8000/workouts";
+        const dataToSend = {
+            workout_name: workout.workout_name,
+            date: workout.date,
+            exercises: workout.exercises.map((exercise) => ({
+                exercise_name: exercise.exercise_name,
+                sets: exercise.sets.map((set) => ({
+                    weight: set.weight, 
+                    reps: set.reps
+                }))
+            }))
+        }
+
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json"
+                },
+            body: JSON.stringify(dataToSend)
+        }
+
+        try {
+            const response = await fetch(url, requestOptions);
+            
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const result = await response.json();
+            alert("Successfully created new workout");
+            console.log(result);
+
+            return (
+                navigate(`/workouts/${result.id}`)
+            );
+        }
+        catch (error) {
+            alert(error);
+        }
+    }
+
+    function ChangeWorkoutValues(field: "workout_name" | "date", value: string) {
+        const updatedWorkout = {...workout, [field]: value}
+        setWorkout(updatedWorkout);
+    }
 
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? "" : value;
@@ -60,7 +111,7 @@ export default function CreateWorkout() {
     
     const exercises = workout.exercises.map((exercise) => {
         return (
-            <div>
+            <div key={exercise.id}>
                 <label>Exercise Name</label>
                 <input type="text" onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} key={exercise.id} />
                 
@@ -80,10 +131,10 @@ export default function CreateWorkout() {
     return (
         <>
         <div>
-            <input type="text" value={workout.workout_name}/>
+            <input onChange={(e) => ChangeWorkoutValues("workout_name", e.target.value)} type="text" value={workout.workout_name}/>
         </div>
         <div>
-            <input type="text" key={workout.id} value={workout.date}/>
+            <input onChange={(e) => ChangeWorkoutValues("date", e.target.value)} type="text" value={workout.date}/>
         </div>
         <div>
             <button onClick={AddExercise}>Add Exercise</button>
@@ -93,6 +144,7 @@ export default function CreateWorkout() {
                 {exercises}
             </ol>
         </div>
+        <button onClick={(e) => handleSubmit(e)}>Submit</button>
         </>
     )
 
