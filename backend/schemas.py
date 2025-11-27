@@ -47,7 +47,7 @@ class ExerciseResponse(BaseModel):
     
 class WorkoutResponse(BaseModel):
     id: int
-    workout_name: str | None = None
+    workout_name: str 
     date: datetime
     exercises: list[ExerciseResponse]
     
