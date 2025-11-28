@@ -80,6 +80,14 @@ export default function CreateWorkout() {
         setWorkout(updatedWorkout);
     }
 
+    function DeleteSet(exerciseId: string, setId: string) {
+        const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
+            ? {...exercise, sets: exercise.sets.filter((set) => set.id != setId)}
+            : exercise
+        )
+        setWorkout({...workout, exercises: updatedSet})
+    }
+    
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? "" : value;
         const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
@@ -99,6 +107,11 @@ export default function CreateWorkout() {
         setWorkout({...workout, exercises: newSet});
     }
 
+    function DeleteExercise(exerciseId: string) {
+        const updatedExercise = {...workout, exercises: workout.exercises.filter((exercise) => exercise.id != exerciseId)}
+        setWorkout(updatedExercise);
+    }
+    
     function ChangeExerciseName(id: string, newExerciseName: string) {
         const updatedExerciseName = workout.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
         setWorkout({...workout, exercises: updatedExerciseName});
@@ -116,12 +129,14 @@ export default function CreateWorkout() {
                 <input type="text" onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} key={exercise.id} />
                 
                 <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
+                <button onClick={() => DeleteExercise(exercise.id)}>Delete Exercise</button>
                 {exercise.sets.map((set) => 
                     <div key={set.id}>
                         <label>Weight</label>
                         <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} value={set.weight}/>
                         <label>Reps</label>
                         <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} value={set.reps}/>
+                        <button onClick={() => DeleteSet(exercise.id, set.id)}>Delete</button>
                     </div>
                 )}
             </div>
