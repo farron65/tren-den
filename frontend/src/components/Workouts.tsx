@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Workouts() {
 
     const [workouts, setWorkouts] = useState<any[]>([]);
+    const navigate = useNavigate();
+    
     const access_token = localStorage.getItem("access_token");
-
+    
     useEffect(() => {
         const fetchWorkouts = async () => {
             const url = "http://127.0.0.1:8000/workouts";
@@ -50,6 +52,7 @@ export default function Workouts() {
                     </li>  
                 ))}
             </ul>
+            <button onClick={() => navigate("/create-workout")}>Create Workout</button>
         </div>
     )
 }
