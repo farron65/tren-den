@@ -2,7 +2,10 @@ import { Link, useNavigate} from "react-router-dom";
 
 import { useState } from "react";
 
-export default function Login() {
+type LoginProps = {
+    updateToken: (token: string) => void
+}
+export default function Login({updateToken}: LoginProps) {
 
     const [userName, setUserName] = useState("");    
     const [userPassword, setUserPassword] = useState("");
@@ -31,7 +34,7 @@ export default function Login() {
             }
     
             const result = await response.json();
-            localStorage.setItem("access_token", result.access_token);
+            updateToken(result.access_token);
     
             setUserName("");
             setUserPassword("");

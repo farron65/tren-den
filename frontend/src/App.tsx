@@ -4,6 +4,7 @@ import Signup from "./components/Signup";
 import Workouts from "./components/Workouts";
 import WorkoutPage from "./components/WorkoutPage";
 import CreateWorkout from "./components/WorkoutCreate";
+import { useState } from "react";
 
 
 type ProtectedRouteProps = {
@@ -20,14 +21,19 @@ const ProtectedRoute = ({ token, redirectPath="/", children }: ProtectedRoutePro
 }
 
 function App() {
-    const access_token = localStorage.getItem("access_token");
+    const [access_token, setToken] = useState<string | null>(localStorage.getItem("access_token"));
+
+    const updateToken = (newToken: string) => {
+        localStorage.setItem("access_token", newToken);
+        setToken(newToken);
+    }
 
     return (
         <BrowserRouter>
             <Routes>
                 <Route path={"/signup"} element={<Signup />}></Route>
                 <Route path={"/"} element={<Signup />}></Route>
-                <Route path={"/login"} element={<Login />}></Route>
+                <Route path={"/login"} element={<Login updateToken={updateToken}/>}></Route>
 
                 <Route
                     path={"/workouts"}
