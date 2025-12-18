@@ -40,6 +40,13 @@ class WorkoutCreate(BaseModel):
     date: datetime
     exercises: list[ExerciseCreate]
     
+class TemplateCreate(BaseModel):
+    workout_name: str
+    exercises: list[ExerciseCreate]
+    
+class ExerciseSummary(BaseModel):
+    exercise_name: str
+    
 class ExerciseResponse(BaseModel):
     id: int
     exercise_name: str
@@ -50,6 +57,16 @@ class WorkoutResponse(BaseModel):
     workout_name: str 
     date: datetime
     exercises: list[ExerciseResponse]
+    
+class TemplateResponse(BaseModel):
+    id: int
+    workout_name: str
+    exercises: list[ExerciseResponse]
+    
+class TemplateSummary(BaseModel):
+    id: int
+    workout_name: str
+    exercises: list[ExerciseSummary]
     
 class SetUpdate(BaseModel):
     weight: float | None = Field(None, ge=0, le=1000)

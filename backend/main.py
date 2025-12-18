@@ -14,9 +14,9 @@ from typing import Annotated, Optional
 
 from database import create_db_and_tables, SessionDep
 
-from models import Workout, Exercise, SetDetails, User
+from models import Workout, Exercise, SetDetails, User, Template
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
@@ -73,6 +73,25 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     )
     return Token(access_token=access_token, token_type="bearer")
 
+@app.post("/templates", response_model=TemplateResponse)
+async def post_template(template: TemplateCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
+    
+    if (session.exec(select(Template).where(Template.workout_name == template.workout_name).where(Template.user == current_user))).first():
+        raise HTTPException(409, "Workout Plan already exists")
+    
+    db_template = Template(workout_name=template.workout_name, user=current_user)
+    
+    for exercise in template.exercises:
+        db_exercise = Exercise(exercise_name=exercise.exercise_name, template=db_template)
+        
+        for set in exercise.sets:
+            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
+            
+    session.add(db_template)
+    session.flush()
+    session.commit()
+    session.refresh(db_template)
+    return db_template
 
 @app.post("/workouts", response_model=WorkoutResponse)
 async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
@@ -95,15 +114,27 @@ async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user
 async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
 
-@app.get("/workouts")
-async def get_own_workouts(
+@app.get("/templates", response_model=list[TemplateSummary])
+async def get_user_templates(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_templates = session.exec(select(Template).where(Template.user == current_user)).all()
+    return user_templates
+
+@app.get("/templates/{template_id}", response_model=TemplateResponse)
+async def get_user_template(template_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
+    if not user_template:
+        raise HTTPException(404, "Template doesn't exist")
+    return user_template
+    
+@app.get("/workouts",response_model=list[WorkoutResponse])
+async def get_user_workouts(
     current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     workout_name: Optional[str] = None,
     exercise_name: Optional[str] = None
     ):
-    query = select(Workout).order_by(Workout.date.desc()).where(Workout.user == current_user) # type: ignore -- .order_by(Workout.date.desc()) typer checker 😭
+    query = select(Workout).order_by(Workout.date.desc()).where(Workout.user == current_user) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
     
     if date_from and date_to and date_from > date_to:
         raise HTTPException(400, "date_from cannot be after date_to")
@@ -119,7 +150,7 @@ async def get_own_workouts(
     
     user_workouts = session.exec(query).all()
         
-    return user_workouts if user_workouts else []
+    return user_workouts
 
 @app.get("/workouts/{id}", response_model=WorkoutResponse)
 async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
@@ -244,6 +275,15 @@ async def delete_workout(workout_id: int, current_user: Annotated[User, Depends(
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
     session.delete(workout)
+    session.commit()
+    return {"Success": True}
+
+@app.delete("/templates/{template_id}")
+async def delete_template(template_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    template = session.exec(select(Template).where(Template.id == template_id).where(Template.user == current_user)).first()
+    if not template:
+        raise HTTPException(404, "Template not found")
+    session.delete(template)
     session.commit()
     return {"Success": True}
 
