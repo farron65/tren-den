@@ -35,6 +35,7 @@ export default function Workouts() {
         return (
             <div>
                 <h1>No past workouts</h1>
+                <button onClick={() => navigate("/create-workout")}>Create Workout</button>
             </div>
         )
     }
