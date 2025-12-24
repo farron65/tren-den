@@ -5,6 +5,7 @@ import Workouts from "./components/Workouts";
 import WorkoutPage from "./components/WorkoutPage";
 import CreateWorkout from "./components/WorkoutCreate";
 import TemplateList from "./components/TemplateList";
+import TemplateView from "./components/TemplateView";
 import { useState } from "react";
 
 
@@ -53,6 +54,13 @@ function App() {
                     element={<ProtectedRoute token={access_token}>
                         <TemplateList />
                     </ProtectedRoute>}>
+                </Route>
+                <Route
+                    path={"/templates/:id"}
+                    element={<ProtectedRoute token={access_token}>
+                        <TemplateView />
+                    </ProtectedRoute>}>
+
                 </Route>
                 <Route 
                     path={"/create-workout/"}
