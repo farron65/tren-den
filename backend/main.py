@@ -73,6 +73,23 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     )
     return Token(access_token=access_token, token_type="bearer")
 
+@app.post("/workouts", response_model=WorkoutResponse)
+async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
+    
+    db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
+    
+    for exercise in workout.exercises:
+        db_exercise = Exercise(exercise_name=exercise.exercise_name, workout=db_workout)
+        
+        for set in exercise.sets:
+            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
+            
+    session.add(db_workout)
+    session.flush()
+    session.commit()
+    session.refresh(db_workout)
+    return db_workout
+    
 @app.post("/templates", response_model=TemplateResponse)
 async def post_template(template: TemplateCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
     
@@ -93,23 +110,6 @@ async def post_template(template: TemplateCreate, session: SessionDep, current_u
     session.refresh(db_template)
     return db_template
 
-@app.post("/workouts", response_model=WorkoutResponse)
-async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
-    
-    db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
-    
-    for exercise in workout.exercises:
-        db_exercise = Exercise(exercise_name=exercise.exercise_name, workout=db_workout)
-        
-        for set in exercise.sets:
-            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
-            
-    session.add(db_workout)
-    session.flush()
-    session.commit()
-    session.refresh(db_workout)
-    return db_workout
-    
 @app.get("/me", response_model=UserRead)
 async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
@@ -241,6 +241,31 @@ async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, curren
     session.commit()
     return updated_workout
 
+@app.put("/templates/{template_id}", response_model=TemplateResponse)
+async def update_template(template_id: int, updated_template: TemplateCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
+    
+    if not user_template:
+        raise HTTPException(400, "Bad Request")
+    
+    for ex in user_template.exercises:
+        session.delete(ex)
+    
+    session.commit()
+        
+    for updated_exercise in updated_template.exercises:
+        db_exercise = Exercise(exercise_name=updated_exercise.exercise_name, template=user_template)
+        
+        for updated_set in updated_exercise.sets:
+            db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, exercise=db_exercise)
+    
+    session.add(db_exercise)
+    session.flush()
+    session.commit()
+    session.refresh(user_template)
+    
+    return user_template
+            
 @app.delete("/sets/{set_id}")
 async def delete_set(set_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
