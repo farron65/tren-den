@@ -45,6 +45,7 @@ class TemplateCreate(BaseModel):
     exercises: list[ExerciseCreate]
     
 class ExerciseSummary(BaseModel):
+    id: int
     exercise_name: str
     
 class ExerciseResponse(BaseModel):
