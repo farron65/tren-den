@@ -252,14 +252,15 @@ async def update_template(template_id: int, updated_template: TemplateCreate, cu
         session.delete(ex)
     
     session.commit()
-        
+    
     for updated_exercise in updated_template.exercises:
         db_exercise = Exercise(exercise_name=updated_exercise.exercise_name, template=user_template)
         
         for updated_set in updated_exercise.sets:
             db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, exercise=db_exercise)
+        
+        session.add(db_exercise)
     
-    session.add(db_exercise)
     session.flush()
     session.commit()
     session.refresh(user_template)
