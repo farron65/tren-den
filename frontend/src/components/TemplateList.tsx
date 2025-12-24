@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Exercise {
     id: number,
@@ -13,6 +14,8 @@ interface Template {
 
 export default function ListTemplates() {
     const [templates, setTemplates] = useState<Template[]>([]);
+
+    const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
     const url = "http://127.0.0.1:8000/templates"
 
@@ -76,6 +79,7 @@ export default function ListTemplates() {
                         </div>
                     ))}
                 <button onClick={() => handleDelete(template.id)}>Delete</button>
+                <button onClick={() => navigate(`/templates/${template.id}`)}>Edit</button>
                 </div>
             ))}
         </>
