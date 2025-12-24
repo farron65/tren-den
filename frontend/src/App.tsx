@@ -6,6 +6,7 @@ import WorkoutPage from "./components/WorkoutPage";
 import CreateWorkout from "./components/WorkoutCreate";
 import TemplateList from "./components/TemplateList";
 import TemplateView from "./components/TemplateView";
+import EditTemplate from "./components/EditTemplate";
 import { useState } from "react";
 
 
@@ -34,7 +35,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path={"/signup"} element={<Signup />}></Route>
-                <Route path={"/"} element={<Signup />}></Route>
+                <Route path={"/"} element={<Login updateToken={updateToken}/>}></Route>
                 <Route path={"/login"} element={<Login updateToken={updateToken}/>}></Route>
 
                 <Route
@@ -50,6 +51,12 @@ function App() {
                     </ProtectedRoute>}>
                 </Route>
                 <Route 
+                    path={"/create-workout/"}
+                    element={<ProtectedRoute token={access_token}>
+                        <CreateWorkout />
+                    </ProtectedRoute>}>
+                </Route>
+                <Route 
                     path={"/templates/"}
                     element={<ProtectedRoute token={access_token}>
                         <TemplateList />
@@ -60,12 +67,11 @@ function App() {
                     element={<ProtectedRoute token={access_token}>
                         <TemplateView />
                     </ProtectedRoute>}>
-
                 </Route>
-                <Route 
-                    path={"/create-workout/"}
+                <Route
+                    path={"/edit-template/:id"}
                     element={<ProtectedRoute token={access_token}>
-                        <CreateWorkout />
+                        <EditTemplate />
                     </ProtectedRoute>}>
                 </Route>
             </Routes>

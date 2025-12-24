@@ -79,7 +79,7 @@ export default function ListTemplates() {
                         </div>
                     ))}
                 <button onClick={() => handleDelete(template.id)}>Delete</button>
-                <button onClick={() => navigate(`/templates/${template.id}`)}>Edit</button>
+                <button onClick={() => navigate(`/edit-template/${template.id}`)}>Edit</button>
                 </div>
             ))}
         </>

@@ -54,6 +54,7 @@ export default function Workouts() {
                 ))}
             </ul>
             <button onClick={() => navigate("/create-workout")}>Create Workout</button>
+            <button onClick={() => navigate("/templates/")}>Templates</button>
         </div>
     )
 }

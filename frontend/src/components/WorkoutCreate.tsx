@@ -13,7 +13,6 @@ interface Exercise {
     sets: Set[]
 }
 
-
 interface Workout {
     workout_name: string,
     date: string,
@@ -64,7 +63,6 @@ export default function CreateWorkout() {
             }
             const result = await response.json();
             alert("Successfully created new workout");
-            console.log(result);
 
             return (
                 navigate(`/workouts/${result.id}`)
