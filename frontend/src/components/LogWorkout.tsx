@@ -142,7 +142,7 @@ export default function LogWorkout() {
     }
 
     function changeSetValues(exerciseID: string, targetSetID: string, field: "weight" | "reps", value: number) {
-        const newSetValue = isNaN(value) ? "" : value;
+        const newSetValue = isNaN(value) ? 0 : value;
         const updatedSet = template.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === targetSetID
                 ? {...set, [field]: newSetValue}
@@ -189,20 +189,25 @@ export default function LogWorkout() {
                     <label>Set</label>
                     <label>Previous</label>
                 </div>
-                {exercise.sets.map((set) => 
-                    <div key={set.id} className="container">
-                        <div className="container-row">
-                            {showPreviousSet(set.weight, set.reps)}
-                        </div>
+                {exercise.sets.map((set, index) => {
+                    const previousSet = index > 0 ? exercise.sets[index-1] : null;
+                    const previousWeight = previousSet ? previousSet.weight : 0;
+                    const previousReps = previousSet ? previousSet.reps : 0;
+                    return (
                         <div key={set.id} className="container">
-                            <label>lbs</label>
-                            <input onChange={(e) => changeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" placeholder={`${set.weight}` }/>
-                            <label>Reps</label>
-                            <input onChange={(e) => changeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" placeholder={`${set.reps}`}/>
-                            <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
+                            <div className="container-row">
+                                {showPreviousSet(set.weight, set.reps)}
+                            </div>
+                            <div key={set.id} className="container">
+                                <label>lbs</label>
+                                <input onChange={(e) => changeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" value={set.weight === 0 && set.reps === 0 ? "" : set.weight} placeholder={`${previousWeight}`}/>
+                                <label>Reps</label>
+                                <input onChange={(e) => changeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" value={set.reps === 0 ? "" : set.reps} placeholder={`${previousReps}`}/>
+                                <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                })}
                 <button onClick={() => AddSet(exercise.id)}>Add Set</button>
             </div>
         )
