@@ -2,3 +2,8 @@
     display: flex;
     padding-left: 5rem;
 }
+
+.container-row {
+    display: flex;
+    padding-right: 1rem;
+}
