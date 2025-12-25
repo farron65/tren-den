@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Workouts() {
+export default function WorkoutsHistory() {
 
     const [workouts, setWorkouts] = useState<any[]>([]);
     const navigate = useNavigate();

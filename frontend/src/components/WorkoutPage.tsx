@@ -51,13 +51,9 @@ export default function WorkoutPage() {
                     </h3>
                     {exercise.sets.map((set: any) => (
                         <div key={set.id}>
-                            <h4>
-                                Weight: {set.weight}
-                            </h4>
-                            <h4>
-                                Reps: {set.reps}
-                            </h4>
-
+                            <label>
+                                {set.weight} lbs x {set.reps}
+                            </label>
                         </div>
                         ))}
                 </li>

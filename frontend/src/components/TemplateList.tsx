@@ -68,9 +68,12 @@ export default function ListTemplates() {
         <h1>Templates</h1>
             {templates.map((template) => (
                 <div key={template.id}>
-                    <h2>
-                        {template.workout_name}
-                    </h2>
+                    <div className="container-row">  
+                        <h2>
+                            {template.workout_name}
+                        </h2>
+                        <button onClick={() => navigate(`/log-workout/${template.id}`)}>Start Workout</button>
+                    </div>
                     {template.exercises.map((exercise: any) => (
                         <div key={exercise.id}>
                             <p>

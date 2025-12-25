@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import Workouts from "./components/Workouts";
+import WorkoutsHistory from "./components/WorkoutsHistory";
 import WorkoutPage from "./components/WorkoutPage";
 import CreateWorkout from "./components/WorkoutCreate";
+import LogWorkout from "./components/LogWorkout";
 import TemplateList from "./components/TemplateList";
 import TemplateView from "./components/TemplateView";
 import EditTemplate from "./components/EditTemplate";
@@ -41,13 +42,19 @@ function App() {
                 <Route
                     path={"/workouts"}
                     element={<ProtectedRoute token={access_token}>
-                        <Workouts/>
+                        <WorkoutsHistory/>
                     </ProtectedRoute>}>
                 </Route>
                 <Route
                     path={"/workouts/:id"} 
                     element={<ProtectedRoute token={access_token}>
                         <WorkoutPage />
+                    </ProtectedRoute>}>
+                </Route>
+                <Route 
+                    path={"/log-workout/:id"}
+                    element={<ProtectedRoute token={access_token}>
+                        <LogWorkout />
                     </ProtectedRoute>}>
                 </Route>
                 <Route 
