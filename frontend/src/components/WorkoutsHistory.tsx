@@ -7,10 +7,10 @@ export default function WorkoutsHistory() {
     const navigate = useNavigate();
     
     const access_token = localStorage.getItem("access_token");
-    
+    const url = "http://127.0.0.1:8000/workouts";
+
     useEffect(() => {
         const fetchWorkouts = async () => {
-            const url = "http://127.0.0.1:8000/workouts";
             if (!access_token){
                 alert("Access token needed");
                 return;
@@ -31,6 +31,32 @@ export default function WorkoutsHistory() {
         fetchWorkouts();
     }, []);
 
+    async function handleDelete(targetID: string) {
+        const url = `http://127.0.0.1:8000/workouts/${targetID}`;
+        const requestOptions = {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json"
+            }
+        }
+
+        try {
+            const response = await fetch(url, requestOptions);
+    
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            alert("Successfully deleted workout");
+            const updatedWorkouts = workouts.filter((workout) => workout.id != targetID);
+            setWorkouts(updatedWorkouts);
+        }
+        catch (error) {
+            alert(error);
+        }
+
+    }
+
     if (workouts.length == 0){
         return (
             <div>
@@ -50,7 +76,8 @@ export default function WorkoutsHistory() {
                             {workout.workout_name}   
                         </Link>
                         {workout.date}
-                    </li>  
+                        <button onClick={() => handleDelete(workout.id)}>X</button>
+                    </li> 
                 ))}
             </ul>
             <button onClick={() => navigate("/create-workout")}>Create Workout</button>
