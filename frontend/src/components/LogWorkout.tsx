@@ -25,7 +25,10 @@ export default function LogWorkout() {
         exercises: []
     });
     const [loading, setLoading] = useState(true);
-
+    const [originalTemplate, setOriginalTemplate] = useState<Template>({
+        workout_name: "",
+        exercises: []
+    });
     const navigate = useNavigate();
 
     const access_token = localStorage.getItem("access_token");
@@ -45,6 +48,7 @@ export default function LogWorkout() {
                 }
                 const result = await response.json();
                 setTemplate(result);
+                setOriginalTemplate(result);
             }
             catch (error) {
                 alert(error);
@@ -84,7 +88,6 @@ export default function LogWorkout() {
         }
 
         const requestOptions = getRequestOptions("POST", dataToSend);
-        console.log(JSON.stringify(dataToSend) + "\n\n\n")
         try {
             const saveWorkout = await fetch("http://127.0.0.1:8000/workouts/", requestOptions);
 
@@ -119,11 +122,18 @@ export default function LogWorkout() {
         return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day}`; 
     }
 
-    function showPreviousSet(weight: number, reps: number) {
-        if (weight > 0 || reps > 0) {
-            return <label>{weight} lbs x {reps}</label>
+    function showPreviousSet(targetExID: string, targetSetID: string) {
+        const originalExercise = originalTemplate.exercises.find(ex => ex.id === targetExID)
+        
+        if (!originalExercise) {
+            return <label> - </label>
         }
-        return <label> - </label>
+        const previousOriginalSet = originalExercise.sets.find(set => set.id === targetSetID);
+
+        if (!previousOriginalSet || (previousOriginalSet.weight === 0 && previousOriginalSet.reps === 0)) {
+            return <label> - </label>
+        }
+        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
     }
 
     function DeleteSet(targetExID: string, targetSetID: string) {
@@ -131,7 +141,6 @@ export default function LogWorkout() {
             ? {...exercise, sets: exercise.sets.filter((set) => set.id != targetSetID)}
             : exercise
         )
-
         setTemplate({...template, exercises: updatedSet});
     }
 
@@ -196,7 +205,7 @@ export default function LogWorkout() {
                     return (
                         <div key={set.id} className="container">
                             <div className="container-row">
-                                {showPreviousSet(set.weight, set.reps)}
+                                {showPreviousSet(exercise.id, set.id)}
                             </div>
                             <div key={set.id} className="container">
                                 <label>lbs</label>
