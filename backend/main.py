@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlmodel import select
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from datetime import timedelta, date
 
@@ -179,6 +179,19 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
             })
     
     return user_exercise_data
+
+@app.get("/exercises/{exercise_name}")
+async def get_exercise_data(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.id))).first()
+    user_exercise_data = []
+    
+    if not user_exercise:
+        raise HTTPException(404, "Not Found")
+    
+    for set in user_exercise.sets:
+        user_exercise_data.append({"id": set.id, "weight": set.weight, "reps": set.reps})
+        
+    return user_exercise_data   
 
 @app.patch("/sets/{set_id}", response_model=SetUpdate)
 async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
