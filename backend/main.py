@@ -16,7 +16,7 @@ from database import create_db_and_tables, SessionDep
 
 from models import Workout, Exercise, SetDetails, User, Template
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary, TemplateUpdate
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
@@ -128,11 +128,12 @@ async def get_user_template(template_id: int, current_user: Annotated[User, Depe
         raise HTTPException(404, "Template doesn't exist")
     
     latest_ex_sets = []
-    
-    
+
     for exercise in user_template.exercises:
-        latest_ex_sets.append(get_exercise_sets(exercise.exercise_name, current_user, session))
-    print(latest_ex_sets)
+        setValues = get_exercise_sets(exercise.exercise_name, current_user, session)
+        if setValues:
+            latest_ex_sets.append(setValues)
+        
     return {"id": user_template.id, "workout_name": user_template.workout_name, "exercises": user_template.exercises, "previous_workout_data": latest_ex_sets}
     
 @app.get("/workouts",response_model=list[WorkoutResponse])
@@ -278,7 +279,7 @@ async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, curren
     session.commit()
     return updated_workout
 
-@app.put("/templates/{template_id}", response_model=TemplateResponse)
+@app.put("/templates/{template_id}", response_model=TemplateUpdate)
 async def update_template(template_id: int, updated_template: TemplateCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
     
