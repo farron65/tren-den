@@ -21,6 +21,8 @@ from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead,
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
 
+from queries import get_exercise_sets
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
@@ -124,7 +126,14 @@ async def get_user_template(template_id: int, current_user: Annotated[User, Depe
     user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
     if not user_template:
         raise HTTPException(404, "Template doesn't exist")
-    return user_template
+    
+    latest_ex_sets = []
+    
+    
+    for exercise in user_template.exercises:
+        latest_ex_sets.append(get_exercise_sets(exercise.exercise_name, current_user, session))
+    print(latest_ex_sets)
+    return {"id": user_template.id, "workout_name": user_template.workout_name, "exercises": user_template.exercises, "previous_workout_data": latest_ex_sets}
     
 @app.get("/workouts",response_model=list[WorkoutResponse])
 async def get_user_workouts(
@@ -182,20 +191,13 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
 
 @app.get("/exercises/{exercise_name}")
 async def get_exercise_data(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.id))).first()
-    user_exercise_data = []
-    
-    if not user_exercise:
-        raise HTTPException(404, "Not Found")
-    
-    for set in user_exercise.sets:
-        user_exercise_data.append({"id": set.id, "weight": set.weight, "reps": set.reps})
+    user_exercise_data = get_exercise_sets(exercise_name, current_user, session)
         
     return user_exercise_data   
 
 @app.get("/recent/exercises/") 
 async def get_recent_exercises(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_exercises = session.exec(select(Exercise).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date)).limit(20)).all()
+    user_exercises = session.exec(select(Exercise).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date)).limit(20)).all() # type: ignore
     print(len(user_exercises))
     
     unique_ex_names = set()

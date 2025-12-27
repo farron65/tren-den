@@ -63,6 +63,7 @@ class TemplateResponse(BaseModel):
     id: int
     workout_name: str
     exercises: list[ExerciseResponse]
+    previous_workout_data: list[ExerciseResponse] | None
     
 class TemplateSummary(BaseModel):
     id: int
