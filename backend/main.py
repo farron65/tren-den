@@ -193,6 +193,28 @@ async def get_exercise_data(exercise_name: str, current_user: Annotated[User, De
         
     return user_exercise_data   
 
+@app.get("/recent/exercises/") 
+async def get_recent_exercises(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_exercises = session.exec(select(Exercise).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date)).limit(20)).all()
+    print(len(user_exercises))
+    
+    unique_ex_names = set()
+    
+    user_exercises_data = []
+    
+    if not user_exercises:
+        raise HTTPException(404, "Not Found")
+
+    for unique_ex in user_exercises:
+        if unique_ex.exercise_name not in unique_ex_names:
+            unique_ex_names.add(unique_ex.exercise_name)
+            temp = {"id": unique_ex.id, "exercise_name": unique_ex.exercise_name, "sets": []}
+            for ex_set in unique_ex.sets:
+                temp["sets"].append({"id": ex_set.id, "weight": ex_set.weight, "reps": ex_set.reps})
+            user_exercises_data.append(temp)
+        
+    return user_exercises_data
+
 @app.patch("/sets/{set_id}", response_model=SetUpdate)
 async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
