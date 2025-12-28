@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from hashlib import sha256
+import bcrypt
 import jwt
 
 from fastapi.security import OAuth2PasswordBearer
@@ -18,15 +19,11 @@ from models import User
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 
 def hash_password(password: str):
-    # TODO: Replace SHA-256 with bcrypt for proper password hashing
-    # Current approach uses SHA-256 and Secret key as salt
-    # Now passwords are vulnerable to brute force attacks
-    combined = password + SECRET_KEY
-    hashed_password = sha256(combined.encode("UTF-8")).hexdigest()
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     return hashed_password
 
 def verify_password(plain_password: str, hashed_password: str):
-    return hash_password(plain_password) == hashed_password
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 def get_user(session: SessionDep, username: str):
     # Returns None instead of raising exception to prevent username enumeration
