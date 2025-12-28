@@ -44,7 +44,6 @@ export default function LogWorkout() {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
-                console.log(result.previous_workout_data);
                 setTemplate(result);
                 setOriginalTemplate(result.previous_workout_data);
             }
@@ -128,7 +127,6 @@ export default function LogWorkout() {
             return <label> - </label>
         }
         const previousOriginalSet = originalExercise.sets.at(setIndex);
-        console.log(previousOriginalSet)
         if (!previousOriginalSet || (previousOriginalSet.weight === 0 && previousOriginalSet.reps === 0)) {
             return <label> - </label>
         }
