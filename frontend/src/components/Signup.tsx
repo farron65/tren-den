@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Signup() {
     const [userName, setUserName] = useState("");
     const [userPassword, setUserPassword] = useState("");
     const [userEmail, setUserEmail] = useState("");
+
+    const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -45,6 +47,7 @@ export default function Signup() {
             setUserPassword("");
             setUserEmail("");
 
+            navigate("/");
         }
         catch(error) {
             alert(error);
