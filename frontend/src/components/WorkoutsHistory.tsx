@@ -80,7 +80,7 @@ export default function WorkoutsHistory() {
                     </li> 
                 ))}
             </ul>
-            <button onClick={() => navigate("/create-workout")}>Create Workout</button>
+            <button onClick={() => navigate("/create-workout")}>Start Workout</button>
             <button onClick={() => navigate("/templates/")}>Templates</button>
         </div>
     )

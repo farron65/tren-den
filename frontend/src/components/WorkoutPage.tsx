@@ -41,7 +41,7 @@ export default function WorkoutPage() {
     return (
         <div>
             <h1>
-                Workout: {workout.workout_name}
+                {workout.workout_name}
             </h1>
             <h4>Date: {workout.date} </h4>
             {workout.exercises.map((exercise: any) => (
