@@ -14,7 +14,7 @@ interface Exercise {
 }
 
 interface Workout {
-    workout_name: string,
+    workoutName: string,
     date: string,
     exercises: Exercise[]
 }
@@ -22,7 +22,7 @@ interface Workout {
 export default function CreateWorkout() {
 
     const [workout, setWorkout] = useState<Workout>({
-        workout_name: "",
+        workoutName: "",
         date: "",
         exercises: []
     });
@@ -32,11 +32,13 @@ export default function CreateWorkout() {
     async function handleSubmit(e: React.FormEvent) {
 
         e.preventDefault();
+        
+        const workoutName = workout.workoutName ? workout.workoutName : getHH();
 
         const url = "http://127.0.0.1:8000/workouts";
         const dataToSend = {
-            workout_name: workout.workout_name,
-            date: workout.date,
+            workout_name: workoutName,
+            date: getDate("post"),
             exercises: workout.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
                 sets: exercise.sets.map((set) => ({
@@ -45,6 +47,7 @@ export default function CreateWorkout() {
                 }))
             }))
         }
+        console.log(JSON.stringify(dataToSend));
 
         const requestOptions = {
             method: "POST",
@@ -56,6 +59,7 @@ export default function CreateWorkout() {
         }
 
         try {
+            console.log(url, requestOptions);
             const response = await fetch(url, requestOptions);
             
             if (!response.ok) {
@@ -82,8 +86,8 @@ export default function CreateWorkout() {
         return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day} ${today.toLocaleTimeString("it-IT")}`; 
     }
 
-    function ChangeWorkoutValues(workoutName: string) {
-        const updatedWorkout = {...workout, workoutName}
+    function ChangeWorkoutValues(newWorkoutName: string) {
+        const updatedWorkout = {...workout, workoutName: newWorkoutName}
         setWorkout(updatedWorkout);
     }
 
@@ -128,6 +132,11 @@ export default function CreateWorkout() {
         const newExercise = [...workout.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}]
         setWorkout({...workout, exercises: newExercise})
     }
+
+    function getHH() {
+        const today = new Date()
+        return today.getHours() < 12 ? "Morning Workout" : today.getHours() < 18 ? "Afternoon Workout" : "Evening workout";
+    }
     
     const exercises = workout.exercises.map((exercise) => {
         return (
@@ -153,7 +162,7 @@ export default function CreateWorkout() {
     return (
         <>
         <div>
-            <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workout_name}/>
+            <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workoutName}/>
             <button onClick={(e) => handleSubmit(e)}>Submit</button>  
             <div>
                 {getDate("view")}
