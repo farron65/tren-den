@@ -59,13 +59,13 @@ class WorkoutResponse(BaseModel):
     date: datetime
     exercises: list[ExerciseResponse]
     
-class TemplateResponse(BaseModel):
+class TemplateResponseWithAddData(BaseModel):
     id: int
     workout_name: str
     exercises: list[ExerciseResponse]
     previous_workout_data: list[ExerciseResponse]
     
-class TemplateUpdate(BaseModel):
+class TemplateResponse(BaseModel):
     id: int
     workout_name: str
     exercises: list[ExerciseResponse]

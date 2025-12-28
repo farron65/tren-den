@@ -16,7 +16,7 @@ from database import create_db_and_tables, SessionDep
 
 from models import Workout, Exercise, SetDetails, User, Template
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary, TemplateUpdate
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
@@ -121,7 +121,7 @@ async def get_user_templates(current_user: Annotated[User, Depends(get_current_a
     user_templates = session.exec(select(Template).where(Template.user == current_user)).all()
     return user_templates
 
-@app.get("/templates/{template_id}", response_model=TemplateResponse)
+@app.get("/templates/{template_id}", response_model=TemplateResponseWithAddData)
 async def get_user_template(template_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
     if not user_template:
@@ -279,7 +279,7 @@ async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, curren
     session.commit()
     return updated_workout
 
-@app.put("/templates/{template_id}", response_model=TemplateUpdate)
+@app.put("/templates/{template_id}", response_model=TemplateResponse)
 async def update_template(template_id: int, updated_template: TemplateCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
     
