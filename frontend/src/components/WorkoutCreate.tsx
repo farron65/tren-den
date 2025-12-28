@@ -73,8 +73,17 @@ export default function CreateWorkout() {
         }
     }
 
-    function ChangeWorkoutValues(field: "workout_name" | "date", value: string) {
-        const updatedWorkout = {...workout, [field]: value}
+    function getDate(dateType: string) {
+        const today = new Date();
+        const month = today.toLocaleString("default", {month: "short"});
+        const day = today.getDate();
+        const year = today.getFullYear();
+
+        return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day} ${today.toLocaleTimeString("it-IT")}`; 
+    }
+
+    function ChangeWorkoutValues(workoutName: string) {
+        const updatedWorkout = {...workout, workoutName}
         setWorkout(updatedWorkout);
     }
 
@@ -127,14 +136,14 @@ export default function CreateWorkout() {
                 <input type="text" onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} key={exercise.id} />
                 
                 <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
-                <button onClick={() => DeleteExercise(exercise.id)}>Delete Exercise</button>
+                <button onClick={() => DeleteExercise(exercise.id)}>X</button>
                 {exercise.sets.map((set) => 
                     <div key={set.id}>
                         <label>Weight</label>
                         <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} value={set.weight}/>
                         <label>Reps</label>
                         <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} value={set.reps}/>
-                        <button onClick={() => DeleteSet(exercise.id, set.id)}>Delete</button>
+                        <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
                     </div>
                 )}
             </div>
@@ -144,20 +153,16 @@ export default function CreateWorkout() {
     return (
         <>
         <div>
-            <input onChange={(e) => ChangeWorkoutValues("workout_name", e.target.value)} type="text" value={workout.workout_name}/>
-        </div>
-        <div>
-            <input onChange={(e) => ChangeWorkoutValues("date", e.target.value)} type="text" value={workout.date}/>
-        </div>
-        <div>
-            <button onClick={AddExercise}>Add Exercise</button>
-        </div>
-        <div>
+            <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workout_name}/>
+            <button onClick={(e) => handleSubmit(e)}>Submit</button>  
+            <div>
+                {getDate("view")}
+            </div>
             <ol>
                 {exercises}
             </ol>
+            <button onClick={AddExercise}>Add Exercise</button>  
         </div>
-        <button onClick={(e) => handleSubmit(e)}>Submit</button>
         </>
     )
 
