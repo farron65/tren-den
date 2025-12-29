@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./sets.css";
 
@@ -26,8 +26,26 @@ export default function LogWorkout() {
     });
     const [loading, setLoading] = useState(true);
     const [originalTemplate, setOriginalTemplate] = useState<Exercise[]>([]);
-    const navigate = useNavigate();
+    const originalTemplateRef = useRef<Exercise[]>([]);
 
+    const debounce = <T extends unknown[]> (
+        callback: (...args: T) => void,
+        delay: number,
+    ) => {
+        let timeoutTimer: ReturnType<typeof setTimeout>;
+
+        return (...args: T) => {
+            clearTimeout(timeoutTimer);
+
+            timeoutTimer = setTimeout(() => {
+                callback(...args);
+            }, delay)
+        }
+    };
+    
+    const debouncedGetPreviousSets = useRef(debounce(getPreviousSets, 3000));
+
+    const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
     const headers = {"Authorization": `Bearer ${access_token}`}
 
@@ -46,6 +64,7 @@ export default function LogWorkout() {
                 const result = await response.json();
                 setTemplate(result);
                 setOriginalTemplate(result.previous_workout_data);
+                originalTemplateRef.current = result.previous_workout_data;
             }
             catch (error) {
                 alert(error);
@@ -56,18 +75,6 @@ export default function LogWorkout() {
         }
         fetchTemplate();
     }, []);
-
-    function getRequestOptions(method: string, dataToSend: {}) {
-        const requestOptions = {
-            method: method,
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dataToSend),
-        }
-        return requestOptions;
-    }
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
@@ -107,7 +114,18 @@ export default function LogWorkout() {
         catch (error) {
             alert(error);
         }
+    }
 
+    function getRequestOptions(method: string, dataToSend: {}) {
+        const requestOptions = {
+            method: method,
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dataToSend),
+        }
+        return requestOptions;
     }
 
     function getDate(dateType: string) {
@@ -131,6 +149,29 @@ export default function LogWorkout() {
             return <label> - </label>
         }
         return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
+    }
+
+    async function getPreviousSets(targetExName: string) {
+
+        const headers = {"Authorization": `Bearer ${access_token}`}
+        const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
+        console.log(originalTemplateRef);
+        try {
+            const response = await fetch(url, {headers: headers});
+
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`)
+            }
+            
+            const previousSetData = await response.json();
+            const updatedOriginalTemplate = [...originalTemplateRef.current, previousSetData]
+            setOriginalTemplate(updatedOriginalTemplate);
+            originalTemplateRef.current = updatedOriginalTemplate
+            console.log(updatedOriginalTemplate);
+        }
+        catch (error) {
+            alert(error);
+        }
     }
 
     function DeleteSet(targetExID: string, targetSetID: string) {
@@ -159,6 +200,7 @@ export default function LogWorkout() {
     }
 
     function ChangeExerciseName(targetExID: string, newExerciseName: string) {
+        debouncedGetPreviousSets.current(newExerciseName);
         const updatedExercise = template.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, exercise_name: newExerciseName}
             : exercise
