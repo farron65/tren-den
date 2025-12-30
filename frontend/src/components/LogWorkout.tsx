@@ -25,9 +25,15 @@ export default function LogWorkout() {
         exercises: []
     });
     const [loading, setLoading] = useState(true);
+
     const [originalTemplate, setOriginalTemplate] = useState<Exercise[]>([]);
     const originalTemplateRef = useRef<Exercise[]>([]);
+    
+    const [modal, setModal] = useState(false);
 
+    const toggleModal = () => {
+        setModal(!modal);
+    }
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
         delay: number,
@@ -281,14 +287,28 @@ export default function LogWorkout() {
             <h3>
                 {getDate("view")}
             </h3>
-            <button onClick={(e) => handleSave(e, "Save")}>Finish</button>
-            <button onClick={(e) => handleSave(e,"Update")}>Finish and Update</button>
+            <button onClick={toggleModal}>Finish</button>
             <div>
                 <ol>
                     {exercises}
                 </ol>
             </div>
             <button onClick={AddExercise}>Add Exercise</button>
+
+            {modal && (
+                <div className="modal">
+                    <div onClick={toggleModal} className="overlay">
+                        <div className="modal-content">
+                            <div>
+                                <button onClick={(e) => handleSave(e, "Save")}>Save Workout Only</button>
+                            </div>
+                            <div>
+                                <button onClick={(e) => handleSave(e, "Update")}>Save Workout and Update Template</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
