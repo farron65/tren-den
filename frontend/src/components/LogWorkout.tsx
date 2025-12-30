@@ -43,7 +43,7 @@ export default function LogWorkout() {
         }
     };
     
-    const debouncedRequest = useRef(debounce(getPreviousSets, 3000));
+    const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
     
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
@@ -76,7 +76,7 @@ export default function LogWorkout() {
         fetchTemplate();
     }, []);
 
-    async function handleSave(e: React.FormEvent) {
+    async function handleSave(e: React.FormEvent, method: string) {
         e.preventDefault();
 
         const dataToSend = {
@@ -90,7 +90,6 @@ export default function LogWorkout() {
                 }))
             }))
         }
-
         const requestOptions = getRequestOptions("POST", dataToSend);
         try {
             const saveWorkout = await fetch("http://127.0.0.1:8000/workouts/", requestOptions);
@@ -100,12 +99,25 @@ export default function LogWorkout() {
             }
             alert("You are a beast 💪🏆");
 
-            const { date, ...templateUpdate } = dataToSend;
+            if (method === "Save") {
+                const exercises = dataToSend.exercises;
+    
+                const response = await fetch(url, getRequestOptions("PATCH", exercises));
+    
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                alert("Successfully saved workout, without changing the workout template");
+            }
 
-            const response = await fetch(url, getRequestOptions("PUT", templateUpdate));
-
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
+            else if (method === "Update") {
+                const { date, ...updatedWorkout} = dataToSend;
+                const response = await fetch(url, getRequestOptions("PUT", updatedWorkout));
+    
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                alert("Successfully saved workout, and updated the workout template");
             }
 
             navigate("/workouts");
@@ -269,7 +281,8 @@ export default function LogWorkout() {
             <h3>
                 {getDate("view")}
             </h3>
-            <button onClick={handleSave}>Finish</button>
+            <button onClick={(e) => handleSave(e, "Save")}>Finish</button>
+            <button onClick={(e) => handleSave(e,"Update")}>Finish and Update</button>
             <div>
                 <ol>
                     {exercises}
