@@ -16,7 +16,7 @@ from database import create_db_and_tables, SessionDep
 
 from models import Workout, Exercise, SetDetails, User, Template
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
+from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, SetUpdate, ExerciseUpdate, WorkoutUpdate, DeleteAccountRequest, ExerciseCreate, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
@@ -279,6 +279,34 @@ async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, curren
     session.commit()
     return updated_workout
 
+@app.patch("/templates/{template_id}")
+async def update_template_values(template_id: int, updated_values: list[ExerciseCreate], current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
+    
+    if not user_template:
+        raise HTTPException(400, "Bad Request")
+
+    template_values = dict()
+    
+    for template_exercise in user_template.exercises:
+        template_values[template_exercise.exercise_name.lower()] = template_exercise
+    
+    for exercise in updated_values:
+        if exercise.exercise_name.lower() in template_values:
+
+            template_values[exercise.exercise_name.lower()].sets = []
+            
+            
+            for set in exercise.sets:
+                db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=template_values[exercise.exercise_name.lower()])
+    
+                session.add(db_set)      
+    
+    session.commit()
+    session.refresh(user_template)    
+    return user_template
+    
+    
 @app.put("/templates/{template_id}", response_model=TemplateResponse)
 async def update_template(template_id: int, updated_template: TemplateCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_template = session.exec(select(Template).where(Template.user == current_user).where(Template.id == template_id)).first()
