@@ -43,8 +43,8 @@ export default function LogWorkout() {
         }
     };
     
-    const debouncedGetPreviousSets = useRef(debounce(getPreviousSets, 3000));
-
+    const debouncedRequest = useRef(debounce(getPreviousSets, 3000));
+    
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
     const headers = {"Authorization": `Bearer ${access_token}`}
@@ -139,7 +139,7 @@ export default function LogWorkout() {
 
     function showPreviousSet(targetExName: string, setIndex: number) {
 
-        const originalExercise = originalTemplate.find(exercise => exercise.exercise_name === targetExName);
+        const originalExercise = originalTemplate.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
             return <label> - </label>
@@ -155,7 +155,6 @@ export default function LogWorkout() {
 
         const headers = {"Authorization": `Bearer ${access_token}`}
         const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
-        console.log(originalTemplateRef);
         try {
             const response = await fetch(url, {headers: headers});
 
@@ -163,11 +162,14 @@ export default function LogWorkout() {
                 throw new Error(`Response status: ${response.status}`)
             }
             
+
             const previousSetData = await response.json();
-            const updatedOriginalTemplate = [...originalTemplateRef.current, previousSetData]
-            setOriginalTemplate(updatedOriginalTemplate);
-            originalTemplateRef.current = updatedOriginalTemplate
-            console.log(updatedOriginalTemplate);
+            console.log(previousSetData);
+            if (previousSetData) {
+                const updatedOriginalTemplate = [...originalTemplateRef.current, previousSetData]
+                setOriginalTemplate(updatedOriginalTemplate);
+                originalTemplateRef.current = updatedOriginalTemplate;
+            }
         }
         catch (error) {
             alert(error);
@@ -200,12 +202,12 @@ export default function LogWorkout() {
     }
 
     function ChangeExerciseName(targetExID: string, newExerciseName: string) {
-        debouncedGetPreviousSets.current(newExerciseName);
         const updatedExercise = template.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, exercise_name: newExerciseName}
             : exercise
         );
         setTemplate({...template, exercises: updatedExercise});
+        debouncedRequest.current(newExerciseName);
     }
 
     function AddSet(targetExID: string) {
