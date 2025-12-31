@@ -62,7 +62,6 @@ export default function LogWorkout() {
     const url = `http://127.0.0.1:8000/templates/${templateId.id}`;
 
     useEffect(() => {
-        console.log("i'm running");
         const fetchTemplate = async () => {
             try {
                 const response = await fetch(url, {headers: headers});
@@ -185,7 +184,6 @@ export default function LogWorkout() {
             
 
             const previousSetData = await response.json();
-            console.log(previousSetData);
             if (previousSetData) {
                 const updatedOriginalTemplate = [...templateRef.current, previousSetData]
                 setOriginalTemplate(updatedOriginalTemplate);
@@ -198,23 +196,16 @@ export default function LogWorkout() {
     }
 
     function hasTemplateChanged(template: Exercise[], templateRef: Exercise[]) {
-        console.log("IM RUNNNNNNING");
         let message = "";
         let exAdded = 0;
         let exRemoved = 0;
         let setsAdded = 0;
         let setsRemoved = 0;
 
-        if (template.length > templateRef.length) {
-            exAdded += template.length - templateRef.length;
-        }
-        else if(template.length < templateRef.length) {
-            exRemoved += templateRef.length - template.length;
-        } 
-
         template.forEach((exercise) => {
             const refExercise = templateRef.find((refEx) => refEx.exercise_name === exercise.exercise_name);
             if (!refExercise) {
+                exAdded += 1;
                 setsAdded += exercise.sets.length;
             }
             else {
@@ -231,6 +222,7 @@ export default function LogWorkout() {
         templateRef.forEach((exercise) => {
             const templateExercise = template.find((templateEx) => templateEx.exercise_name === exercise.exercise_name);
             if (!templateExercise) {
+                exRemoved += 1;
                 setsRemoved += exercise.sets.length;
             }
         })
