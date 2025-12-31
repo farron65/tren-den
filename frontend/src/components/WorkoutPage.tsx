@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function WorkoutPage() {
     const workoutId = useParams();
     const [workout, setWorkout] = useState<any>(null);
     const access_token = localStorage.getItem("access_token");
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchWorkout = async () => {
@@ -35,6 +37,7 @@ export default function WorkoutPage() {
         return (
             <div>
                 <h1>Loading...</h1>
+                <button onClick={() => navigate("/workouts")}>Go back</button>
             </div>
         )
     }
@@ -58,6 +61,8 @@ export default function WorkoutPage() {
                         ))}
                 </li>
             ))}
+            <button onClick={() => navigate("/workouts")}>Go back</button>
+
         </div>
     )
 }
