@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Set {
@@ -29,6 +29,24 @@ export default function CreateWorkout() {
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
 
+    const exercisesData = useRef<Exercise[]>([]);
+
+    const debounce = <T extends unknown[]> (
+        callback: (...args: T) => void,
+        delay: number,
+    ) => {
+        let timeoutTimer: ReturnType<typeof setTimeout>;
+
+        return (...args: T) => {
+            clearTimeout(timeoutTimer);
+            timeoutTimer = setTimeout(() => {
+                callback(...args);
+            }, delay)
+        }
+    };
+        
+    const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
+
     async function handleSubmit(e: React.FormEvent) {
 
         e.preventDefault();
@@ -47,7 +65,6 @@ export default function CreateWorkout() {
                 }))
             }))
         }
-        console.log(JSON.stringify(dataToSend));
 
         const requestOptions = {
             method: "POST",
@@ -77,6 +94,40 @@ export default function CreateWorkout() {
         }
     }
 
+    async function getPreviousSets(targetExName: string) {
+        const headers = {"Authorization": `Bearer ${access_token}`}
+        const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
+        try {
+            const response = await fetch(url, {headers: headers});
+
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`)
+            }
+
+            const previousSetData = await response.json();
+
+            if (previousSetData) {
+                exercisesData.current = [...exercisesData.current, previousSetData];
+            }
+        }
+        catch (error) {
+            alert(error);
+        }
+    }
+
+    function showPreviousSet(targetExName: string, setIndex: number) {
+        const originalExercise = exercisesData.current.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
+        
+        if (!originalExercise) {
+            return <label> - </label>
+        }
+        const previousOriginalSet = originalExercise.sets.at(setIndex);
+        if (!previousOriginalSet || (previousOriginalSet.weight === 0 && previousOriginalSet.reps === 0)) {
+            return <label> - </label>
+        }
+        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
+    }
+
     function getDate(dateType: string) {
         const today = new Date();
         const month = today.toLocaleString("default", {month: "short"});
@@ -100,7 +151,7 @@ export default function CreateWorkout() {
     }
     
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
-        const newSetValue = isNaN(value) ? "" : value;
+        const newSetValue = isNaN(value) ? 0 : value;
         const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
             ? {...exercise, sets: exercise.sets.map((set) => set.id == setId
                 ? {...set, [field]: newSetValue}
@@ -126,6 +177,7 @@ export default function CreateWorkout() {
     function ChangeExerciseName(id: string, newExerciseName: string) {
         const updatedExerciseName = workout.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
         setWorkout({...workout, exercises: updatedExerciseName});
+        debouncedRequest.current(newExerciseName);
     }
 
     function AddExercise() {
@@ -137,24 +189,35 @@ export default function CreateWorkout() {
         const today = new Date()
         return today.getHours() < 12 ? "Morning Workout" : today.getHours() < 18 ? "Afternoon Workout" : "Evening workout";
     }
-    
     const exercises = workout.exercises.map((exercise) => {
         return (
             <div key={exercise.id}>
-                <label>Exercise Name</label>
-                <input type="text" onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} key={exercise.id} />
-                
-                <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
+                <input onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} type="text" value={exercise.exercise_name}></input>
                 <button onClick={() => DeleteExercise(exercise.id)}>X</button>
-                {exercise.sets.map((set) => 
-                    <div key={set.id}>
-                        <label>Weight</label>
-                        <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} value={set.weight}/>
-                        <label>Reps</label>
-                        <input type="number" onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} value={set.reps}/>
-                        <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
-                    </div>
-                )}
+                <div className="container-row">
+                    <label>Set</label>
+                    <label>Previous</label>
+                </div>
+                {exercise.sets.map((set, index) => {
+                    const previousSet = index > 0 ? exercise.sets[index-1] : null;
+                    const previousWeight = previousSet ? previousSet.weight : 0;
+                    const previousReps = previousSet ? previousSet.reps : 0;
+                    return (
+                        <div key={set.id} className="container">
+                            <div className="container-row">
+                                {showPreviousSet(exercise.exercise_name, index)}
+                            </div>
+                            <div key={set.id} className="container">
+                                <label>lbs</label>
+                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" value={set.weight === 0 && set.reps === 0 ? "" : set.weight} placeholder={`${previousWeight}`}/>
+                                <label>Reps</label>
+                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" value={set.reps === 0 ? "" : set.reps} placeholder={`${previousReps}`}/>
+                                <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
+                            </div>
+                        </div>
+                    )
+                })}
+                <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
             </div>
         )
     })
