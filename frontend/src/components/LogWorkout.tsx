@@ -32,11 +32,6 @@ export default function LogWorkout() {
     // Updating it triggers a rerender
     const [originalTemplate, setOriginalTemplate] = useState<Exercise[]>([]);
 
-    // reference that always holds the LATEST previous-workout data
-    // used inside the debounced getPreviousSets to avoid STALE closures.
-    // Must be manually kept in sync with originalTemplate
-    const templateRef = useRef<Exercise[]>([]);
-
     // Snapshot of the original workout structure on the first page load
     // Never changes after initialization
     // hasTemplateChanged uses this
@@ -88,7 +83,7 @@ export default function LogWorkout() {
 
                 setTemplate(result); // editable workout
                 setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
-                templateRef.current = result.previous_workout_data; // keep ref in sync
+                // templateRef.current = result.previous_workout_data; // keep ref in sync
                 originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
             }
             catch (error) {
@@ -203,9 +198,7 @@ export default function LogWorkout() {
 
             const previousSetData = await response.json();
             if (previousSetData) {
-                const updatedOriginalTemplate = [...templateRef.current, previousSetData]
-                setOriginalTemplate(updatedOriginalTemplate); // update UI
-                templateRef.current = updatedOriginalTemplate; // update ref for the next debounce call
+                setOriginalTemplate(setsData => [...setsData, previousSetData]); // update UI
             }
         }
         catch (error) {
