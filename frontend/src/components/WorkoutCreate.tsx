@@ -29,7 +29,7 @@ export default function CreateWorkout() {
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
 
-    const exercisesData = useRef<Exercise[]>([]);
+    const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
 
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
@@ -107,7 +107,7 @@ export default function CreateWorkout() {
             const previousSetData = await response.json();
 
             if (previousSetData) {
-                exercisesData.current = [...exercisesData.current, previousSetData];
+                setWorkoutExercises(exercises => [...exercises, previousSetData])
             }
         }
         catch (error) {
@@ -116,7 +116,7 @@ export default function CreateWorkout() {
     }
 
     function showPreviousSet(targetExName: string, setIndex: number) {
-        const originalExercise = exercisesData.current.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
+        const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
             return <label> - </label>
