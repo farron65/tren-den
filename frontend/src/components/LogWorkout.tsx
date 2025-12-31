@@ -20,14 +20,26 @@ interface Template {
 }
 
 export default function LogWorkout() {
+    // Current workout being edited by the user
     const [template, setTemplate] = useState<Template>({
         workout_name: "",
         exercises: []
     });
     const [loading, setLoading] = useState(true);
 
+    // Previous workout data used only to render the "Previous" column.
+    // showPreviousSet uses this
+    // Updating it triggers a rerender
     const [originalTemplate, setOriginalTemplate] = useState<Exercise[]>([]);
+
+    // reference that always holds the LATEST previous-workout data
+    // used inside the debounced getPreviousSets to avoid STALE closures.
+    // Must be manually kept in sync with originalTemplate
     const templateRef = useRef<Exercise[]>([]);
+
+    // Snapshot of the original workout structure on the first page load
+    // Never changes after initialization
+    // hasTemplateChanged uses this
     const originalTemplateRef = useRef<Exercise[]>([]);
     
     const [modal, setModal] = useState(false);
@@ -52,6 +64,9 @@ export default function LogWorkout() {
         }
     };
     
+    // Debounced function created ONCE on mount
+    // Because of Js closures, it would use stale values
+    // Using templateRef.current ensures we always read the latest data.
     const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
     
     const navigate = useNavigate();
@@ -70,10 +85,11 @@ export default function LogWorkout() {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
-                setTemplate(result);
-                setOriginalTemplate(result.previous_workout_data);
-                templateRef.current = result.previous_workout_data;
-                originalTemplateRef.current = result.previous_workout_data;
+
+                setTemplate(result); // editable workout
+                setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
+                templateRef.current = result.previous_workout_data; // keep ref in sync
+                originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
             }
             catch (error) {
                 alert(error);
@@ -171,6 +187,8 @@ export default function LogWorkout() {
         return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
     }
 
+    // Uses REF because this function is called by a debounced callback
+    // Avoids stale closures by reading from templateRef.current
     async function getPreviousSets(targetExName: string) {
 
         const headers = {"Authorization": `Bearer ${access_token}`}
@@ -186,8 +204,8 @@ export default function LogWorkout() {
             const previousSetData = await response.json();
             if (previousSetData) {
                 const updatedOriginalTemplate = [...templateRef.current, previousSetData]
-                setOriginalTemplate(updatedOriginalTemplate);
-                templateRef.current = updatedOriginalTemplate;
+                setOriginalTemplate(updatedOriginalTemplate); // update UI
+                templateRef.current = updatedOriginalTemplate; // update ref for the next debounce call
             }
         }
         catch (error) {
