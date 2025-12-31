@@ -27,13 +27,16 @@ export default function LogWorkout() {
     const [loading, setLoading] = useState(true);
 
     const [originalTemplate, setOriginalTemplate] = useState<Exercise[]>([]);
+    const templateRef = useRef<Exercise[]>([]);
     const originalTemplateRef = useRef<Exercise[]>([]);
     
     const [modal, setModal] = useState(false);
+    const [modalText, setModalText] = useState("");
 
     const toggleModal = () => {
         setModal(!modal);
     }
+
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
         delay: number,
@@ -59,7 +62,7 @@ export default function LogWorkout() {
     const url = `http://127.0.0.1:8000/templates/${templateId.id}`;
 
     useEffect(() => {
-        
+        console.log("i'm running");
         const fetchTemplate = async () => {
             try {
                 const response = await fetch(url, {headers: headers});
@@ -70,6 +73,7 @@ export default function LogWorkout() {
                 const result = await response.json();
                 setTemplate(result);
                 setOriginalTemplate(result.previous_workout_data);
+                templateRef.current = result.previous_workout_data;
                 originalTemplateRef.current = result.previous_workout_data;
             }
             catch (error) {
@@ -82,8 +86,7 @@ export default function LogWorkout() {
         fetchTemplate();
     }, []);
 
-    async function handleSave(e: React.FormEvent, method: string) {
-        e.preventDefault();
+    async function handleSave(method: string) {
 
         const dataToSend = {
             workout_name: template.workout_name,
@@ -184,13 +187,66 @@ export default function LogWorkout() {
             const previousSetData = await response.json();
             console.log(previousSetData);
             if (previousSetData) {
-                const updatedOriginalTemplate = [...originalTemplateRef.current, previousSetData]
+                const updatedOriginalTemplate = [...templateRef.current, previousSetData]
                 setOriginalTemplate(updatedOriginalTemplate);
-                originalTemplateRef.current = updatedOriginalTemplate;
+                templateRef.current = updatedOriginalTemplate;
             }
         }
         catch (error) {
             alert(error);
+        }
+    }
+
+    function hasTemplateChanged(template: Exercise[], templateRef: Exercise[]) {
+        console.log("IM RUNNNNNNING");
+        let message = "";
+        let exAdded = 0;
+        let exRemoved = 0;
+        let setsAdded = 0;
+        let setsRemoved = 0;
+
+        if (template.length > templateRef.length) {
+            exAdded += template.length - templateRef.length;
+        }
+        else if(template.length < templateRef.length) {
+            exRemoved += templateRef.length - template.length;
+        } 
+
+        template.forEach((exercise) => {
+            const refExercise = templateRef.find((refEx) => refEx.exercise_name === exercise.exercise_name);
+            if (!refExercise) {
+                setsAdded += exercise.sets.length;
+            }
+            else {
+                if (refExercise.sets.length > exercise.sets.length) {
+                    setsRemoved += refExercise.sets.length - exercise.sets.length;
+                }
+                else if (refExercise.sets.length < exercise.sets.length) {
+                    setsAdded += exercise.sets.length - refExercise.sets.length
+
+                }
+            }
+        })
+
+        templateRef.forEach((exercise) => {
+            const templateExercise = template.find((templateEx) => templateEx.exercise_name === exercise.exercise_name);
+            if (!templateExercise) {
+                setsRemoved += exercise.sets.length;
+            }
+        })
+
+        message += exAdded === 1 ? `Adds ${exAdded} exercises. `: exAdded > 1 ? `Adds ${exAdded} exercises. ` : ""; 
+        message += exRemoved === 1 ? `Removes ${exRemoved} exercises. `: exRemoved > 1 ? `Removes ${exRemoved} exercises. ` : "";  
+        message += setsAdded === 1 ? `Adds ${setsAdded} set. `: setsAdded > 1 ? `Adds ${setsAdded} sets. ` : "";
+        message += setsRemoved === 1 ? `Removes ${setsRemoved} set. `: setsRemoved > 1 ? `Removes ${setsRemoved} sets. ` : "";
+        
+        if (message) {
+            setModalText(message);
+            toggleModal();
+        }
+
+        else {
+            handleSave("Save");
         }
     }
 
@@ -287,7 +343,7 @@ export default function LogWorkout() {
             <h3>
                 {getDate("view")}
             </h3>
-            <button onClick={toggleModal}>Finish</button>
+            <button onClick={() => hasTemplateChanged(template.exercises, originalTemplateRef.current)}>Finish</button>
             <div>
                 <ol>
                     {exercises}
@@ -299,11 +355,15 @@ export default function LogWorkout() {
                 <div className="modal">
                     <div onClick={toggleModal} className="overlay">
                         <div className="modal-content">
+                            <p>
+                                You've made changes from original template. Would you like to update it?
+                                {modalText}
+                            </p>
                             <div>
-                                <button onClick={(e) => handleSave(e, "Save")}>Save Workout Only</button>
+                                <button onClick={() => handleSave("Save")}>Save Workout Only</button>
                             </div>
                             <div>
-                                <button onClick={(e) => handleSave(e, "Update")}>Save Workout and Update Template</button>
+                                <button onClick={() => handleSave("Update")}>Save Workout and Update Template</button>
                             </div>
                         </div>
                     </div>
