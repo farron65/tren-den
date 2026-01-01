@@ -195,7 +195,6 @@ export default function LogWorkout() {
                 throw new Error(`Response status: ${response.status}`)
             }
             
-
             const previousSetData = await response.json();
             if (previousSetData) {
                 setOriginalTemplate(setsData => [...setsData, previousSetData]); // update UI
@@ -212,6 +211,12 @@ export default function LogWorkout() {
         let exRemoved = 0;
         let setsAdded = 0;
         let setsRemoved = 0;
+
+        const validWorkout = template.every(isValidData)
+        if (!validWorkout) {
+            alert("All fields must be filled")
+            return;
+        }
 
         template.forEach((exercise) => {
             const refExercise = templateRef.find((refEx) => refEx.exercise_name === exercise.exercise_name);
@@ -251,6 +256,23 @@ export default function LogWorkout() {
         else {
             handleSave("Save");
         }
+    }
+
+    function isValidData(exercise: Exercise) {
+
+        if (!exercise.exercise_name) {
+            return false
+        }
+        
+        const valid = exercise.sets.every((set) => {
+            if (!set.reps) {
+                console.log("Rep is empty");
+                return false;
+            }
+            return true;
+        })
+
+        return valid;
     }
 
     function DeleteSet(targetExID: string, targetSetID: string) {

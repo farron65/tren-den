@@ -56,7 +56,6 @@ export default function CreateWorkout() {
         const url = "http://127.0.0.1:8000/workouts";
 
         const validData = workout.exercises.every(isValidData);
-        console.log(validData);
         if (!validData) {
             alert("All fields must be filled")
             return;
@@ -84,7 +83,6 @@ export default function CreateWorkout() {
         }
 
         try {
-            console.log(url, requestOptions);
             const response = await fetch(url, requestOptions);
             
             if (!response.ok) {
@@ -151,14 +149,11 @@ export default function CreateWorkout() {
     }
 
     function isValidData(exercise: Exercise) {
-        console.log(exercise.exercise_name);
         if (!exercise.exercise_name) {
             return false
         }
         const valid = exercise.sets.every((set) => {
-            console.log(set);
             if (!set.reps) {
-                console.log("Rep is empty");
                 return false;
             }
             return true;
