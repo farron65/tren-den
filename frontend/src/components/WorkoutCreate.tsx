@@ -157,18 +157,18 @@ export default function CreateWorkout() {
     }
 
     function showPreviousSet(targetExName: string, setIndex: number) {
+        
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
-            <label> - </label>
+            return <label> - </label>
         }
-        else {
-            const previousOriginalSet = originalExercise.sets.at(setIndex);
-            if (!previousOriginalSet || previousOriginalSet.reps === 0) {
-                return <label> - </label>
-            }
-            return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
+        
+        const previousOriginalSet = originalExercise.sets.at(setIndex);
+        if (!previousOriginalSet || previousOriginalSet.reps === 0) {
+            return <label> - </label>
         }
+        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
     }
 
     function getDate(dateType: string) {
