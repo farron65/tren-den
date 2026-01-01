@@ -104,6 +104,8 @@ export default function CreateWorkout() {
                 },
             body: JSON.stringify(dataToSend)
         }
+        console.log(url);
+        console.log(JSON.stringify(dataToSend));
 
         try {
             const response = await fetch(url, requestOptions);
@@ -157,7 +159,7 @@ export default function CreateWorkout() {
     }
 
     function showPreviousSet(targetExName: string, setIndex: number) {
-        
+
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
@@ -173,11 +175,15 @@ export default function CreateWorkout() {
 
     function getDate(dateType: string) {
         const today = new Date();
-        const month = today.toLocaleString("default", {month: "short"});
-        const day = today.getDate();
-        const year = today.getFullYear();
 
-        return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day} ${today.toLocaleTimeString("it-IT")}`; 
+        if (dateType === "view") {
+            const month = today.toLocaleString("default", {month: "short"});
+            const day = today.getDate();
+            const year = today.getFullYear();
+    
+            return `${month} ${day}, ${year}`; 
+        }
+        return today.toISOString();
     }
 
     function getHH() {
