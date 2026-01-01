@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Set {
@@ -46,6 +46,29 @@ export default function CreateWorkout() {
     };
         
     const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
+
+    const url = "http://127.0.0.1:8000/recent/exercises";
+    const headers = {"Authorization": `Bearer ${access_token}`}
+
+    useEffect(() => {
+        const fetchExercises = async () => {
+            try {
+                const response = await fetch(url, {headers: headers})
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                setWorkoutExercises(result);
+                console.log(result);
+            }
+            catch (error) {
+                alert(error);
+            }
+        }
+        fetchExercises();
+    }, [])
 
     async function handleSubmit(e: React.FormEvent) {
 
@@ -100,7 +123,18 @@ export default function CreateWorkout() {
         }
     }
 
-    async function getPreviousSets(targetExName: string) {
+    async function getPreviousSets(targetExName: string, allExercises: Exercise[]) {
+        // console.log(targetExName, workoutExercises);
+        const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
+        // console.log(exerciseInWorkout);
+        if (exerciseInWorkout) {
+            console.log("Found the exercise");
+            return;
+        }
+
+        if (!targetExName) return;
+        console.log("doing an API call");
+
         const headers = {"Authorization": `Bearer ${access_token}`}
         const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
         try {
@@ -114,6 +148,7 @@ export default function CreateWorkout() {
 
             if (previousSetData) {
                 setWorkoutExercises(exercises => [...exercises, previousSetData])
+                return previousSetData;
             }
         }
         catch (error) {
@@ -125,13 +160,15 @@ export default function CreateWorkout() {
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
-            return <label> - </label>
+            <label> - </label>
         }
-        const previousOriginalSet = originalExercise.sets.at(setIndex);
-        if (!previousOriginalSet || (previousOriginalSet.weight === 0 && previousOriginalSet.reps === 0)) {
-            return <label> - </label>
+        else {
+            const previousOriginalSet = originalExercise.sets.at(setIndex);
+            if (!previousOriginalSet || previousOriginalSet.reps === 0) {
+                return <label> - </label>
+            }
+            return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
         }
-        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
     }
 
     function getDate(dateType: string) {
@@ -201,7 +238,8 @@ export default function CreateWorkout() {
     function ChangeExerciseName(id: string, newExerciseName: string) {
         const updatedExerciseName = workout.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
         setWorkout({...workout, exercises: updatedExerciseName});
-        debouncedRequest.current(newExerciseName);
+
+        debouncedRequest.current(newExerciseName, workoutExercises);
     }
 
     function AddExercise() {
