@@ -54,6 +54,14 @@ export default function CreateWorkout() {
         const workoutName = workout.workoutName ? workout.workoutName : getHH();
 
         const url = "http://127.0.0.1:8000/workouts";
+
+        const validData = workout.exercises.every(isValidData);
+        console.log(validData);
+        if (!validData) {
+            alert("All fields must be filled")
+            return;
+        }
+
         const dataToSend = {
             workout_name: workoutName,
             date: getDate("post"),
@@ -137,6 +145,27 @@ export default function CreateWorkout() {
         return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day} ${today.toLocaleTimeString("it-IT")}`; 
     }
 
+    function getHH() {
+        const today = new Date()
+        return today.getHours() < 12 ? "Morning Workout" : today.getHours() < 18 ? "Afternoon Workout" : "Evening workout";
+    }
+
+    function isValidData(exercise: Exercise) {
+        console.log(exercise.exercise_name);
+        if (!exercise.exercise_name) {
+            return false
+        }
+        const valid = exercise.sets.every((set) => {
+            console.log(set);
+            if (!set.reps) {
+                console.log("Rep is empty");
+                return false;
+            }
+            return true;
+        })
+        return valid;
+    }
+
     function ChangeWorkoutValues(newWorkoutName: string) {
         const updatedWorkout = {...workout, workoutName: newWorkoutName}
         setWorkout(updatedWorkout);
@@ -185,10 +214,6 @@ export default function CreateWorkout() {
         setWorkout({...workout, exercises: newExercise})
     }
 
-    function getHH() {
-        const today = new Date()
-        return today.getHours() < 12 ? "Morning Workout" : today.getHours() < 18 ? "Afternoon Workout" : "Evening workout";
-    }
     const exercises = workout.exercises.map((exercise) => {
         return (
             <div key={exercise.id}>
