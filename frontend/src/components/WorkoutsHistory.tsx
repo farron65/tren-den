@@ -1,13 +1,24 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
+import "./sets.css";
+
+interface Workout {
+    id: string,
+    workout_name: string,
+    date: string
+}
 
 export default function WorkoutsHistory() {
 
-    const [workouts, setWorkouts] = useState<any[]>([]);
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
     const navigate = useNavigate();
     
     const access_token = localStorage.getItem("access_token");
     const url = "http://127.0.0.1:8000/workouts";
+
+    const [modal, setModal] = useState(false);
+    const [modalText, setModalText] = useState("");
+    const [workoutID, setWorkoutID] = useState("");
 
     useEffect(() => {
         const fetchWorkouts = async () => {
@@ -54,7 +65,15 @@ export default function WorkoutsHistory() {
         catch (error) {
             alert(error);
         }
+        finally {
+            setModal(!modal);
+        }
+    }
 
+    const toggleModal = (workout_name: string, workout_id: string, ) => {
+        setWorkoutID(workout_id);
+        setModalText(workout_name)
+        setModal(!modal);
     }
 
     if (workouts.length == 0){
@@ -71,17 +90,37 @@ export default function WorkoutsHistory() {
             <h1>Past workouts</h1>
             <ul>
                 {workouts.map(workout => (
-                    <li key={workout.id}>
-                        <Link to={`/workouts/${workout.id}`}>
-                            {workout.workout_name}   
-                        </Link>
-                        {workout.date}
-                        <button onClick={() => handleDelete(workout.id)}>X</button>
-                    </li> 
+                    <div key={workout.id}>
+                        <li>
+                            <Link to={`/workouts/${workout.id}`}>
+                                {workout.workout_name}   
+                            </Link>
+                            {workout.date}
+                            <button onClick={() => toggleModal(workout.workout_name, workout.id)}>X</button>
+                        </li> 
+                    </div>
                 ))}
             </ul>
             <button onClick={() => navigate("/create-workout")}>Start Workout</button>
             <button onClick={() => navigate("/templates/")}>Templates</button>
+            {modal && (
+                <div className="modal">
+                    <div onClick={() => setModal(!modal)} className="overlay">
+                        <div className="modal-content">
+                            <h3>
+                                Delete '{modalText}' workout?
+                            </h3>
+                            <p>
+                                Are you sure you want to delete this workout? It'll be gone forever.
+                            </p>
+                            <div>
+                                <button onClick={() => setModal(!modal)}>Cancel</button>
+                                <button onClick={() => handleDelete(workoutID)}>Delete</button> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
