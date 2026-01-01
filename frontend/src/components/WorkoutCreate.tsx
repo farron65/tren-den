@@ -247,6 +247,7 @@ export default function CreateWorkout() {
         <div>
             <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workoutName}/>
             <button onClick={(e) => handleSubmit(e)}>Submit</button>  
+            <button onClick={() => navigate("/workouts")}>Cancel Workout</button>
             <div>
                 {getDate("view")}
             </div>

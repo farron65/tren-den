@@ -263,7 +263,7 @@ export default function LogWorkout() {
         if (!exercise.exercise_name) {
             return false
         }
-        
+
         const valid = exercise.sets.every((set) => {
             if (!set.reps) {
                 console.log("Rep is empty");
@@ -369,6 +369,7 @@ export default function LogWorkout() {
                 {getDate("view")}
             </h3>
             <button onClick={() => hasTemplateChanged(template.exercises, originalTemplateRef.current)}>Finish</button>
+            <button onClick={() => navigate("/workouts")}>Cancel Workout</button>
             <div>
                 <ol>
                     {exercises}
