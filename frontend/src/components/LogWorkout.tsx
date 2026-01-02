@@ -109,6 +109,7 @@ export default function LogWorkout() {
                 }))
             }))
         }
+        console.log(dataToSend);
         const requestOptions = getRequestOptions("POST", dataToSend);
         try {
             const saveWorkout = await fetch("http://127.0.0.1:8000/workouts/", requestOptions);
@@ -161,11 +162,15 @@ export default function LogWorkout() {
 
     function getDate(dateType: string) {
         const today = new Date();
-        const month = today.toLocaleString("default", {month: "short"});
-        const day = today.getDate();
-        const year = today.getFullYear();
 
-        return  dateType === "view" ? `${month} ${day}, ${year}` : `${year}-${today.getMonth()+1}-${day} ${today.toLocaleTimeString("it-IT")}`; 
+        if (dateType === "view") {
+            const month = today.toLocaleString("default", {month: "short"});
+            const day = today.getDate();
+            const year = today.getFullYear();
+    
+            return `${month} ${day}, ${year}`; 
+        }
+        return today.toISOString();
     }
 
     function showPreviousSet(targetExName: string, setIndex: number) {
