@@ -3,7 +3,7 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import WorkoutsHistory from "./components/WorkoutsHistory";
 import WorkoutPage from "./components/WorkoutPage";
-import CreateWorkout from "./components/WorkoutCreate";
+import WorkoutForm from "./components/WorkoutForm";
 import LogWorkout from "./components/LogWorkout";
 import TemplateList from "./components/TemplateList";
 import TemplateView from "./components/TemplateView";
@@ -60,7 +60,13 @@ function App() {
                 <Route 
                     path={"/create-workout/"}
                     element={<ProtectedRoute token={access_token}>
-                        <CreateWorkout />
+                        <WorkoutForm isTemplate={false}/>
+                    </ProtectedRoute>}>
+                </Route>
+                <Route 
+                    path={"/create-template/"}
+                    element={<ProtectedRoute token={access_token}>
+                        <WorkoutForm isTemplate={true}/>
                     </ProtectedRoute>}>
                 </Route>
                 <Route 

@@ -19,13 +19,18 @@ interface Workout {
     exercises: Exercise[]
 }
 
-export default function CreateWorkout() {
+interface WorkoutProps {
+    isTemplate: boolean
+}
+
+export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
     const [workout, setWorkout] = useState<Workout>({
         workoutName: "",
         date: "",
         exercises: []
     });
+
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
 
@@ -51,6 +56,7 @@ export default function CreateWorkout() {
     const headers = {"Authorization": `Bearer ${access_token}`}
 
     useEffect(() => {
+        if (isTemplate) return;
         const fetchExercises = async () => {
             try {
                 const response = await fetch(url, {headers: headers})
@@ -76,14 +82,14 @@ export default function CreateWorkout() {
         
         const workoutName = workout.workoutName ? workout.workoutName : getHH();
 
-        const url = "http://127.0.0.1:8000/workouts";
+        const url = "http://127.0.0.1:8000/";
 
         const validData = workout.exercises.every(isValidData);
         if (!validData) {
             alert("All fields must be filled")
             return;
         }
-
+    
         const dataToSend = {
             workout_name: workoutName,
             date: getDate("post"),
@@ -96,33 +102,51 @@ export default function CreateWorkout() {
             }))
         }
 
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-                },
-            body: JSON.stringify(dataToSend)
-        }
-        console.log(url);
-        console.log(JSON.stringify(dataToSend));
-
         try {
-            const response = await fetch(url, requestOptions);
-            
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-            const result = await response.json();
-            alert("Successfully created new workout");
+            if (isTemplate) {
+                const {date, ...templateToSend} = dataToSend;
 
-            return (
-                navigate(`/workouts/${result.id}`)
-            );
+                const response = await fetch(`${url}templates`, getRequestOptions("POST", templateToSend));
+                
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                const result = await response.json();
+                alert("Successfully created a new template");
+    
+                return (
+                    navigate(`/templates/${result.id}`)
+                );
+            }
+            else {
+                const response = await fetch(`${url}workouts`, getRequestOptions("POST", dataToSend));
+                
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                const result = await response.json();
+                alert("Successfully created a new workout");
+    
+                return (
+                    navigate(`/workouts/${result.id}`)
+                );
+            }
         }
         catch (error) {
             alert(error);
         }
+    }
+
+    function getRequestOptions(method: string, data: object) {
+        const requestOptions = {
+            method: method,
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json"
+                },
+            body: JSON.stringify(data)
+        }
+        return requestOptions;
     }
 
     async function getPreviousSets(targetExName: string, allExercises: Exercise[]) {
@@ -269,7 +293,7 @@ export default function CreateWorkout() {
                     return (
                         <div key={set.id} className="container">
                             <div className="container-row">
-                                {showPreviousSet(exercise.exercise_name, index)}
+                                {!isTemplate && showPreviousSet(exercise.exercise_name, index)}
                             </div>
                             <div key={set.id} className="container">
                                 <label>lbs</label>
@@ -291,9 +315,9 @@ export default function CreateWorkout() {
         <div>
             <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workoutName}/>
             <button onClick={(e) => handleSubmit(e)}>Submit</button>  
-            <button onClick={() => navigate("/workouts")}>Cancel Workout</button>
+            {!isTemplate && <button onClick={() => navigate("/workouts")}>Cancel Workout</button>}
             <div>
-                {getDate("view")}
+                {!isTemplate && getDate("view")}
             </div>
             <ol>
                 {exercises}
