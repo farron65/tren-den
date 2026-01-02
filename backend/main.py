@@ -341,6 +341,8 @@ async def update_template(template_id: int, updated_template: TemplateCreate, cu
     if not user_template:
         raise HTTPException(400, "Bad Request")
     
+    user_template.workout_name = updated_template.workout_name
+    
     for ex in user_template.exercises:
         session.delete(ex)
     
