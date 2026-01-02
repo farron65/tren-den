@@ -280,9 +280,12 @@ async def get_recent_exercises(current_user: Annotated[User, Depends(get_current
 @app.put("/workouts/{workout_id}", response_model=WorkoutResponse)
 async def update_workout(workout_id: int, updated_workout: WorkoutCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_workout = get_user_workout(workout_id, current_user, session)
-
+    
     if (user_workout is None):
         raise HTTPException(404, "Not Found")
+    
+    user_workout.workout_name = updated_workout.workout_name
+    user_workout.date = updated_workout.date
     
     for ex in user_workout.exercises:
         session.delete(ex)
