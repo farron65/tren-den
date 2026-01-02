@@ -14,14 +14,20 @@ interface Exercise {
     sets: Set[]
 }
 
-interface Template {
+interface Workout {
     workout_name: string,
+    date: string,
     exercises: Exercise[]
 }
 
-export default function EditWorkoutForm() {
-    const [template, setTemplate] = useState<Template>({
+interface WorkoutProps {
+    isTemplate: boolean
+}
+
+export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
+    const [workoutForm, setWorkoutForm] = useState<Workout>({
         workout_name: "",
+        date: "",
         exercises: []
     });
     const [loading, setLoading] = useState(true);
@@ -31,20 +37,28 @@ export default function EditWorkoutForm() {
     const access_token = localStorage.getItem("access_token");
     const headers = {"Authorization": `Bearer ${access_token}`}
 
-    const templateId = useParams();
-    const url = `http://127.0.0.1:8000/templates/${templateId.id}`;
+    const formID = useParams();
+
+    const url = `http://127.0.0.1:8000/`;
 
     useEffect(() => {
-        
         const fetchTemplate = async () => {
             try {
-                const response = await fetch(url, {headers: headers});
+                let response;
+                if (isTemplate) {
+                    console.log(url);
+                    response = await fetch(`${url}templates/${formID.id}`, {headers: headers});
+                }
+
+                else {
+                    response = await fetch(`${url}workouts/${formID.id}`, {headers: headers})
+                }
 
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
-                setTemplate(result);
+                setWorkoutForm(result);
             }
             catch (error) {
                 alert(error);
@@ -58,10 +72,11 @@ export default function EditWorkoutForm() {
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
-
+        console.log(workoutForm.workout_name, workoutForm.date);
         const dataToSend = {
-            workout_name: template.workout_name,
-            exercises: template.exercises.map((exercise) => ({
+            workout_name: workoutForm.workout_name,
+            date: workoutForm.date,
+            exercises: workoutForm.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
@@ -70,91 +85,115 @@ export default function EditWorkoutForm() {
             }))
         }
 
-        const requestOptions = {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dataToSend),
-        }
-
         try {
-            const response = await fetch(url, requestOptions);
+            let response;
+            if (isTemplate) {
+                const {date, ...templateUpdateData} = dataToSend
+                response = await fetch(`${url}templates/${formID.id}`, getRequestOptions(templateUpdateData));
+            }
+
+            else {
+                response = await fetch(`${url}workouts/${formID.id}`, getRequestOptions(dataToSend));
+            }
 
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
             }
 
             const result = await response.json();
-            alert("Successfully saved template changes");
+            console.log(result);
+            if (isTemplate) {
+                alert("Successfully saved template changes");
 
-            return (
-                navigate(`/templates/${result.id}`)
-            )
+                return (
+                    navigate(`/templates/${result.id}`)
+                )
+            }
+            else {
+                alert("Successfully saved workout changes");
+
+                return (
+                    navigate(`/workouts/${result.id}`)
+                )
+            }
         }
         catch (error) {
             alert(error);
         }
+    }
 
+    function getRequestOptions(data: object) {
+        const requestOptions = {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data),
+        }
+        return requestOptions
     }
 
     function DeleteSet(targetExID: string, targetSetID: string) {
-        const updatedSet = template.exercises.map((exercise) => exercise.id === targetExID
+        const updatedSet = workoutForm.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, sets: exercise.sets.filter((set) => set.id != targetSetID)}
             : exercise
         )
 
-        setTemplate({...template, exercises: updatedSet});
+        setWorkoutForm({...workoutForm, exercises: updatedSet});
     }
 
     function DeleteExercise(targetExID: string) {
-        const updatedExercises = template.exercises.filter((exercise) => exercise.id != targetExID)
+        const updatedExercises = workoutForm.exercises.filter((exercise) => exercise.id != targetExID)
         
-        setTemplate({...template, exercises: updatedExercises});
+        setWorkoutForm({...workoutForm, exercises: updatedExercises});
     }
 
     function changeSetValues(exerciseID: string, targetSetID: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? "" : value;
-        const updatedSet = template.exercises.map((exercise) => exercise.id === exerciseID
+        const updatedSet = workoutForm.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === targetSetID
                 ? {...set, [field]: newSetValue}
                 : set )}
             : exercise
         );
-        setTemplate({...template, exercises: updatedSet});
+        setWorkoutForm({...workoutForm, exercises: updatedSet});
     }
 
     function ChangeExerciseName(targetExID: string, newExerciseName: string) {
-        const updatedExercise = template.exercises.map((exercise) => exercise.id === targetExID
+        const updatedExercise = workoutForm.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, exercise_name: newExerciseName}
             : exercise
         );
-        setTemplate({...template, exercises: updatedExercise});
+        setWorkoutForm({...workoutForm, exercises: updatedExercise});
     }
 
-    function changeFormName(newFormName: string) {
-        setTemplate({...template, workout_name: newFormName});
+    function ChangeFormDate(newDate: string) {
+        setWorkoutForm({...workoutForm, date: newDate})
+    }
+
+    function ChangeFormName(newFormName: string) {
+        setWorkoutForm({...workoutForm, workout_name: newFormName});
     }
 
     function AddSet(targetExID: string) {
-        const newSet = template.exercises.map((exercise) => exercise.id === targetExID
+        const newSet = workoutForm.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
             : exercise
         );
-        setTemplate({...template, exercises: newSet});
+        setWorkoutForm({...workoutForm, exercises: newSet});
     }
 
     function AddExercise() {
-        const newExercise = [...template.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}];
-        setTemplate({...template, exercises: newExercise})
+        const newExercise = [...workoutForm.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}];
+        setWorkoutForm({...workoutForm, exercises: newExercise})
     }
 
     if (loading)  {
         return <h1>Loading</h1>
     }
 
-    const exercises = template.exercises.map((exercise) => {
+    const exercises = workoutForm.exercises.map((exercise) => {
         return (
             <div key={exercise.id}>
                 <input onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} type="text" value={exercise.exercise_name}></input>
@@ -178,9 +217,22 @@ export default function EditWorkoutForm() {
 
     return (
         <div>
-            <input onChange={(e) => changeFormName(e.target.value)} value={template.workout_name}></input>
+            <input type="text" onChange={(e) => ChangeFormName(e.target.value)} value={workoutForm.workout_name}></input>
+            {!isTemplate && 
+            <div>
+                <label>
+                    Date:
+                </label>
+                <input type="date" onChange={(e) => ChangeFormDate(e.target.value)} value={workoutForm.date.substring(0,10)}/>
+            </div>
+            }
             <button onClick={handleSave}>Save</button>
-            <button onClick={() => navigate("/templates")}>Cancel</button>  
+            {!isTemplate &&
+                <button onClick={() => navigate("/workouts")}>Cancel</button>  
+            }
+            {isTemplate &&
+                <button onClick={() => navigate("/templates")}>Cancel</button>  
+            }
             <div>
                 <ol>
                     {exercises}

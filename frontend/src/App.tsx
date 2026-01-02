@@ -84,7 +84,13 @@ function App() {
                 <Route
                     path={"/edit-template/:id"}
                     element={<ProtectedRoute token={access_token}>
-                        <EditWorkoutForm />
+                        <EditWorkoutForm isTemplate={true}/>
+                    </ProtectedRoute>}>
+                </Route>
+                <Route
+                    path={"/edit-workout/:id"}
+                    element={<ProtectedRoute token={access_token}>
+                        <EditWorkoutForm isTemplate={false}/>
                     </ProtectedRoute>}>
                 </Route>
             </Routes>
