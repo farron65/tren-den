@@ -179,6 +179,7 @@ export default function EditTemplate() {
         <div>
             <h1>{template.workout_name}</h1>
             <button onClick={handleSave}>Save</button>
+            <button onClick={() => navigate("/templates")}>Cancel</button>
             <div>
                 <ol>
                     {exercises}

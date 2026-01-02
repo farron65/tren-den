@@ -64,8 +64,11 @@ export default function ListTemplates() {
     }, []);
 
     return (
-        <>
-        <h1>Templates</h1>
+        
+        <div>
+            <h1>Templates</h1>
+            <button onClick={() => navigate("/workouts")}>Go back</button>
+
             {templates.map((template) => (
                 <div key={template.id}>
                     <div className="container-row">  
@@ -85,6 +88,7 @@ export default function ListTemplates() {
                 <button onClick={() => navigate(`/edit-template/${template.id}`)}>Edit</button>
                 </div>
             ))}
-        </>
+        </div>
+
     )
 }

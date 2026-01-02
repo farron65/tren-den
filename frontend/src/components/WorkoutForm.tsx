@@ -316,6 +316,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workoutName}/>
             <button onClick={(e) => handleSubmit(e)}>Submit</button>  
             {!isTemplate && <button onClick={() => navigate("/workouts")}>Cancel Workout</button>}
+            {isTemplate && <button onClick={() => navigate("/workouts")}>Discard Template</button>}
             <div>
                 {!isTemplate && getDate("view")}
             </div>
