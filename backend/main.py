@@ -21,7 +21,7 @@ from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead,
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
 
-from queries import get_exercise_sets
+from queries import get_exercise_sets, get_user_workout
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -216,66 +216,92 @@ async def get_recent_exercises(current_user: Annotated[User, Depends(get_current
         
     return user_exercises_data
 
-@app.patch("/sets/{set_id}", response_model=SetUpdate)
-async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+# @app.patch("/sets/{set_id}", response_model=SetUpdate)
+# async def update_workout_set(set_id: int, updated_set: SetUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
-    if updated_set.weight is None and updated_set.reps is None:
-        raise HTTPException(400, "Bad Request")
+#     if updated_set.weight is None and updated_set.reps is None:
+#         raise HTTPException(400, "Bad Request")
     
-    user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
-    if not user_set:
-        raise HTTPException(404, "Set doesn't exist")
+#     user_set = session.exec(select(SetDetails).where(SetDetails.id == set_id)).first()
+#     if not user_set:
+#         raise HTTPException(404, "Set doesn't exist")
     
-    if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id
-        raise HTTPException(401, "Not authorized")
+#     if user_set.exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id
+#         raise HTTPException(401, "Not authorized")
     
-    if updated_set.weight:
-        user_set.weight = updated_set.weight
-    if updated_set.reps:
-        user_set.reps = updated_set.reps
+#     if updated_set.weight:
+#         user_set.weight = updated_set.weight
+#     if updated_set.reps:
+#         user_set.reps = updated_set.reps
         
-    session.commit()
-    return updated_set
+#     session.commit()
+#     return updated_set
 
-@app.patch("/exercise/{exercise_id}", response_model=ExerciseUpdate)
-async def update_workout_exercise(exercise_id: int, updated_exercise: ExerciseUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+# @app.patch("/exercise/{exercise_id}", response_model=ExerciseUpdate)
+# async def update_workout_exercise(exercise_id: int, updated_exercise: ExerciseUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
-    if updated_exercise.exercise_name is None:
-        raise HTTPException(400, "Bad Request")
+#     if updated_exercise.exercise_name is None:
+#         raise HTTPException(400, "Bad Request")
     
-    user_exercise = session.exec(select(Exercise).where(Exercise.id == exercise_id)).first()
+#     user_exercise = session.exec(select(Exercise).where(Exercise.id == exercise_id)).first()
     
-    if not user_exercise:
-        raise HTTPException(404, "Exercise doesn't exist")
-    if user_exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
-        raise HTTPException(401, "Not authorized")
+#     if not user_exercise:
+#         raise HTTPException(404, "Exercise doesn't exist")
+#     if user_exercise.workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
+#         raise HTTPException(401, "Not authorized")
     
-    if updated_exercise.exercise_name:
-        user_exercise.exercise_name = updated_exercise.exercise_name
+#     if updated_exercise.exercise_name:
+#         user_exercise.exercise_name = updated_exercise.exercise_name
     
-    session.commit()
-    return updated_exercise
+#     session.commit()
+#     return updated_exercise
 
-@app.patch("/workouts/{workout_id}", response_model=WorkoutUpdate)
-async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+# @app.patch("/workouts/{workout_id}", response_model=WorkoutUpdate)
+# async def update_workout(workout_id: int, updated_workout: WorkoutUpdate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
-    if updated_workout.workout_name is None and updated_workout.date is None:
-        raise HTTPException(400, "Bad Request")
+#     if updated_workout.workout_name is None and updated_workout.date is None:
+#         raise HTTPException(400, "Bad Request")
     
-    user_workout = session.exec(select(Workout).where(Workout.id == workout_id)).first()
+#     user_workout = session.exec(select(Workout).where(Workout.id == workout_id)).first()
     
-    if not user_workout:
-        raise HTTPException(404, "Workout doesn't exist")
-    if user_workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
-        raise HTTPException(401, "Not authorized")
+#     if not user_workout:
+#         raise HTTPException(404, "Workout doesn't exist")
+#     if user_workout.user_id != current_user.id: # type: ignore ---- typer checker is warning the "None" on workout.user_id 
+#         raise HTTPException(401, "Not authorized")
     
-    if updated_workout.workout_name:
-        user_workout.workout_name = updated_workout.workout_name
-    if updated_workout.date:
-        user_workout.date = updated_workout.date
+#     if updated_workout.workout_name:
+#         user_workout.workout_name = updated_workout.workout_name
+#     if updated_workout.date:
+#         user_workout.date = updated_workout.date
     
+#     session.commit()
+#     return updated_workout
+
+@app.put("/workouts/{workout_id}", response_model=WorkoutResponse)
+async def update_workout(workout_id: int, updated_workout: WorkoutCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_workout = get_user_workout(workout_id, current_user, session)
+
+    if (user_workout is None):
+        raise HTTPException(404, "Not Found")
+    
+    for ex in user_workout.exercises:
+        session.delete(ex)
+
     session.commit()
-    return updated_workout
+    
+    for updated_ex in updated_workout.exercises:
+        db_exercise = Exercise(exercise_name=updated_ex.exercise_name, workout=user_workout)
+        
+        for updated_set in updated_ex.sets:
+            db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, exercise=db_exercise)
+            
+        session.add(db_exercise)
+
+    session.flush()
+    session.commit()
+    session.refresh(user_workout)
+    
+    return user_workout
 
 @app.patch("/templates/{template_id}")
 async def update_template_values(template_id: int, updated_values: list[ExerciseCreate], current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):

@@ -14,3 +14,7 @@ def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDe
         user_exercise_data["sets"].append({"id": set.id, "weight": set.weight, "reps": set.reps})
 
     return user_exercise_data 
+
+def get_user_workout(workout_id: int, current_user: User, session: SessionDep) -> Workout | None:
+    user_workout = session.exec(select(Workout).where(Workout.id == workout_id).where(Workout.user == current_user)).first()
+    return user_workout if user_workout else None
