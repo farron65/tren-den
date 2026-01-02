@@ -19,7 +19,7 @@ interface Template {
     exercises: Exercise[]
 }
 
-export default function EditTemplate() {
+export default function EditWorkoutForm() {
     const [template, setTemplate] = useState<Template>({
         workout_name: "",
         exercises: []
@@ -53,7 +53,7 @@ export default function EditTemplate() {
                 setLoading(false);
             }
         }
-        fetchTemplate();
+            fetchTemplate();
     }, []);
 
     async function handleSave(e: React.FormEvent) {
@@ -133,6 +133,10 @@ export default function EditTemplate() {
         setTemplate({...template, exercises: updatedExercise});
     }
 
+    function changeFormName(newFormName: string) {
+        setTemplate({...template, workout_name: newFormName});
+    }
+
     function AddSet(targetExID: string) {
         const newSet = template.exercises.map((exercise) => exercise.id === targetExID
             ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
@@ -148,9 +152,6 @@ export default function EditTemplate() {
 
     if (loading)  {
         return <h1>Loading</h1>
-    }
-    else if (!template.workout_name) {
-        return <h1>Template doesn't exist</h1>
     }
 
     const exercises = template.exercises.map((exercise) => {
@@ -177,9 +178,9 @@ export default function EditTemplate() {
 
     return (
         <div>
-            <h1>{template.workout_name}</h1>
+            <input onChange={(e) => changeFormName(e.target.value)} value={template.workout_name}></input>
             <button onClick={handleSave}>Save</button>
-            <button onClick={() => navigate("/templates")}>Cancel</button>
+            <button onClick={() => navigate("/templates")}>Cancel</button>  
             <div>
                 <ol>
                     {exercises}
