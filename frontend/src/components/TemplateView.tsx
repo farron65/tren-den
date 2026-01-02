@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface Set {
     id: string
@@ -26,6 +26,8 @@ export default function TemplateView() {
         exercises: []
     });
     const templateId = useParams();
+    const navigate = useNavigate();
+    
     const access_token = localStorage.getItem("access_token");
     const url = `http://127.0.0.1:8000/templates/${templateId.id}`
 
@@ -65,6 +67,8 @@ export default function TemplateView() {
             <h1>
                 {template.workout_name}
             </h1>
+            <button onClick={() => navigate("/workouts")}>Home</button>
+            <button onClick={() => navigate("/templates")}>Go back</button>
             {template.exercises.map((exercise: Exercise) => (
                 <li key={exercise.id}>
                     <h3>{exercise.exercise_name}</h3>

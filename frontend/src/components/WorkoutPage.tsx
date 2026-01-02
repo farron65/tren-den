@@ -56,6 +56,8 @@ export default function WorkoutPage() {
             <h1>
                 {workout.workout_name}
             </h1>
+            <button onClick={() => navigate("/workouts")}>Go back</button>
+            <button onClick={() => navigate(`/edit-workout/${workout.id}`, {replace: true})}>Edit</button>
             <h4>Date: {getWorkoutDate(workout.date)} </h4>
             {workout.exercises.map((exercise: any) => (
                 <li key={exercise.id}>
@@ -71,7 +73,6 @@ export default function WorkoutPage() {
                         ))}
                 </li>
             ))}
-            <button onClick={() => navigate("/workouts")}>Go back</button>
 
         </div>
     )
