@@ -5,7 +5,7 @@ import "./sets.css";
 interface Workout {
     id: string,
     workout_name: string,
-    date: string
+    date: Date
 }
 
 export default function WorkoutsHistory() {
@@ -76,6 +76,16 @@ export default function WorkoutsHistory() {
         setModal(!modal);
     }
 
+    function getWorkoutDate(workoutDate: Date) {
+        const dt = new Date(workoutDate)
+
+        const month = dt.toLocaleString("default", {month: "short"});
+        const day = dt.getDate();
+        const year = dt.getFullYear();
+
+        return `${month} ${day}, ${year}`; 
+    }
+
     if (workouts.length == 0){
         return (
             <div>
@@ -95,7 +105,9 @@ export default function WorkoutsHistory() {
                             <Link to={`/workouts/${workout.id}`}>
                                 {workout.workout_name}   
                             </Link>
-                            {workout.date}
+                            <label>
+                                {getWorkoutDate(workout.date)}    
+                            </label>
                             <button onClick={() => toggleModal(workout.workout_name, workout.id)}>X</button>
                         </li> 
                     </div>

@@ -31,6 +31,16 @@ export default function WorkoutPage() {
         };
         fetchWorkout();
     }, []);
+
+    function getWorkoutDate(workoutDate: Date) {
+        const dt = new Date(workoutDate)
+
+        const month = dt.toLocaleString("default", {month: "short"});
+        const day = dt.getDate();
+        const year = dt.getFullYear();
+
+        return `${month} ${day}, ${year}`; 
+    }
     
 
     if (!workout) {
@@ -46,7 +56,7 @@ export default function WorkoutPage() {
             <h1>
                 {workout.workout_name}
             </h1>
-            <h4>Date: {workout.date} </h4>
+            <h4>Date: {getWorkoutDate(workout.date)} </h4>
             {workout.exercises.map((exercise: any) => (
                 <li key={exercise.id}>
                     <h3>
