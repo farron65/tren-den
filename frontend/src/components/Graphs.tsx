@@ -2,10 +2,14 @@ import { useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
 interface ChartPoint {
-    date: Date,
+    "workout_name": string
+    date: string,
     weight: number,
     reps: number,
-    "workout_name": string
+    sets: {
+        weight: number,
+        reps: number
+    }
 }
 
 export default function Graphs() {
@@ -56,20 +60,49 @@ export default function Graphs() {
         debouncedRequest.current(exerciseName);
     }
 
+    const formatXAxis = (tickItem: string | number) => {
+        return new Date(tickItem).toLocaleDateString("en-US", {month: "short", day: "numeric"})
+    }
+
+    function SetsToolTip({ active, payload}: any) {
+        if (!active || !payload.length) return;
+
+        const point = payload[0].payload;
+
+        return (
+            <div style={{padding: 10, borderRadius: 6 }}>
+                <div>
+                    <strong>{point.workout_name}</strong>
+                </div>
+                <div>
+                    {new Date(point.date).toLocaleDateString()}
+                </div>
+
+                <hr />
+
+                {point.sets.map((set: any, i: number) => (
+                    <div key={i}>
+                        Set {i+1}: {set.weight} lbs x {set.reps}
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
     return (
         <div>
-            <LineChart style={{ width: "100%", aspectRatio: 1.618, maxWidth: 600}} responsive data={exerciseData}>
+            <LineChart style={{  width: '100%', maxWidth: '700px', maxHeight: '70vh', aspectRatio: 1.618 }} responsive data={exerciseData}
+                    margin={{
+                    top: 20,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    }}>
                 <CartesianGrid/>
-                <Line dataKey={"weight"}/>
-
-                <XAxis dataKey={"date"} tickFormatter={(iso) => 
-                    new Date(iso).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric"
-                    })
-                }/>
-                <YAxis dataKey={"weight"}/>
-                <Tooltip />
+                <XAxis dataKey={"date"} tickFormatter={formatXAxis} />
+                <YAxis dataKey={"weight"} unit=" lbs"/>
+                <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
+                <Line dataKey={"weight"} name="Weight" fill="#1dd617ff"/>
                 <Legend />
             </LineChart>
             <div>
