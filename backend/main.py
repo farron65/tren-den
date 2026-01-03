@@ -180,12 +180,20 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
     user_exercise_data = []
     
     for exercise in user_exercises:
-        for set in exercise.sets:
-            user_exercise_data.append({
+        latest_set = exercise.sets[-1]
+        
+        user_exercise_data.append({
                 "date": exercise.workout.date,
                 "workout_name": exercise.workout.workout_name,
-                "weight": set.weight,
-                "reps": set.reps
+                "weight": latest_set.weight,
+                "reps": latest_set.reps,
+                "sets": [
+                    { 
+                        "weight": set.weight,
+                        "reps": set.reps
+                    }
+                        for set in exercise.sets
+                    ]
             })
     
     return user_exercise_data
