@@ -8,6 +8,7 @@ import LogWorkout from "./components/LogWorkout";
 import TemplateList from "./components/TemplateList";
 import TemplateView from "./components/TemplateView";
 import EditWorkoutForm from "./components/EditWorkoutForm";
+import Graphs from "./components/Graphs";
 import { useState } from "react";
 
 
@@ -91,6 +92,11 @@ function App() {
                     path={"/edit-workout/:id"}
                     element={<ProtectedRoute token={access_token}>
                         <EditWorkoutForm isTemplate={false}/>
+                    </ProtectedRoute>}>
+                </Route>
+                <Route path={"/analytics"}
+                    element={<ProtectedRoute token={access_token}>
+                        <Graphs/>
                     </ProtectedRoute>}>
                 </Route>
             </Routes>

@@ -116,6 +116,7 @@ export default function WorkoutsHistory() {
             <button onClick={() => navigate("/create-workout/",)}>Start Workout</button>
             <button onClick={() => navigate("/create-template/")}>Create Template</button>
             <button onClick={() => navigate("/templates/")}>Templates</button>
+            <button onClick={() => navigate("/analytics")}>Analytics</button>
             {modal && (
                 <div className="modal">
                     <div onClick={() => setModal(!modal)} className="overlay">
