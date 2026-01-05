@@ -173,20 +173,33 @@ async def get_own_workout(id: int, current_user: Annotated[User, Depends(get_cur
 async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
     user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(asc(Workout.date))).all() # type: ignore
-    
     if not user_exercises:
         raise HTTPException(404, "Not Found")
     
     user_exercise_data = []
-    
+        
     for exercise in user_exercises:
-        latest_set = exercise.sets[-1]
+        
+        session_volume = 0 
+        set_volume = 0
+        heaviest_set = SetDetails(weight=0, reps=0)
+        
+        for ex_set in exercise.sets:
+            session_volume += ex_set.weight * ex_set.reps
+            if ex_set.weight * ex_set.reps > set_volume:
+                set_volume = ex_set.weight * ex_set.reps 
+            if ex_set.weight > heaviest_set.weight:
+                heaviest_set = ex_set
+            elif ex_set.weight == heaviest_set.weight and ex_set.reps > heaviest_set.reps:
+                heaviest_set = ex_set
         
         user_exercise_data.append({
                 "date": exercise.workout.date,
                 "workout_name": exercise.workout.workout_name,
-                "weight": latest_set.weight,
-                "reps": latest_set.reps,
+                "session_volume": session_volume,
+                "best_set_volume": set_volume,
+                "weight": heaviest_set.weight,
+                "reps": heaviest_set.reps, 
                 "sets": [
                     { 
                         "weight": set.weight,
