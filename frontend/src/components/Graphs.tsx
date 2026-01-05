@@ -49,9 +49,8 @@ export default function Graphs() {
             }
     
             const result = await response.json();
-    
-            setExercise(result);
-            
+            setExercise(result); 
+
         }
         catch (error) {
             alert(error);
@@ -84,10 +83,15 @@ export default function Graphs() {
 
                 <hr />
                 <div>
-                    <strong>
-                        Heaviest Weight: {point.weight} lbs x {point.reps}
-
-                    </strong>
+                    {selectedMetric === "weight" && 
+                        <strong>Heaviest Weight: {point.weight} lbs x {point.reps}</strong>
+                    }
+                    {selectedMetric === "session_volume" && 
+                        <strong>Session Volume: {point.session_volume} lbs </strong>
+                    }
+                    {selectedMetric === "best_set_volume" && 
+                        <strong>Best Set Volume: {point.best_set_volume} lbs </strong>
+                    }
                     
                     {point.sets.map((set: any, i: number) => (
                         <div key={i}>
