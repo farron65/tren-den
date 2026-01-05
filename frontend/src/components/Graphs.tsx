@@ -110,7 +110,7 @@ export default function Graphs() {
                     left: 0,
                     }}>
                 <CartesianGrid/>
-                <XAxis dataKey={"date"} tickFormatter={formatXAxis}/>
+                <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
                 <YAxis dataKey={"weight"} unit=" lbs" domain={[0, yAxisMax]}/>
                 <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
                 <Line dataKey={"weight"} name="Heaviest Weight" fill="#1dd617ff"/>
