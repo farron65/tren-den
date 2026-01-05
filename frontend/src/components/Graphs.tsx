@@ -17,6 +17,8 @@ interface ChartPoint {
 export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<ChartPoint[]>([]);
+    const [selectedMetric, setSelectedMetric] = useState("weight");
+
     const [yAxisMax, setYAxisMax] = useState(100)
 
     const access_token = localStorage.getItem("access_token");
@@ -51,8 +53,8 @@ export default function Graphs() {
     
             setExercise(result);
             
-            const currentWeightMax = Math.max(...result.map((ex: any) => ex.weight));
-            setYAxisMax(currentWeightMax * 1.2);
+            // const currentWeightMax = Math.max(...result.map((ex: any) => ex.weight));
+            // setYAxisMax(currentWeightMax * 1.4);
         }
         catch (error) {
             alert(error);
@@ -111,15 +113,22 @@ export default function Graphs() {
                     }}>
                 <CartesianGrid/>
                 <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
-                <YAxis dataKey={"weight"} unit=" lbs" domain={[0, yAxisMax]}/>
+                <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} domain={[0, yAxisMax]} padding={{ top: 30}}/>
                 <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
-                <Line dataKey={"weight"} name="Heaviest Weight" fill="#1dd617ff"/>
+                <Line dataKey={selectedMetric} name="Heaviest Weight" fill="#1dd617ff"/>
                 <Legend />
             </LineChart>
             <div>
                 <h3>
                     Exercise: <input type="text" onChange={(e) => ChangeInputValues(e.target.value)}/>
                 </h3>
+                <label htmlFor="metrics">Metrics: </label>
+                <select name="metrics" id="metrics" defaultValue="weight"
+                    onChange={e => setSelectedMetric(e.target.value)}>
+                    <option value="weight">Heaviest Weight</option>
+                    <option value="session_volume">Session Volume</option>
+                    <option value="best_set_volume">Best Set Volume</option>
+                </select>
             </div>
         </div>
     )
