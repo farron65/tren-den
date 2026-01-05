@@ -4,6 +4,8 @@ import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "r
 interface ChartPoint {
     "workout_name": string
     date: string,
+    session_volume: number,
+    best_set_volume: number,
     weight: number,
     reps: number,
     sets: {
@@ -15,6 +17,7 @@ interface ChartPoint {
 export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<ChartPoint[]>([]);
+    const [yAxisMax, setYAxisMax] = useState(100)
 
     const access_token = localStorage.getItem("access_token");
     const url = "http://127.0.0.1:8000";
@@ -47,7 +50,9 @@ export default function Graphs() {
             const result = await response.json();
     
             setExercise(result);
-            console.log(result);
+            
+            const currentWeightMax = Math.max(...result.map((ex: any) => ex.weight));
+            setYAxisMax(currentWeightMax * 1.2);
         }
         catch (error) {
             alert(error);
@@ -79,12 +84,18 @@ export default function Graphs() {
                 </div>
 
                 <hr />
+                <div>
+                    <strong>
+                        Heaviest Weight: {point.weight} lbs x {point.reps}
 
-                {point.sets.map((set: any, i: number) => (
-                    <div key={i}>
-                        Set {i+1}: {set.weight} lbs x {set.reps}
-                    </div>
-                ))}
+                    </strong>
+                    
+                    {point.sets.map((set: any, i: number) => (
+                        <div key={i}>
+                            Set {i+1}: {set.weight} lbs x {set.reps}
+                        </div>
+                    ))}
+                </div>
             </div>
         )
     }
@@ -99,10 +110,10 @@ export default function Graphs() {
                     left: 0,
                     }}>
                 <CartesianGrid/>
-                <XAxis dataKey={"date"} tickFormatter={formatXAxis} />
-                <YAxis dataKey={"weight"} unit=" lbs"/>
+                <XAxis dataKey={"date"} tickFormatter={formatXAxis}/>
+                <YAxis dataKey={"weight"} unit=" lbs" domain={[0, yAxisMax]}/>
                 <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
-                <Line dataKey={"weight"} name="Weight" fill="#1dd617ff"/>
+                <Line dataKey={"weight"} name="Heaviest Weight" fill="#1dd617ff"/>
                 <Legend />
             </LineChart>
             <div>
