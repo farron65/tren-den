@@ -152,40 +152,28 @@ export default function WorkoutsHistory() {
             ))}
             </section>
 
-            <footer className="actions">
-            <button onClick={() => navigate("/create-workout")}>
-                START WORKOUT
-            </button>
-            <button onClick={() => navigate("/templates")}>
-                TEMPLATES
-            </button>
-            <button onClick={() => navigate("/analytics")}>
-                ANALYTICS
-            </button>
-            </footer>
-
             {modal && (
             <div className="modal">
                 <div className="overlay" onClick={() => setModal(false)}>
-                <div
-                    className="modal-box"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <h3>DELETE WORKOUT '{modalText}' ?</h3>
-                    <p>This action is permanent.</p>
-
-                    <div className="modal-actions">
-                    <button onClick={() => setModal(false)}>
-                        CANCEL
-                    </button>
-                    <button
-                        className="danger"
-                        onClick={() => handleDelete(workoutID)}
+                    <div
+                        className="modal-box"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        DELETE
-                    </button>
+                        <h3>DELETE WORKOUT '{modalText}' ?</h3>
+                        <p>This action is permanent.</p>
+
+                        <div className="modal-actions">
+                        <button onClick={() => setModal(false)}>
+                            CANCEL
+                        </button>
+                        <button
+                            className="danger"
+                            onClick={() => handleDelete(workoutID)}
+                        >
+                            DELETE
+                        </button>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
             )}
