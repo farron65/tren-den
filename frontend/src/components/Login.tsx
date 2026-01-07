@@ -58,7 +58,7 @@ export default function Login({updateToken}: LoginProps) {
                     <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password" required/>
                 </form>
 
-                <button onClick={(e) => handleSubmit(e)}>login</button>
+                <button type="submit" onClick={(e) => handleSubmit(e)}>login</button>
                 <p className="message">
                     Not registered? 
                     <Link to="/signup">

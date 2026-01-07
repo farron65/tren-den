@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import "./login.css";
+
 export default function Signup() {
     const [userName, setUserName] = useState("");
     const [userPassword, setUserPassword] = useState("");
@@ -47,7 +49,7 @@ export default function Signup() {
             setUserPassword("");
             setUserEmail("");
 
-            navigate("/");
+            navigate("/workouts");
         }
         catch(error) {
             alert(error);
@@ -55,25 +57,20 @@ export default function Signup() {
     }
     return (
         <>
-        <div>
-            <h1>Signup</h1>
-            <div>
-                <label>Username</label>
-                <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
+        <div className="login-page">
+            <div className="form">
+                <form className="register-form">
+                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
+                    <input type="text" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="email address"/>
+                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
+                </form>
+                <button type="submit" onClick={(e) => handleSubmit(e)}>Create</button>
+                <p className="message">
+                    Already registered?
+                    <Link to="/login">Sign In</Link>
+                </p>
             </div>
-            <div>
-                <label>Email</label>
-                <input type="text" value={userEmail} onChange={(e) => setUserEmail(e.target.value)}/> 
-            </div>
-            <div>
-                <label>Password</label>
-                <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
-            </div>
-            <button onClick={(e) => handleSubmit(e)}>Submit</button>
         </div>
-        <Link to="/login">
-                <h3>Already have an account</h3>
-        </Link>
         </>
     )
 }
