@@ -1,6 +1,7 @@
 import { Link, useNavigate} from "react-router-dom";
-
 import { useState } from "react";
+
+import "./login.css";
 
 type LoginProps = {
     updateToken: (token: string) => void
@@ -50,21 +51,22 @@ export default function Login({updateToken}: LoginProps) {
 
     return (
         <>
-            <div>
-                <h1>Login</h1>
-                <div>
-                    <label>Username</label>
-                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)}/> 
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)}/> 
-                </div>
-                <button onClick={(e) => handleSubmit(e)}>Submit</button>
+        <div className="login-page">
+            <div className="form">
+                <form className="login-form">
+                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
+                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password" required/>
+                </form>
+
+                <button onClick={(e) => handleSubmit(e)}>login</button>
+                <p className="message">
+                    Not registered? 
+                    <Link to="/signup">
+                        Create an account
+                    </Link>
+                </p>
             </div>
-            <Link to="/signup">
-                <h3>Don't have an account?</h3>
-            </Link>
+        </div>
         </>
     )
 }
