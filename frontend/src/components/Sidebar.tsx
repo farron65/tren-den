@@ -8,10 +8,10 @@ export default function Sidebar() {
             <h2 className="logo">TRENDEN</h2>
 
             <nav className="nav">
-                <NavLink to="/create-workout"></NavLink>
-                <NavLink to="/workouts"></NavLink>
-                <NavLink to="/templates"></NavLink>
-                <NavLink to="/analytics"></NavLink>
+                <NavLink to="/workouts">Home</NavLink>
+                <NavLink to="/create-workout">Start Workout</NavLink>
+                <NavLink to="/templates">Templates</NavLink>
+                <NavLink to="/analytics">Analytics</NavLink>
             </nav>
         </aside>
     );

@@ -1,3 +1,4 @@
+/* ===== Sidebar ===== */
 .sidebar {
   position: fixed;
   left: 0;
@@ -9,22 +10,69 @@
   padding: 20px;
 }
 
+/* ===== Logo ===== */
 .logo {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
+/* ===== Nav ===== */
 .nav {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
+/* ===== Nav Links ===== */
 .nav a {
-  color: #aaa;
+  position: relative;
+  color: #9a9a9a;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 10px 12px;
+  border-left: 3px solid transparent;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.05s ease;
 }
 
+/* ===== Hover ===== */
+.nav a:hover {
+  color: #ffffff;
+  background-color: #0b0b0b;
+  border-left-color: #b00000;
+}
+
+/* ===== Active Route ===== */
 .nav a.active {
-  color: white;
+  color: #ffffff;
+  background-color: #0b0b0b;
+  border-left-color: #b00000;
+}
+
+/* ===== Click / Press ===== */
+.nav a:active {
+  transform: translateX(2px) scale(0.98);
+  background-color: #160000;
+  border-left-color: #ff2b2b;
+  color: #ff2b2b;
+}
+
+/* ===== Red Flash Effect ===== */
+.nav a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(176, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.nav a:active::after {
+  opacity: 1;
 }

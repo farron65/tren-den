@@ -1,0 +1,9 @@
+.layout {
+  display: flex;
+}
+
+.main {
+  margin-left: 220px; /* same as sidebar width */
+  padding: 24px;
+  width: calc(100% - 220px);
+}

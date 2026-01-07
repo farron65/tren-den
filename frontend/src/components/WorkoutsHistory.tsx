@@ -2,10 +2,6 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
 import "./history.css";
-import benchIcon from "../assets/bench-press.png";
-import squatIcon from "../assets/squat.png";
-import deadliftIcon from "../assets/deadlift.png";
-import dumbbellIcon from "../assets/dumbbell.png";
 
 interface Workout {
     id: string,
