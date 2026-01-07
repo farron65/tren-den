@@ -6,15 +6,72 @@
   width: 220px;
   height: 100vh;
   background: #0f0f0f;
-  color: white;
+  color: #ffffff;
   padding: 20px;
+  overflow: hidden;
+  transition: width 0.15s ease;
+}
+
+/* ===== Collapsed ===== */
+.sidebar.collapsed {
+  width: 64px;
+  background: #0b0b0b;
+  border-right: 1px solid #1a1a1a;
+}
+
+/* ===== Top Section ===== */
+.sidebar-top {
+  position: relative;
+  margin-bottom: 32px;
 }
 
 /* ===== Logo ===== */
 .logo {
-  margin-bottom: 32px;
   font-weight: 900;
   letter-spacing: 2px;
+  font-size: 18px;
+  white-space: nowrap;
+  transition: opacity 0.1s ease;
+}
+
+.sidebar.collapsed .logo {
+  opacity: 0;
+}
+
+/* ===== Collapse Button ===== */
+.collapse-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #111;
+  border: 1px solid #222;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.collapse-btn img {
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+  opacity: 0.85;
+  transition:
+    opacity 0.15s ease,
+    transform 0.05s ease;
+}
+
+.collapse-btn:hover img {
+  opacity: 1;
+}
+
+.collapse-btn:active img {
+  transform: scale(0.95);
+}
+
+/* ===== Collapsed Button Position ===== */
+.sidebar.collapsed .collapse-btn {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
 }
 
 /* ===== Nav ===== */
@@ -22,6 +79,13 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  transition: opacity 0.1s ease;
+}
+
+/* ===== Disable nav when collapsed ===== */
+.sidebar.collapsed .nav {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ===== Nav Links ===== */
@@ -34,6 +98,7 @@
   padding: 10px 12px;
   border-left: 3px solid transparent;
   user-select: none;
+  white-space: nowrap;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -48,14 +113,14 @@
   border-left-color: #b00000;
 }
 
-/* ===== Active Route ===== */
+/* ===== Active ===== */
 .nav a.active {
   color: #ffffff;
   background-color: #0b0b0b;
   border-left-color: #b00000;
 }
 
-/* ===== Click / Press ===== */
+/* ===== Press ===== */
 .nav a:active {
   transform: translateX(2px) scale(0.98);
   background-color: #160000;
@@ -63,7 +128,7 @@
   color: #ff2b2b;
 }
 
-/* ===== Red Flash Effect ===== */
+/* ===== Red Flash ===== */
 .nav a::after {
   content: "";
   position: absolute;
