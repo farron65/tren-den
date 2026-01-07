@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
-import "./sets.css";
+
+import "./history.css";
+import benchIcon from "../assets/bench-press.png";
+import squatIcon from "../assets/squat.png";
+import deadliftIcon from "../assets/deadlift.png";
+import dumbbellIcon from "../assets/dumbbell.png";
 
 interface Workout {
     id: string,
@@ -11,6 +16,8 @@ interface Workout {
 export default function WorkoutsHistory() {
 
     const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
     const navigate = useNavigate();
     
     const access_token = localStorage.getItem("access_token");
@@ -96,45 +103,96 @@ export default function WorkoutsHistory() {
     }
 
     return (
-        <div>
-            <h1>Past workouts</h1>
-            <ul>
-                {workouts.map(workout => (
-                    <div key={workout.id}>
-                        <li>
-                            <Link to={`/workouts/${workout.id}`}>
-                                {workout.workout_name}   
-                            </Link>
-                            <label>
-                                {getWorkoutDate(workout.date)}    
-                            </label>
-                            <button onClick={() => toggleModal(workout.workout_name, workout.id)}>X</button>
-                        </li> 
-                    </div>
-                ))}
-            </ul>
-            <button onClick={() => navigate("/create-workout/",)}>Start Workout</button>
-            <button onClick={() => navigate("/create-template/")}>Create Template</button>
-            <button onClick={() => navigate("/templates/")}>Templates</button>
-            <button onClick={() => navigate("/analytics")}>Analytics</button>
+        <div className="app">
+            <header className="header">
+            <h1>WORKOUT LOG</h1>
+            
+            <div className="icon-row">
+                <span className="icon bench" />
+                <span className="icon squat" />
+                <span className="icon deadlift" />
+                <span className="icon dumbbell" />
+            </div>
+
+            </header>
+
+            <section className="history">
+            {workouts.map((workout) => (
+                <div key={workout.id} className="workout-card">
+                <Link
+                    to={`/workouts/${workout.id}`}
+                    className="workout-main"
+                >
+                    <span className="workout-name">
+                    {workout.workout_name}
+                    </span>
+                    <span className="workout-date">
+                    {getWorkoutDate(workout.date)}
+                    </span>
+                </Link>
+
+                <button
+                    className="more-btn"
+                    onClick={() =>
+                    setOpenMenuId(
+                        openMenuId === workout.id ? null : workout.id
+                    )
+                    }
+                >
+                    ⋮
+                </button>
+
+                {openMenuId === workout.id && (
+                    <button
+                    className="delete-btn"
+                    onClick={() =>
+                        toggleModal(workout.workout_name, workout.id)
+                    }
+                    >
+                    DELETE
+                    </button>
+                )}
+                </div>
+            ))}
+            </section>
+
+            <footer className="actions">
+            <button onClick={() => navigate("/create-workout")}>
+                START WORKOUT
+            </button>
+            <button onClick={() => navigate("/templates")}>
+                TEMPLATES
+            </button>
+            <button onClick={() => navigate("/analytics")}>
+                ANALYTICS
+            </button>
+            </footer>
+
             {modal && (
-                <div className="modal">
-                    <div onClick={() => setModal(!modal)} className="overlay">
-                        <div className="modal-content">
-                            <h3>
-                                Delete '{modalText}' workout?
-                            </h3>
-                            <p>
-                                Are you sure you want to delete this workout? It'll be gone forever.
-                            </p>
-                            <div>
-                                <button onClick={() => setModal(!modal)}>Cancel</button>
-                                <button onClick={() => handleDelete(workoutID)}>Delete</button> 
-                            </div>
-                        </div>
+            <div className="modal">
+                <div className="overlay" onClick={() => setModal(false)}>
+                <div
+                    className="modal-box"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h3>DELETE WORKOUT '{modalText}' ?</h3>
+                    <p>This action is permanent.</p>
+
+                    <div className="modal-actions">
+                    <button onClick={() => setModal(false)}>
+                        CANCEL
+                    </button>
+                    <button
+                        className="danger"
+                        onClick={() => handleDelete(workoutID)}
+                    >
+                        DELETE
+                    </button>
                     </div>
                 </div>
+                </div>
+            </div>
             )}
         </div>
-    )
+    );
 }
