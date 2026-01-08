@@ -399,19 +399,14 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         </section>
         ));
 
-        return (
+    return (
         <div className="workout-page">
             {/* HEADER */}
             <header className="workout-header">
             <div className="workout-meta">
-                <input
-                className="workout-title-input"
-                value={workout.workoutName}
-                placeholder="WORKOUT"
-                onChange={(e) => ChangeWorkoutValues(e.target.value)}
-                />
+                <input className="workout-title-input" value={workout.workoutName} placeholder={!isTemplate ? "WORKOUT" : "TEMPLATE NAME"} onChange={(e) => ChangeWorkoutValues(e.target.value)} />
 
-                <span className="workout-date">{getDate("view")}</span>
+                {!isTemplate && <span className="workout-date">{getDate("view")}</span>}
             </div>
 
             <button className="finish-btn" onClick={handleSubmit}>
