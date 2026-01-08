@@ -17,6 +17,10 @@ interface Template {
 export default function ListTemplates() {
     const [templates, setTemplates] = useState<Template[]>([]);
 
+    const [modal, setModal] = useState(false);
+    const [modalText, setModalText] = useState("");
+    const [templateID, setTemplateID] = useState(0);
+
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
     const url = "http://127.0.0.1:8000/templates"
@@ -65,6 +69,12 @@ export default function ListTemplates() {
         fetchTemplates();
     }, []);
 
+    const toggleModal = (templateName: string, templateID: number) => {
+        setTemplateID(templateID);
+        setModalText(templateName);
+        setModal(!modal);
+    }
+
     return (
         
         <div className="templates-page">
@@ -107,7 +117,7 @@ export default function ListTemplates() {
 
                     <button
                         className="delete-template-btn"
-                        onClick={() => handleDelete(template.id)}
+                        onClick={() => toggleModal(template.workout_name, template.id)}
                     >
                         DELETE
                     </button>
@@ -115,6 +125,31 @@ export default function ListTemplates() {
                 </section>
                 ))}
             </main>
+            {modal && 
+                <div className="modal">
+                    <div className="overlay" onClick={() => setModal(false)}>
+                        <div
+                            className="modal-box"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3>DELETE TEMPLATE '{modalText}' ?</h3>
+                            <p>This action is permanent.</p>
+
+                            <div className="modal-actions">
+                            <button onClick={() => setModal(false)}>
+                                CANCEL
+                            </button>
+                            <button
+                                className="danger"
+                                onClick={() => handleDelete(templateID)}
+                            >
+                                DELETE
+                            </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>  
     )
 }
