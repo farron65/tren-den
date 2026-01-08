@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import "./workoutform.css";
+
+import deleteButtonIcon from "../assets/delete.png";
+import checkIcon from "../assets/check.png";
+
 interface Set {
     id: string
     weight: number,
     reps: number,
+    completed?: boolean
 }
 
 interface Exercise {
@@ -31,11 +37,14 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         exercises: []
     });
 
+    const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
+    
+    const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
+    const [confirmExerciseName, setConfirmExerciseName] = useState("");
+    
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
-
-    const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
-
+    
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
         delay: number,
@@ -228,6 +237,24 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         return valid;
     }
 
+    function ToggleSetCompleted(exerciseId: string, setId: string) {
+        setWorkout({
+            ...workout,
+            exercises: workout.exercises.map(ex =>
+            ex.id === exerciseId
+                ? {
+                    ...ex,
+                    sets: ex.sets.map(s =>
+                    s.id === setId
+                        ? { ...s, completed: !s.completed }
+                        : s
+                    )
+                }
+                : ex
+            )
+        });
+    }
+
     function ChangeWorkoutValues(newWorkoutName: string) {
         const updatedWorkout = {...workout, workoutName: newWorkoutName}
         setWorkout(updatedWorkout);
@@ -277,55 +304,158 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         setWorkout({...workout, exercises: newExercise})
     }
 
-    const exercises = workout.exercises.map((exercise) => {
-        return (
-            <div key={exercise.id}>
-                <input onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} type="text" value={exercise.exercise_name}></input>
-                <button onClick={() => DeleteExercise(exercise.id)}>X</button>
-                <div className="container-row">
-                    <label>Set</label>
-                    <label>Previous</label>
+    const exercises = workout.exercises.map((exercise) => (
+        <section key={exercise.id} className="exercise-block">
+            {/* Exercise header */}
+            <div className="exercise-header">
+                <input
+                    className="exercise-name"
+                    value={exercise.exercise_name}
+                    placeholder="Exercise name"
+                    onChange={(e) =>
+                    ChangeExerciseName(exercise.id, e.target.value)
+                    }
+                />
+
+                <button
+                    className="delete-btn"
+                    onClick={() => {
+                        setConfirmExerciseId(exercise.id);
+                        setConfirmExerciseName(exercise.exercise_name);
+                    }}
+                    >
+                    <img src={deleteButtonIcon} alt="delete exercise" />
+                </button>
+            </div>
+
+            {/* Sets */}
+            <div className="set-table">
+                <div className="set-row header">
+                    <span>SET</span>
+                    <span>PREVIOUS</span>
+                    <span>LBS</span>
+                    <span>REPS</span>
+                    <span></span>
                 </div>
+
                 {exercise.sets.map((set, index) => {
-                    const previousSet = index > 0 ? exercise.sets[index-1] : null;
-                    const previousWeight = previousSet ? previousSet.weight : 0;
-                    const previousReps = previousSet ? previousSet.reps : 0;
+                    const prevSet = index > 0 ? exercise.sets[index - 1] : null;
+
+                    const prevWeight = prevSet?.weight || "";
+                    const prevReps = prevSet?.reps || "";
+
                     return (
-                        <div key={set.id} className="container">
-                            <div className="container-row">
-                                {!isTemplate && showPreviousSet(exercise.exercise_name, index)}
-                            </div>
-                            <div key={set.id} className="container">
-                                <label>lbs</label>
-                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" value={set.weight === 0 && set.reps === 0 ? "" : set.weight} placeholder={`${previousWeight}`}/>
-                                <label>Reps</label>
-                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" value={set.reps === 0 ? "" : set.reps} placeholder={`${previousReps}`}/>
-                                <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
-                            </div>
+                        <div key={set.id} className={`set-row ${set.completed ? "checked" : ""}`}>
+                            <span className="set-index">{index + 1}</span>
+
+                            <span className="previous">
+                                {!isTemplate &&
+                                showPreviousSet(exercise.exercise_name, index)}
+                            </span>
+
+                            <input
+                                type="number"
+                                value={set.weight || ""}
+                                placeholder={prevWeight ? String(prevWeight) : "—"}
+                                onChange={(e) =>
+                                ChangeSetValues(
+                                    exercise.id,
+                                    set.id,
+                                    "weight",
+                                    +e.target.value
+                                )}
+                            />
+
+                            <input
+                                type="number"
+                                value={set.reps || ""}
+                                placeholder={prevReps ? String(prevReps) : "—"}
+                                onChange={(e) =>
+                                ChangeSetValues(
+                                    exercise.id,
+                                    set.id,
+                                    "reps",
+                                    +e.target.value
+                                )}
+                            />
+
+                            <button
+                                className={`check-btn ${set.completed ? "checked" : ""}`}
+                                onClick={() => ToggleSetCompleted(exercise.id, set.id)}
+                                >
+                                <img src={checkIcon} alt="complete set" />
+                            </button>
                         </div>
-                    )
+                    );
                 })}
-                <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
             </div>
-        )
-    })
 
-    return (
-        <>
-        <div>
-            <input onChange={(e) => ChangeWorkoutValues(e.target.value)} type="text" value={workout.workoutName}/>
-            <button onClick={(e) => handleSubmit(e)}>Submit</button>  
-            {!isTemplate && <button onClick={() => navigate("/workouts")}>Cancel Workout</button>}
-            {isTemplate && <button onClick={() => navigate("/workouts")}>Discard Template</button>}
-            <div>
-                {!isTemplate && getDate("view")}
+            <button
+                className="add-set-btn"
+                onClick={() => AddNewSet(exercise.id)}
+                >
+                + ADD SET
+            </button>
+        </section>
+        ));
+
+        return (
+        <div className="workout-page">
+            {/* HEADER */}
+            <header className="workout-header">
+            <div className="workout-meta">
+                <input
+                className="workout-title-input"
+                value={workout.workoutName}
+                placeholder="WORKOUT"
+                onChange={(e) => ChangeWorkoutValues(e.target.value)}
+                />
+
+                <span className="workout-date">{getDate("view")}</span>
             </div>
-            <ol>
-                {exercises}
-            </ol>
-            <button onClick={AddExercise}>Add Exercise</button>  
+
+            <button className="finish-btn" onClick={handleSubmit}>
+                FINISH
+            </button>
+            </header>
+
+            {/* MAIN */}
+            <main className="exercise-list">
+            {exercises}
+
+            <button className="add-exercise-btn" onClick={AddExercise}>
+                + ADD EXERCISE
+            </button>
+            </main>
+
+            {confirmExerciseId && (
+                <div className="modal">
+                    <div className="overlay" onClick={() => setConfirmExerciseId(null)}>
+                    <div className="modal-box" onClick={e => e.stopPropagation()}>
+                        <h3>
+                            Remove Exercise
+                            <strong>{confirmExerciseName ? `: ${confirmExerciseName} ?` : ""}</strong>
+                        </h3>
+
+
+                        <div className="modal-actions">
+                        <button onClick={() => setConfirmExerciseId(null)}>
+                            Cancel
+                        </button>
+                        <button
+                            className="danger"
+                            onClick={() => {
+                            DeleteExercise(confirmExerciseId);
+                            setConfirmExerciseId(null);
+                            }}
+                        >
+                            Remove
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            )}
         </div>
-        </>
-    )
-
+    );
 }
