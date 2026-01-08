@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import "./templatelist.css";
+
 interface Exercise {
     id: number,
     exercise_name: string,
@@ -65,30 +67,54 @@ export default function ListTemplates() {
 
     return (
         
-        <div>
-            <h1>Templates</h1>
-            <button onClick={() => navigate("/workouts")}>Go back</button>
+        <div className="templates-page">
+            <header className="templates-header">
+                <h1 className="templates-title">TEMPLATES</h1>
+                <button className="back-btn" onClick={() => navigate("/workouts")}>
+                    BACK
+                </button>
+            </header>
 
-            {templates.map((template) => (
-                <div key={template.id}>
-                    <div className="container-row">  
-                        <h2>
-                            {template.workout_name}
-                        </h2>
-                        <button onClick={() => navigate(`/log-workout/${template.id}`)}>Start Workout</button>
+            <main className="templates-list">
+                {templates.map((template) => (
+                <section key={template.id} className="template-card">
+                    <div className="template-header">
+                    <h2 className="template-name">{template.workout_name}</h2>
+
+                    <button
+                        className="start-btn"
+                        onClick={() => navigate(`/log-workout/${template.id}`)}
+                    >
+                        START
+                    </button>
                     </div>
-                    {template.exercises.map((exercise: any) => (
-                        <div key={exercise.id}>
-                            <p>
-                                {exercise.exercise_name}
-                            </p>
+
+                    <div className="template-exercises">
+                    {template.exercises.map((exercise) => (
+                        <div key={exercise.id} className="template-exercise">
+                        {exercise.exercise_name}
                         </div>
                     ))}
-                <button onClick={() => handleDelete(template.id)}>Delete</button>
-                <button onClick={() => navigate(`/edit-template/${template.id}`)}>Edit</button>
-                </div>
-            ))}
-        </div>
+                    </div>
 
+                    <div className="template-actions">
+                    <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/edit-template/${template.id}`)}
+                    >
+                        EDIT
+                    </button>
+
+                    <button
+                        className="delete-template-btn"
+                        onClick={() => handleDelete(template.id)}
+                    >
+                        DELETE
+                    </button>
+                    </div>
+                </section>
+                ))}
+            </main>
+        </div>  
     )
 }
