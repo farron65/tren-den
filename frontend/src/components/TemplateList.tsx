@@ -37,6 +37,7 @@ export default function ListTemplates() {
             else {
                 const updatedTemplate = templates.filter((template) => template.id != targetId);
                 setTemplates(updatedTemplate);
+                setModal(false);
             }
 
         }
