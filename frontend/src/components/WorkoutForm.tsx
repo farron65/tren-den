@@ -262,14 +262,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     }
 
     function DeleteSet(exerciseID: string, setID: string) {
-        // const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
-        //     ? {...exercise, sets: exercise.sets.filter((set) => set.id != setID)}
-        //     : exercise
-        // )
-        // setWorkout({...workout, exercises: updatedSet})
 
         // Before deleting the set, change it's class to 'deleting'
-
         setWorkout(prev => ({
             ...prev,
             exercises: prev.exercises.map(ex => 
