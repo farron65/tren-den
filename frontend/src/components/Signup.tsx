@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import "./login.css";
+import "./auth.css";
 
 export default function Signup() {
     const [userName, setUserName] = useState("");
@@ -56,21 +56,20 @@ export default function Signup() {
         }
     }
     return (
-        <>
-        <div className="login-page">
-            <div className="form">
-                <form className="register-form">
+        <div className="auth-page">
+            <div className="auth-card">
+                <h1 className="auth-title">Sign Up</h1>
+                <form className="auth-form">
                     <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
                     <input type="text" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="email address"/>
                     <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
                 </form>
-                <button type="submit" onClick={(e) => handleSubmit(e)}>Create</button>
-                <p className="message">
+                <button className="auth-submit" type="submit" onClick={(e) => handleSubmit(e)}>Create</button>
+                <p className="auth-footer">
                     Already registered?
                     <Link to="/login">Sign In</Link>
                 </p>
             </div>
         </div>
-        </>
     )
 }

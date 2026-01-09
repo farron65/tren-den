@@ -1,7 +1,7 @@
 import { Link, useNavigate} from "react-router-dom";
 import { useState } from "react";
 
-import "./login.css";
+import "./auth.css";
 
 type LoginProps = {
     updateToken: (token: string) => void
@@ -50,23 +50,19 @@ export default function Login({updateToken}: LoginProps) {
     }
 
     return (
-        <>
-        <div className="login-page">
-            <div className="form">
-                <form className="login-form">
+        <div className="auth-page">
+            <div className="auth-card">
+                <h1 className="auth-title">Login</h1>
+                <form className="auth-form">
                     <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
-                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password" required/>
+                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
                 </form>
-
-                <button type="submit" onClick={(e) => handleSubmit(e)}>login</button>
-                <p className="message">
-                    Not registered? 
-                    <Link to="/signup">
-                        Create an account
-                    </Link>
+                <button className="auth-submit" type="submit" onClick={(e) => handleSubmit(e)}>Login</button>
+                <p className="auth-footer">
+                    Not registered?
+                    <Link to="/signup">Create an account</Link>
                 </p>
             </div>
         </div>
-        </>
     )
 }
