@@ -204,8 +204,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                             <span className="set-index">{index + 1}</span>
 
                             <span className="previous">
-                                {!isTemplate &&
-                                ShowPreviousSets(exercise.exercise_name, index)}
+                                {ShowPreviousSets(exercise.exercise_name, index)}
                             </span>
 
                             <input
