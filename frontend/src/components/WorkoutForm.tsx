@@ -5,6 +5,8 @@ import "./workoutform.css";
 
 import deleteButtonIcon from "../assets/delete.png";
 import checkIcon from "../assets/check.png";
+import { useWorkout } from "./useWorkout";
+import { usePreviousSets } from "./usePreviousSets";
 
 interface Set {
     id: string
@@ -32,59 +34,19 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const [workout, setWorkout] = useState<Workout>({
+    const { workout, setWorkout, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
         workoutName: "",
         date: "",
         exercises: []
-    });
+    })
 
-    const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
+    const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
     
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
-    
-    const debounce = <T extends unknown[]> (
-        callback: (...args: T) => void,
-        delay: number,
-    ) => {
-        let timeoutTimer: ReturnType<typeof setTimeout>;
-
-        return (...args: T) => {
-            clearTimeout(timeoutTimer);
-            timeoutTimer = setTimeout(() => {
-                callback(...args);
-            }, delay)
-        }
-    };
-        
-    const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
-
-    const url = "http://127.0.0.1:8000/recent/exercises";
-    const headers = {"Authorization": `Bearer ${access_token}`}
-
-    useEffect(() => {
-        if (isTemplate) return;
-        const fetchExercises = async () => {
-            try {
-                const response = await fetch(url, {headers: headers})
-
-                if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                setWorkoutExercises(result);
-                console.log(result);
-            }
-            catch (error) {
-                alert(error);
-            }
-        }
-        fetchExercises();
-    }, [])
 
     async function handleSubmit(e: React.FormEvent) {
 
@@ -159,54 +121,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         return requestOptions;
     }
 
-    async function getPreviousSets(targetExName: string, allExercises: Exercise[]) {
-        // console.log(targetExName, workoutExercises);
-        const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
-        // console.log(exerciseInWorkout);
-        if (exerciseInWorkout) {
-            console.log("Found the exercise");
-            return;
-        }
-
-        if (!targetExName) return;
-        console.log("doing an API call");
-
-        const headers = {"Authorization": `Bearer ${access_token}`}
-        const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
-        try {
-            const response = await fetch(url, {headers: headers});
-
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`)
-            }
-
-            const previousSetData = await response.json();
-
-            if (previousSetData) {
-                setWorkoutExercises(exercises => [...exercises, previousSetData])
-                return previousSetData;
-            }
-        }
-        catch (error) {
-            alert(error);
-        }
-    }
-
-    function showPreviousSet(targetExName: string, setIndex: number) {
-
-        const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
-        
-        if (!originalExercise) {
-            return <label> - </label>
-        }
-        
-        const previousOriginalSet = originalExercise.sets.at(setIndex);
-        if (!previousOriginalSet || previousOriginalSet.reps === 0) {
-            return <label> - </label>
-        }
-        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
-    }
-
     function getDate(dateType: string) {
         const today = new Date();
 
@@ -237,95 +151,12 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         })
         return valid;
     }
-
-    function ToggleSetCompleted(exerciseId: string, setId: string) {
-        setWorkout({
-            ...workout,
-            exercises: workout.exercises.map(ex =>
-            ex.id === exerciseId
-                ? {
-                    ...ex,
-                    sets: ex.sets.map(s =>
-                    s.id === setId
-                        ? { ...s, completed: !s.completed }
-                        : s
-                    )
-                }
-                : ex
-            )
-        });
-    }
-
-    function ChangeWorkoutValues(newWorkoutName: string) {
-        const updatedWorkout = {...workout, workoutName: newWorkoutName}
-        setWorkout(updatedWorkout);
-    }
-
-    function DeleteSet(exerciseID: string, setID: string) {
-
-        // Before deleting the set, change it's class to 'deleting'
-        setWorkout(prev => ({
-            ...prev,
-            exercises: prev.exercises.map(ex => 
-                ex.id === exerciseID
-                    ? {
-                        ...ex, sets: ex.sets.map(set => 
-                            set.id === setID ? {...set, deleting: true} : set
-                        )
-                    }
-                    : ex
-                )   
-            })
-        )
-
-        // Delete set with a delay
-        setTimeout(() => {
-            setWorkout(prev => ({
-                ...prev, exercises: prev.exercises.map(ex => 
-                    ex.id === exerciseID
-                        ? {
-                            ...ex, sets: ex.sets.filter(set => set.id !== setID)
-                        }
-                        : ex
-                )
-            }))
-        }, 220);
-    }
-    
-    function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
-        const newSetValue = isNaN(value) ? 0 : value;
-        const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
-            ? {...exercise, sets: exercise.sets.map((set) => set.id == setId
-                ? {...set, [field]: newSetValue}
-                : set)}
-            : exercise
-        )
-        setWorkout({...workout, exercises: updatedSet})
-    }
-
-    function AddNewSet(id: string) {
-        const newSet = workout.exercises.map((exercise) => exercise.id == id
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
-            : exercise
-        )
-        setWorkout({...workout, exercises: newSet});
-    }
-
-    function DeleteExercise(exerciseId: string) {
-        const updatedExercise = {...workout, exercises: workout.exercises.filter((exercise) => exercise.id != exerciseId)}
-        setWorkout(updatedExercise);
-    }
     
     function ChangeExerciseName(id: string, newExerciseName: string) {
         const updatedExerciseName = workout.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
         setWorkout({...workout, exercises: updatedExerciseName});
 
         debouncedRequest.current(newExerciseName, workoutExercises);
-    }
-
-    function AddExercise() {
-        const newExercise = [...workout.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}]
-        setWorkout({...workout, exercises: newExercise})
     }
 
     const exercises = workout.exercises.map((exercise) => (
@@ -374,7 +205,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
                             <span className="previous">
                                 {!isTemplate &&
-                                showPreviousSet(exercise.exercise_name, index)}
+                                ShowPreviousSets(exercise.exercise_name, index)}
                             </span>
 
                             <input
