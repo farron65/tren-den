@@ -11,6 +11,7 @@ interface Set {
     weight: number,
     reps: number,
     completed?: boolean
+    deleting?: boolean
 }
 
 interface Exercise {
@@ -260,12 +261,41 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         setWorkout(updatedWorkout);
     }
 
-    function DeleteSet(exerciseId: string, setId: string) {
-        const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
-            ? {...exercise, sets: exercise.sets.filter((set) => set.id != setId)}
-            : exercise
+    function DeleteSet(exerciseID: string, setID: string) {
+        // const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
+        //     ? {...exercise, sets: exercise.sets.filter((set) => set.id != setID)}
+        //     : exercise
+        // )
+        // setWorkout({...workout, exercises: updatedSet})
+
+        // Before deleting the set, change it's class to 'deleting'
+
+        setWorkout(prev => ({
+            ...prev,
+            exercises: prev.exercises.map(ex => 
+                ex.id === exerciseID
+                    ? {
+                        ...ex, sets: ex.sets.map(set => 
+                            set.id === setID ? {...set, deleting: true} : set
+                        )
+                    }
+                    : ex
+                )   
+            })
         )
-        setWorkout({...workout, exercises: updatedSet})
+
+        // Delete set with a delay
+        setTimeout(() => {
+            setWorkout(prev => ({
+                ...prev, exercises: prev.exercises.map(ex => 
+                    ex.id === exerciseID
+                        ? {
+                            ...ex, sets: ex.sets.filter(set => set.id !== setID)
+                        }
+                        : ex
+                )
+            }))
+        }, 220);
     }
     
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
@@ -345,7 +375,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const prevReps = prevSet?.reps || "";
 
                     return (
-                        <div key={set.id} className={`set-row ${set.completed ? "checked" : ""}`}>
+                        <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
                             <span className="set-index">{index + 1}</span>
 
                             <span className="previous">
@@ -384,6 +414,12 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                 onClick={() => ToggleSetCompleted(exercise.id, set.id)}
                                 >
                                 <img src={checkIcon} alt="complete set" />
+                            </button>
+                            <button
+                                className={`set-delete-btn ${set.completed ? "deleted" : ""}`}
+                                onClick={() => DeleteSet(exercise.id, set.id)}
+                                >
+                                &#10006;
                             </button>
                         </div>
                     );

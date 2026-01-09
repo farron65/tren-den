@@ -140,9 +140,14 @@ input::-webkit-inner-spin-button {
     1fr    /* PREVIOUS */
     104px  /* LBS (wider) */
     104px  /* REPS (wider) */
-    40px;  /* CHECK */
+    40px  /* CHECK */
+    16px; /* DELETE */
   align-items: center;
   gap: 14px;
+  transition:
+    background-color 0.25s ease,
+    transform 220ms ease,
+    opacity 220ms ease;
 }
 
 /* Center PREVIOUS, LBS, REPS columns */
@@ -152,7 +157,6 @@ input::-webkit-inner-spin-button {
   text-align: center;
   justify-self: center;
 }
-
 
 .set-row.header {
     font-size: 11px;
@@ -263,10 +267,31 @@ input::-webkit-inner-spin-button {
     transform: scale(0.92);
 }
 
-/* ===== Completed Set ===== */
-.set-row {
-  transition: background-color 0.25s ease;
+/* ===== Delete Set Button ===== */
+.set-delete-btn {
+  background: none;
+  border: none;
+  color: #777;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.set-delete-btn:hover {
+  color: #ff7a7a;
+}
+
+.set-delete-btn:active {
+  transform: scale(0.85);
+}
+
+
+/* ===== Completed Set ===== */
 
 .set-row input,
 .set-row .set-index,
@@ -299,6 +324,13 @@ input::-webkit-inner-spin-button {
 .set-row.checked .previous {
   color: #b7e0cf;
 }
+
+.set-row.deleting {
+  transform: translateX(-240px);
+  opacity: 0;
+  pointer-events: none;
+}
+
 
 
 /* ===== Add Exercise ===== */
