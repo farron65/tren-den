@@ -34,7 +34,7 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workout, setWorkout, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
+    const { workoutForm, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
         workoutName: "",
         date: "",
         exercises: []
@@ -52,11 +52,11 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
         e.preventDefault();
         
-        const workoutName = workout.workoutName ? workout.workoutName : getHH();
+        const workoutName = workoutForm.workoutName ? workoutForm.workoutName : getHH();
 
         const url = "http://127.0.0.1:8000/";
 
-        const validData = workout.exercises.every(isValidData);
+        const validData = workoutForm.exercises.every(isValidData);
         if (!validData) {
             alert("All fields must be filled")
             return;
@@ -65,7 +65,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         const dataToSend = {
             workout_name: workoutName,
             date: getDate("post"),
-            exercises: workout.exercises.map((exercise) => ({
+            exercises: workoutForm.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight, 
@@ -153,13 +153,13 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     }
     
     function ChangeExerciseName(id: string, newExerciseName: string) {
-        const updatedExerciseName = workout.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
-        setWorkout({...workout, exercises: updatedExerciseName});
+        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
+        setWorkoutForm({...workoutForm, exercises: updatedExerciseName});
 
         debouncedRequest.current(newExerciseName, workoutExercises);
     }
 
-    const exercises = workout.exercises.map((exercise) => (
+    const exercises = workoutForm.exercises.map((exercise) => (
         <section key={exercise.id} className="exercise-block">
             {/* Exercise header */}
             <div className="exercise-header">
@@ -264,7 +264,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             {/* HEADER */}
             <header className="workout-header">
             <div className="workout-meta">
-                <input className="workout-title-input" value={workout.workoutName} placeholder={!isTemplate ? "WORKOUT" : "TEMPLATE NAME"} onChange={(e) => ChangeWorkoutValues(e.target.value)} />
+                <input className="workout-title-input" value={workoutForm.workoutName} placeholder={!isTemplate ? "WORKOUT" : "TEMPLATE NAME"} onChange={(e) => ChangeWorkoutValues(e.target.value)} />
 
                 {!isTemplate && <span className="workout-date">{getDate("view")}</span>}
             </div>

@@ -16,51 +16,51 @@ interface Exercise {
 
 interface Workout {
     workoutName: string,
-    date: string,
+    date?: string,
     exercises: Exercise[]
 }
 
 export function useWorkout(initialWorkout: Workout) {
-    const [workout, setWorkout] = useState<Workout>(initialWorkout);
+    const [workoutForm, setWorkoutForm] = useState<Workout>(initialWorkout);
     
     function ChangeWorkoutValues(newWorkoutName: string) {
-        const updatedWorkout = {...workout, workoutName: newWorkoutName}
-        setWorkout(updatedWorkout);
+        const updatedWorkout = {...workoutForm, workoutName: newWorkoutName}
+        setWorkoutForm(updatedWorkout);
     }
 
     function AddExercise() {
-        const newExercise = [...workout.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}]
-        setWorkout({...workout, exercises: newExercise})
+        const newExercise = [...workoutForm.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}]
+        setWorkoutForm({...workoutForm, exercises: newExercise})
     }
     
     function DeleteExercise(exerciseId: string) {
-        const updatedExercise = {...workout, exercises: workout.exercises.filter((exercise) => exercise.id != exerciseId)}
-        setWorkout(updatedExercise);
+        const updatedExercise = {...workoutForm, exercises: workoutForm.exercises.filter((exercise) => exercise.id != exerciseId)}
+        setWorkoutForm(updatedExercise);
     }
 
     function AddNewSet(id: string) {
-        const newSet = workout.exercises.map((exercise) => exercise.id == id
+        const newSet = workoutForm.exercises.map((exercise) => exercise.id == id
             ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
             : exercise
         )
-        setWorkout({...workout, exercises: newSet});
+        setWorkoutForm({...workoutForm, exercises: newSet});
     }
 
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? 0 : value;
-        const updatedSet = workout.exercises.map((exercise) => exercise.id == exerciseId
+        const updatedSet = workoutForm.exercises.map((exercise) => exercise.id == exerciseId
             ? {...exercise, sets: exercise.sets.map((set) => set.id == setId
                 ? {...set, [field]: newSetValue}
                 : set)}
             : exercise
         )
-        setWorkout({...workout, exercises: updatedSet})
+        setWorkoutForm({...workoutForm, exercises: updatedSet})
     }
 
     function ToggleSetCompleted(exerciseId: string, setId: string) {
-        setWorkout({
-            ...workout,
-            exercises: workout.exercises.map(ex =>
+        setWorkoutForm({
+            ...workoutForm,
+            exercises: workoutForm.exercises.map(ex =>
             ex.id === exerciseId
                 ? {
                     ...ex,
@@ -78,7 +78,7 @@ export function useWorkout(initialWorkout: Workout) {
     function DeleteSet(exerciseID: string, setID: string) {
 
         // Before deleting the set, change it's class to 'deleting'
-        setWorkout(prev => ({
+        setWorkoutForm(prev => ({
             ...prev,
             exercises: prev.exercises.map(ex => 
                 ex.id === exerciseID
@@ -94,7 +94,7 @@ export function useWorkout(initialWorkout: Workout) {
 
         // Delete set with a delay
         setTimeout(() => {
-            setWorkout(prev => ({
+            setWorkoutForm(prev => ({
                 ...prev, exercises: prev.exercises.map(ex => 
                     ex.id === exerciseID
                         ? {
@@ -106,5 +106,5 @@ export function useWorkout(initialWorkout: Workout) {
         }, 220);
     }
 
-    return { workout, setWorkout, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet}
+    return { workoutForm, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet}
 }
