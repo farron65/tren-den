@@ -15,7 +15,7 @@ interface Exercise {
 }
 
 interface Workout {
-    workoutName: string,
+    workout_name: string,
     date?: string,
     exercises: Exercise[]
 }
@@ -23,8 +23,8 @@ interface Workout {
 export function useWorkout(initialWorkout: Workout) {
     const [workoutForm, setWorkoutForm] = useState<Workout>(initialWorkout);
     
-    function ChangeWorkoutValues(newWorkoutName: string) {
-        const updatedWorkout = {...workoutForm, workoutName: newWorkoutName}
+    function ChangeWorkoutValues(newWorkout_name: string) {
+        const updatedWorkout = {...workoutForm, workout_name: newWorkout_name}
         setWorkoutForm(updatedWorkout);
     }
 

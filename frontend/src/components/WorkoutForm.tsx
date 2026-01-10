@@ -23,7 +23,7 @@ interface Exercise {
 }
 
 interface Workout {
-    workoutName: string,
+    workout_name: string,
     date: string,
     exercises: Exercise[]
 }
@@ -35,7 +35,7 @@ interface WorkoutProps {
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
     const { workoutForm, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
-        workoutName: "",
+        workout_name: "",
         date: "",
         exercises: []
     })
@@ -52,7 +52,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
         e.preventDefault();
         
-        const workoutName = workoutForm.workoutName ? workoutForm.workoutName : getHH();
+        const workout_name = workoutForm.workout_name ? workoutForm.workout_name : getHH();
 
         const url = "http://127.0.0.1:8000/";
 
@@ -63,7 +63,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         }
     
         const dataToSend = {
-            workout_name: workoutName,
+            workout_name: workout_name,
             date: getDate("post"),
             exercises: workoutForm.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
@@ -264,7 +264,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             {/* HEADER */}
             <header className="workout-header">
             <div className="workout-meta">
-                <input className="workout-title-input" value={workoutForm.workoutName} placeholder={!isTemplate ? "WORKOUT" : "TEMPLATE NAME"} onChange={(e) => ChangeWorkoutValues(e.target.value)} />
+                <input className="workout-title-input" value={workoutForm.workout_name} placeholder={!isTemplate ? "WORKOUT" : "TEMPLATE NAME"} onChange={(e) => ChangeWorkoutValues(e.target.value)} />
 
                 {!isTemplate && <span className="workout-date">{getDate("view")}</span>}
             </div>
