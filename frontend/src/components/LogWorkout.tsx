@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./sets.css";
+import { useWorkout } from "./useWorkout";
 
 interface Set {
     id: string
@@ -20,11 +21,12 @@ interface Template {
 }
 
 export default function LogWorkout() {
-    // Current workout being edited by the user
-    const [template, setTemplate] = useState<Template>({
-        workout_name: "",
-        exercises: []
+
+    const { workoutForm, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
+            workout_name: "",
+            exercises: []
     });
+
     const [loading, setLoading] = useState(true);
 
     // Previous workout data used only to render the "Previous" column.
@@ -81,7 +83,7 @@ export default function LogWorkout() {
                 }
                 const result = await response.json();
 
-                setTemplate(result); // editable workout
+                setWorkoutForm(result); // editable workout
                 setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
                 // templateRef.current = result.previous_workout_data; // keep ref in sync
                 originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
@@ -99,9 +101,9 @@ export default function LogWorkout() {
     async function handleSave(method: string) {
 
         const dataToSend = {
-            workout_name: template.workout_name,
+            workout_name: workoutForm.workout_name,
             date: getDate("post"),
-            exercises: template.exercises.map((exercise) => ({
+            exercises: workoutForm.exercises.map((exercise: Exercise) => ({
                 exercise_name: exercise.exercise_name,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
@@ -280,61 +282,23 @@ export default function LogWorkout() {
         return valid;
     }
 
-    function DeleteSet(targetExID: string, targetSetID: string) {
-        const updatedSet = template.exercises.map((exercise) => exercise.id === targetExID
-            ? {...exercise, sets: exercise.sets.filter((set) => set.id != targetSetID)}
-            : exercise
-        )
-        setTemplate({...template, exercises: updatedSet});
-    }
-
-    function DeleteExercise(targetExID: string) {
-        const updatedExercises = template.exercises.filter((exercise) => exercise.id != targetExID)
-        
-        setTemplate({...template, exercises: updatedExercises});
-    }
-
-    function changeSetValues(exerciseID: string, targetSetID: string, field: "weight" | "reps", value: number) {
-        const newSetValue = isNaN(value) ? 0 : value;
-        const updatedSet = template.exercises.map((exercise) => exercise.id === exerciseID
-            ? {...exercise, sets: exercise.sets.map((set) => set.id === targetSetID
-                ? {...set, [field]: newSetValue}
-                : set )}
-            : exercise
-        );
-        setTemplate({...template, exercises: updatedSet});
-    }
-
     function ChangeExerciseName(targetExID: string, newExerciseName: string) {
-        const updatedExercise = template.exercises.map((exercise) => exercise.id === targetExID
+        const updatedExercise = workoutForm.exercises.map((exercise: Exercise) => exercise.id === targetExID
             ? {...exercise, exercise_name: newExerciseName}
             : exercise
         );
-        setTemplate({...template, exercises: updatedExercise});
+        setWorkoutForm({...workoutForm, exercises: updatedExercise});
         debouncedRequest.current(newExerciseName);
-    }
-
-    function AddSet(targetExID: string) {
-        const newSet = template.exercises.map((exercise) => exercise.id === targetExID
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
-            : exercise
-        );
-        setTemplate({...template, exercises: newSet});
-    }
-
-    function AddExercise() {
-        const newExercise = [...template.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}];
-        setTemplate({...template, exercises: newExercise})
     }
 
     if (loading)  {
         return <h1>Loading</h1>
     }
-    else if (!template.workout_name) {
+    else if (!workoutForm.workout_name) {
         return <h1>Template doesn't exist</h1>
     }
 
-    const exercises = template.exercises.map((exercise) => {
+    const exercises = workoutForm.exercises.map((exercise: Exercise) => {
         return (
             <div key={exercise.id}>
                 <input onChange={(e) => ChangeExerciseName(exercise.id, e.target.value)} type="text" value={exercise.exercise_name}></input>
@@ -354,26 +318,26 @@ export default function LogWorkout() {
                             </div>
                             <div key={set.id} className="container">
                                 <label>lbs</label>
-                                <input onChange={(e) => changeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" value={set.weight === 0 && set.reps === 0 ? "" : set.weight} placeholder={`${previousWeight}`}/>
+                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", parseFloat(e.target.value))} type="number" value={set.weight === 0 && set.reps === 0 ? "" : set.weight} placeholder={`${previousWeight}`}/>
                                 <label>Reps</label>
-                                <input onChange={(e) => changeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" value={set.reps === 0 ? "" : set.reps} placeholder={`${previousReps}`}/>
+                                <input onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", parseInt(e.target.value))} type="number" value={set.reps === 0 ? "" : set.reps} placeholder={`${previousReps}`}/>
                                 <button onClick={() => DeleteSet(exercise.id, set.id)}>X</button>
                             </div>
                         </div>
                     )
                 })}
-                <button onClick={() => AddSet(exercise.id)}>Add Set</button>
+                <button onClick={() => AddNewSet(exercise.id)}>Add Set</button>
             </div>
         )
     })
 
     return (
         <div>
-            <h1>{template.workout_name}</h1>
+            <h1>{workoutForm.workout_name}</h1>
             <h3>
                 {getDate("view")}
             </h3>
-            <button onClick={() => hasTemplateChanged(template.exercises, originalTemplateRef.current)}>Finish</button>
+            <button onClick={() => hasTemplateChanged(workoutForm.exercises, originalTemplateRef.current)}>Finish</button>
             <button onClick={() => navigate("/workouts")}>Cancel Workout</button>
             <div>
                 <ol>
