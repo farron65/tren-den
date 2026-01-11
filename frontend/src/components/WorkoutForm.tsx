@@ -12,7 +12,7 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    completed?: boolean
+    completed?: boolean,
     deleting?: boolean
 }
 
@@ -240,7 +240,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                 <img src={checkIcon} alt="complete set" />
                             </button>
                             <button
-                                className={`set-delete-btn ${set.completed ? "deleted" : ""}`}
+                                className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
                                 onClick={() => DeleteSet(exercise.id, set.id)}
                                 >
                                 &#10006;

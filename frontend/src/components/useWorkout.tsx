@@ -16,7 +16,7 @@ interface Exercise {
 
 interface Workout {
     workout_name: string,
-    date?: string,
+    date: string,
     exercises: Exercise[]
 }
 
