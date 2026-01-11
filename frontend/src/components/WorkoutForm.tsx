@@ -286,28 +286,25 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             {confirmExerciseId && (
                 <div className="modal">
                     <div className="overlay" onClick={() => setConfirmExerciseId(null)}>
-                    <div className="modal-box" onClick={e => e.stopPropagation()}>
-                        <h3>
-                            Remove Exercise
-                            <strong>{confirmExerciseName ? `: ${confirmExerciseName} ?` : ""}</strong>
-                        </h3>
-
-
-                        <div className="modal-actions">
-                        <button onClick={() => setConfirmExerciseId(null)}>
-                            Cancel
-                        </button>
-                        <button
-                            className="danger"
-                            onClick={() => {
-                            DeleteExercise(confirmExerciseId);
-                            setConfirmExerciseId(null);
-                            }}
-                        >
-                            Remove
-                        </button>
+                        <div className="modal-box" onClick={e => e.stopPropagation()}>
+                            <h3>
+                                Remove Exercise
+                                <strong>{confirmExerciseName ? `: ${confirmExerciseName} ?` : ""}</strong>
+                            </h3>
+                            <div className="modal-actions">
+                                <button onClick={() => setConfirmExerciseId(null)}>
+                                    Cancel
+                                </button>
+                                <button
+                                    className="danger"
+                                    onClick={() => {
+                                    DeleteExercise(confirmExerciseId);
+                                    setConfirmExerciseId(null);
+                                    }} >
+                                    Remove
+                                </button>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
             )}
