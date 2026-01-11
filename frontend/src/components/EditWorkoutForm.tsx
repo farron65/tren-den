@@ -305,7 +305,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                                     onClick={() => {
                                     DeleteExercise(confirmExerciseId);
                                     setConfirmExerciseId(null);
-                                    }} >x   x
+                                    }} >
                                     Remove
                                 </button>
                             </div>

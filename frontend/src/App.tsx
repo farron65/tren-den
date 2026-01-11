@@ -6,7 +6,7 @@ import Signup from "./components/Signup";
 import AppLayout from "./components/AppLayout";
 
 import WorkoutsHistory from "./components/WorkoutsHistory";
-import WorkoutPage from "./components/WorkoutPage";
+import WorkoutView from "./components/WorkoutView";
 import WorkoutForm from "./components/WorkoutForm";
 import LogWorkout from "./components/LogWorkout";
 import TemplateList from "./components/TemplateList";
@@ -55,7 +55,7 @@ function App() {
                     </Route>
                     <Route
                         path={"/workouts/:id"} 
-                        element={<WorkoutPage />}>
+                        element={<WorkoutView />}>
                     </Route>
                     <Route 
                         path={"/log-workout/:id"}

@@ -1,0 +1,180 @@
+/* ===== Page ===== */
+.workout-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 24px 40px;
+  color: #eaeaea;
+}
+
+/* ===== Header ===== */
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 14px;
+  margin-bottom: 24px;
+}
+
+/* ===== Meta ===== */
+.workout-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workout-view-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  color: #ffffff;
+}
+
+.workout-date {
+  font-size: 12px;
+  color: #8a8a8a;
+  letter-spacing: 1px;
+}
+
+/* ===== Header Buttons ===== */
+.workout-header button {
+  background-color: #ffffff;
+  border: none;
+  color: #000;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 10px 18px;
+  cursor: pointer;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.06s ease;
+}
+
+.workout-header button:hover {
+  background-color: #2c8863;
+  color: #ffffff;
+}
+
+.workout-header button:active {
+  transform: scale(0.97);
+}
+
+/* ===== Main ===== */
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ===== Exercise Block ===== */
+.exercise-block {
+  border: 1px solid #151515;
+  background: #0b0b0b;
+  padding: 18px;
+
+  animation: fadeUp 220ms ease both;
+}
+
+.exercise-header {
+  margin-bottom: 12px;
+}
+
+.exercise-name.view {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+/* ===== Sets Table ===== */
+.set-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ===== Header Row ===== */
+.set-row.header.view {
+  display: grid;
+  grid-template-columns:
+    20px
+    0px
+    1fr
+    1fr;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #6fbfa1;
+}
+
+.set-row > span:nth-child(1) {
+    margin-left: 10;
+}
+
+/* ===== Set Row ===== */
+.set-row.view {
+  display: grid;
+  grid-template-columns:
+    48px
+    1fr
+    1fr;
+
+  align-items: stretch; /* IMPORTANT */
+  gap: 14px;
+
+  background: #0f0f0f;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.12s ease;
+}
+
+/* Hover animation */
+.set-row.view:hover {
+  background: rgba(44, 136, 99, 0.2);
+  transform: translateX(4px);
+}
+
+/* ===== Cells define height ===== */
+.set-row.view > span {
+  padding: 8px 0;
+  text-align: center;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
+/* ===== SET index box (FULL HEIGHT) ===== */
+.set-index {
+  background: #111;
+  font-weight: 900;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover highlight */
+.set-row.view:hover .set-index {
+  background: #2c8863;
+  color: #000000;
+}
+
+/* ===== Empty state ===== */
+.workout-view-muted {
+  font-size: 13px;
+  color: #777;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
