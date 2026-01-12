@@ -99,7 +99,7 @@ export default function WorkoutsHistory() {
     }
 
     return (
-        <div className="app">
+        <div className="page app">
             <header className="header">
             <h1>WORKOUT LOG</h1>
             

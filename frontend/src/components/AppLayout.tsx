@@ -5,9 +5,9 @@ import "./applayout.css";
 
 export default function AppLayout() {
     return (
-        <div className="layout">
+        <div className="app-layout">
             <Sidebar/>
-            <div className="main">
+            <div className="main-content">
                 <Outlet/>
             </div>
         </div>

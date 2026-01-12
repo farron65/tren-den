@@ -1,8 +1,5 @@
 /* ===== Sidebar ===== */
 .sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
   width: 220px;
   height: 100vh;
   background: #0f0f0f;
@@ -15,8 +12,9 @@
 /* ===== Collapsed ===== */
 .sidebar.collapsed {
   width: 64px;
-  background: #0b0b0b;
+  background: #040404;
   border-right: 1px solid #1a1a1a;
+  height: auto;
 }
 
 /* ===== Top Section ===== */

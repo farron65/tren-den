@@ -1,9 +1,16 @@
-.layout {
+.app-layout {
   display: flex;
+  min-height: 100vh;
 }
 
-.main {
-  margin-left: 220px; /* same as sidebar width */
-  padding: 24px;
-  width: calc(100% - 220px);
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.page {
+  width: 100%;
+  max-width: 900px;
+  padding: 16px 20px 32px;
 }

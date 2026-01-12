@@ -78,7 +78,7 @@ export default function ListTemplates() {
 
     return (
         
-        <div className="templates-page">
+        <div className="page templates-page">
             <header className="templates-header">
                 <h1 className="templates-title">TEMPLATES</h1>
                 <div>
