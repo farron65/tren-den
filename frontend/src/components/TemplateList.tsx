@@ -81,9 +81,14 @@ export default function ListTemplates() {
         <div className="templates-page">
             <header className="templates-header">
                 <h1 className="templates-title">TEMPLATES</h1>
-                <button className="back-btn" onClick={() => navigate("/workouts")}>
-                    BACK
-                </button>
+                <div>
+                    <button className="create-template-btn" onClick={() => navigate("/create-template")}>
+                        + TEMPLATE
+                    </button>
+                    <button className="back-btn" onClick={() => navigate("/workouts")}>
+                        BACK
+                    </button>
+                </div>
             </header>
 
             <main className="templates-list">
