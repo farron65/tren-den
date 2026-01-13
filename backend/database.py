@@ -3,9 +3,10 @@ from sqlmodel import SQLModel, create_engine, Session
 from typing import Annotated
 from fastapi import Depends
 
-DATABASE_URL = "postgresql://postgres:MonTren65$@localhost:5432/postgres"
+import os
 
-# SQLite requires check_same_thread=False for FastAPI's async operations
+DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:MonTren65$@localhost:5432/postgres"
+
 engine = create_engine(DATABASE_URL)
 
 def create_db_and_tables():
