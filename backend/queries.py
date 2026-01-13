@@ -1,7 +1,6 @@
 from models import User, Workout, Exercise
 from sqlalchemy import func, desc
 from sqlmodel import select
-from fastapi import HTTPException
 from database import SessionDep
 
 def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):

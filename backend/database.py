@@ -1,14 +1,12 @@
 from sqlmodel import SQLModel, create_engine, Session
-from models import Workout, Exercise, SetDetails
+
 from typing import Annotated
 from fastapi import Depends
 
-sqlite_db_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_db_name}"
-connect_args = {"check_same_thread": False}
+DATABASE_URL = "postgresql://postgres:MonTren65$@localhost:5432/postgres"
 
 # SQLite requires check_same_thread=False for FastAPI's async operations
-engine = create_engine(sqlite_url, connect_args=connect_args)
+engine = create_engine(DATABASE_URL)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
