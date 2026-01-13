@@ -32,7 +32,7 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
-    "https://elaborate-pothos-ccd3a0.netlify.app"
+    "https://trenden.netlify.app"
 ]
 
 app.add_middleware(
