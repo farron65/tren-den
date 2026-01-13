@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
+import "./graph.css";
+
 interface ChartPoint {
     "workout_name": string
     date: string,
@@ -22,6 +24,17 @@ export default function Graphs() {
     const access_token = localStorage.getItem("access_token");
     const url = "http://127.0.0.1:8000";
     const headers = {"Authorization": `Bearer ${access_token}`};
+
+    const METRIC_STYLE: Record<string, {color: string}> = {
+        weight: {color: "#2c8863"},
+        session_volume: {color: "#3b82f6"},
+        best_set_volume: {color: "#f59e0b"},
+    }
+
+    const DOT_STYLE = {
+        fill: "#eaeaea",     // same as your text color
+        stroke: "#0b0b0b",   // chart background
+    };
 
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
@@ -73,11 +86,9 @@ export default function Graphs() {
         const point = payload[0].payload;
 
         return (
-            <div style={{padding: 10, borderRadius: 6 }}>
-                <div>
-                    <strong>{point.workout_name}</strong>
-                </div>
-                <div>
+            <div className="graph-tooltip">
+                <strong>{point.workout_name}</strong>
+                <div className="tooltip-date">
                     {new Date(point.date).toLocaleDateString()}
                 </div>
 
@@ -94,7 +105,7 @@ export default function Graphs() {
                     }
                     
                     {point.sets.map((set: any, i: number) => (
-                        <div key={i}>
+                        <div key={i} className="set-line">
                             Set {i+1}: {set.weight} lbs x {set.reps}
                         </div>
                     ))}
@@ -104,32 +115,39 @@ export default function Graphs() {
     }
 
     return (
-        <div>
-            <LineChart style={{  width: '100%', maxWidth: '700px', maxHeight: '70vh', aspectRatio: 1.618 }} responsive data={exerciseData}
-                    margin={{
-                    top: 20,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                    }}>
-                <CartesianGrid/>
-                <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
-                <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>
-                <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
-                <Line dataKey={selectedMetric} name="Heaviest Weight" fill="#1dd617ff"/>
-                <Legend />
-            </LineChart>
-            <div>
-                <h3>
-                    Exercise: <input type="text" onChange={(e) => ChangeInputValues(e.target.value)}/>
-                </h3>
-                <label htmlFor="metrics">Metrics: </label>
-                <select name="metrics" id="metrics" defaultValue="weight"
-                    onChange={e => setSelectedMetric(e.target.value)}>
-                    <option value="weight">Heaviest Weight</option>
-                    <option value="session_volume">Session Volume</option>
-                    <option value="best_set_volume">Best Set Volume</option>
-                </select>
+        <div className="page graph-page">
+            <div className="graph-card">
+                <LineChart className="progress-chart" responsive data={exerciseData}
+                    style={{ width: "100%" }}
+                    margin={{ top: 20, right: 0, bottom: 0, left: 0, }}>
+                    <CartesianGrid/>
+                    <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
+                    <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>
+                    <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
+                    <Line dataKey={selectedMetric} name={selectedMetric} fill="#1dd617ff"
+                        stroke={METRIC_STYLE[selectedMetric].color}
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke}}
+                        activeDot={{ r: 6 }}
+                    />
+                    <Legend />
+                </LineChart>
+            </div>
+            <div className="graph-controls">
+                <div className="graph-input">
+                    <label> Exercise: </label>
+                    <input type="text" placeholder="e.g. Bench Press" onChange={(e) => ChangeInputValues(e.target.value)}/>
+                </div>
+                <div className="graph-select">
+                    <label>Metric</label>
+                    
+                    <select name="metrics" id="metrics" defaultValue="weight"
+                        onChange={e => setSelectedMetric(e.target.value)}>
+                        <option value="weight">Heaviest Weight</option>
+                        <option value="session_volume">Session Volume</option>
+                        <option value="best_set_volume">Best Set Volume</option>
+                    </select>
+                </div>
             </div>
         </div>
     )
