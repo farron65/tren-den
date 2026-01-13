@@ -54,7 +54,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         
         const workout_name = workoutForm.workout_name ? workoutForm.workout_name : getHH();
 
-        const url = "http://127.0.0.1:8000/";
+        const url = import.meta.env.VITE_API_URL;
 
         const validData = workoutForm.exercises.every(isValidData);
         if (!validData) {
@@ -78,7 +78,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             if (isTemplate) {
                 const {date, ...templateToSend} = dataToSend;
 
-                const response = await fetch(`${url}templates`, getRequestOptions("POST", templateToSend));
+                const response = await fetch(`${url}/templates`, getRequestOptions("POST", templateToSend));
                 
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
@@ -91,7 +91,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 );
             }
             else {
-                const response = await fetch(`${url}workouts`, getRequestOptions("POST", dataToSend));
+                const response = await fetch(`${url}/workouts`, getRequestOptions("POST", dataToSend));
                 
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);

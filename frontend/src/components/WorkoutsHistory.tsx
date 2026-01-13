@@ -17,7 +17,9 @@ export default function WorkoutsHistory() {
     const navigate = useNavigate();
     
     const access_token = localStorage.getItem("access_token");
-    const url = "http://127.0.0.1:8000/workouts";
+    
+    const baseURL = import.meta.env.VITE_API_URL;
+    const url = `${baseURL}/workouts`;
 
     const [modal, setModal] = useState(false);
     const [modalText, setModalText] = useState("");
@@ -46,7 +48,7 @@ export default function WorkoutsHistory() {
     }, []);
 
     async function handleDelete(targetID: string) {
-        const url = `http://127.0.0.1:8000/workouts/${targetID}`;
+        const url = `${baseURL}/workouts/${targetID}`;
         const requestOptions = {
             method: "DELETE",
             headers: {

@@ -13,7 +13,7 @@ export default function Signup() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         
-        const url = "http://127.0.0.1:8000/signup";
+        const url = import.meta.env.VITE_API_URL;
         if (userName.trim().length === 0 || userPassword.trim().length === 0) {
             return alert("All fields must be filled.");
         }
@@ -31,7 +31,7 @@ export default function Signup() {
         const jsonData = JSON.stringify(data);
 
         try {
-            const response = await fetch(url, {
+            const response = await fetch(`${url}/signup`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: jsonData

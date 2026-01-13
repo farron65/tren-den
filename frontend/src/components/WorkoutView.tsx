@@ -12,7 +12,9 @@ export default function WorkoutView() {
 
     useEffect(() => {
         const fetchWorkout = async () => {
-            const url = "http://127.0.0.1:8000/workouts/" + workoutId.id;
+            const baseURL = import.meta.env.VITE_API_URL;
+
+            const url = `${baseURL}/workouts/` + workoutId.id;
 
             if (!access_token) {
                 alert("Access token needed");

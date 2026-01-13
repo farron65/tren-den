@@ -22,7 +22,7 @@ export default function Graphs() {
     const [selectedMetric, setSelectedMetric] = useState("weight");
 
     const access_token = localStorage.getItem("access_token");
-    const url = "http://127.0.0.1:8000";
+    const url = import.meta.env.VITE_API_URL;
     const headers = {"Authorization": `Bearer ${access_token}`};
 
     const METRIC_STYLE: Record<string, {color: string}> = {

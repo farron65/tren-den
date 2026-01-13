@@ -55,7 +55,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
 
     const formID = useParams();
 
-    const url = `http://127.0.0.1:8000/`;
+    const url = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchTemplate = async () => {
@@ -63,11 +63,11 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                 let response;
                 if (isTemplate) {
                     console.log(url);
-                    response = await fetch(`${url}templates/${formID.id}`, {headers: headers});
+                    response = await fetch(`${url}/templates/${formID.id}`, {headers: headers});
                 }
 
                 else {
-                    response = await fetch(`${url}workouts/${formID.id}`, {headers: headers})
+                    response = await fetch(`${url}/workouts/${formID.id}`, {headers: headers})
                 }
 
                 if (!response.ok) {
@@ -107,11 +107,11 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             let response;
             if (isTemplate) {
                 const {date, ...templateUpdateData} = dataToSend
-                response = await fetch(`${url}templates/${formID.id}`, getRequestOptions(templateUpdateData));
+                response = await fetch(`${url}/templates/${formID.id}`, getRequestOptions(templateUpdateData));
             }
 
             else {
-                response = await fetch(`${url}workouts/${formID.id}`, getRequestOptions(dataToSend));
+                response = await fetch(`${url}/workouts/${formID.id}`, getRequestOptions(dataToSend));
             }
 
             if (!response.ok) {

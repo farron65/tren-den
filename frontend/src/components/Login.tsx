@@ -16,7 +16,7 @@ export default function Login({updateToken}: LoginProps) {
 
         e.preventDefault();
 
-        const url = "http://127.0.0.1:8000/login";
+        const url = import.meta.env.VITE_API_URL;
         const formData = new URLSearchParams();
     
         formData.append("username", userName);
@@ -29,7 +29,7 @@ export default function Login({updateToken}: LoginProps) {
             }
     
         try {
-            const response = await fetch(url, requestOptions);
+            const response = await fetch(`${url}/login`, requestOptions);
             if (!response.ok) {
                 throw new Error(`Response status:${response.status}`);
             }

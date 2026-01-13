@@ -29,7 +29,9 @@ export default function TemplateView() {
     const navigate = useNavigate();
     
     const access_token = localStorage.getItem("access_token");
-    const url = `http://127.0.0.1:8000/templates/${templateId.id}`
+    
+    const baseURL = import.meta.env.VITE_API_URL;
+    const url = `${baseURL}/templates/${templateId.id}`
 
     useEffect(() => {
         const fetchTemplate = async () => {

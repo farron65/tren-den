@@ -82,7 +82,9 @@ export default function LogWorkout() {
     const headers = {"Authorization": `Bearer ${access_token}`}
 
     const templateId = useParams();
-    const url = `http://127.0.0.1:8000/templates/${templateId.id}`;
+    
+    const baseURL = import.meta.env.VITE_API_URL;
+    const url = `${baseURL}/templates/${templateId.id}`;
 
     useEffect(() => {
         const fetchTemplate = async () => {
@@ -122,11 +124,10 @@ export default function LogWorkout() {
                 }))
             }))
         }
-        console.log(dataToSend);
         const requestOptions = getRequestOptions("POST", dataToSend);
         try {
-            const saveWorkout = await fetch("http://127.0.0.1:8000/workouts/", requestOptions);
-
+            console.log(url)
+            const saveWorkout = await fetch(`${baseURL}/workouts/`, requestOptions);
             if (!saveWorkout.ok) {
                 throw new Error(`Response status: ${saveWorkout.status}`);
             }
@@ -135,8 +136,8 @@ export default function LogWorkout() {
             if (method === "Save") {
                 const exercises = dataToSend.exercises;
     
+                console.log(url);
                 const response = await fetch(url, getRequestOptions("PATCH", exercises));
-    
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
                 }
@@ -205,7 +206,7 @@ export default function LogWorkout() {
     async function getPreviousSets(targetExName: string) {
 
         const headers = {"Authorization": `Bearer ${access_token}`}
-        const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
+        const url = `${baseURL}/exercises/${targetExName}`;
         try {
             const response = await fetch(url, {headers: headers});
 

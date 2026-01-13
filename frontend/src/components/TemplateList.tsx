@@ -23,7 +23,9 @@ export default function ListTemplates() {
 
     const navigate = useNavigate();
     const access_token = localStorage.getItem("access_token");
-    const url = "http://127.0.0.1:8000/templates"
+
+    const baseURL = import.meta.env.VITE_API_URL;
+    const url = `${baseURL}/templates`
 
     async function handleDelete(targetId: number) {
         const headers = {"Authorization": `Bearer ${access_token}`}
