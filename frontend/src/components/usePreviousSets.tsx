@@ -34,8 +34,9 @@ export function usePreviousSets() {
         };
             
         const debouncedRequest = useRef(debounce(GetPreviousSets, 1000));
-    
-        const url = "http://127.0.0.1:8000/recent/exercises";
+        
+        const baseURL = import.meta.env.VITE_API_URL
+        const url = `${baseURL}/recent/exercises`;
         const headers = {"Authorization": `Bearer ${access_token}`}
     
         useEffect(() => {
