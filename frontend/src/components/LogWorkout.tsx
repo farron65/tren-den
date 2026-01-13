@@ -31,6 +31,7 @@ export default function LogWorkout() {
 
     const { workoutForm, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
             workout_name: "",
+            date: "",
             exercises: []
     });
 
@@ -409,7 +410,7 @@ export default function LogWorkout() {
     });
 
     return (
-        <div className="workout-page">
+        <div className="page workout-page">
             <header className="workout-header">
                 <div className="workout-meta">
                     <input

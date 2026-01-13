@@ -55,7 +55,7 @@ export default function WorkoutView() {
         )
     }
     return (
-        <div className="workout-page">
+        <div className="page workout-page">
             {/* HEADER */}
             <header className="workout-header">
                 <div className="workout-meta">
