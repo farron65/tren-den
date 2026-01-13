@@ -8,3 +8,4 @@ bcrypt
 python-multipart
 passlib
 pydantic
+email-validator
