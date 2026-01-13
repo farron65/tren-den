@@ -22,12 +22,6 @@ interface Exercise {
     sets: Set[]
 }
 
-interface Workout {
-    workout_name: string,
-    date: string,
-    exercises: Exercise[]
-}
-
 interface WorkoutProps {
     isTemplate: boolean
 }

@@ -22,11 +22,6 @@ interface Exercise {
     sets: Set[]
 }
 
-interface Template {
-    workout_name: string,
-    exercises: Exercise[]
-}
-
 export default function LogWorkout() {
 
     const { workoutForm, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({

@@ -8,26 +8,6 @@ import checkIcon from "../assets/check.png";
 import { useWorkout } from "./useWorkout";
 import { usePreviousSets } from "./usePreviousSets";
 
-interface Set {
-    id: string
-    weight: number,
-    reps: number,
-    completed?: boolean
-    deleting?: boolean
-}
-
-interface Exercise {
-    id: string,
-    exercise_name: string,
-    sets: Set[]
-}
-
-interface Workout {
-    workout_name: string,
-    date: string,
-    exercises: Exercise[]
-}
-
 interface WorkoutProps {
     isTemplate: boolean
 }
