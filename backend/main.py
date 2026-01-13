@@ -31,7 +31,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://elaborate-pothos-ccd3a0.netlify.app"
 ]
 
 app.add_middleware(
@@ -348,7 +349,7 @@ async def update_template_values(template_id: int, updated_values: list[Exercise
                 db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=template_values[exercise.exercise_name.lower()])
     
                 session.add(db_set)      
-    
+    print(user_template.exercises)
     session.commit()
     session.refresh(user_template)    
     return user_template

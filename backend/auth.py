@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-from hashlib import sha256
 import bcrypt
 import jwt
 
