@@ -68,8 +68,7 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     if not user:
         raise HTTPException(401, "Not authorized")
     
-    
-    access_token_expire = timedelta(minutes=15)
+    access_token_expire = timedelta(minutes=55)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expire
     )
