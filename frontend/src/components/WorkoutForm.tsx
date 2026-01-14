@@ -52,7 +52,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
         const validData = workoutForm.exercises.every(isValidData);
         if (!validData) {
-            alert("All fields must be filled")
+            alert("All fields must be filled");
             return;
         }
     
@@ -75,6 +75,10 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 const response = await fetch(`${url}/templates`, getRequestOptions("POST", templateToSend));
                 
                 if (!response.ok) {
+                    if (response.status === 409) {
+                        alert("Template with this kind of name already exists.");
+                        return;
+                    }
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
