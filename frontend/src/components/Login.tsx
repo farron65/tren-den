@@ -10,6 +10,9 @@ export default function Login({updateToken}: LoginProps) {
 
     const [userName, setUserName] = useState("");    
     const [userPassword, setUserPassword] = useState("");
+
+    const isValid = userName.trim() && userPassword.trim()
+
     const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
@@ -31,7 +34,7 @@ export default function Login({updateToken}: LoginProps) {
         try {
             const response = await fetch(`${url}/login`, requestOptions);
             if (!response.ok) {
-                throw new Error(`Response status:${response.status}`);
+                throw new Error(`You entered invalid data.`);
             }
     
             const result = await response.json();
@@ -53,11 +56,12 @@ export default function Login({updateToken}: LoginProps) {
         <div className="auth-page">
             <div className="auth-card">
                 <h1 className="auth-title">Login</h1>
-                <form className="auth-form">
+                <form className="auth-form" onSubmit={(e) => handleSubmit(e)}>
                     <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
                     <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
+                    
+                    <button className="auth-submit" disabled={!isValid} type="submit">Login</button>
                 </form>
-                <button className="auth-submit" type="submit" onClick={(e) => handleSubmit(e)}>Login</button>
                 <p className="auth-footer">
                     Not registered?
                     <Link to="/signup">Create an account</Link>

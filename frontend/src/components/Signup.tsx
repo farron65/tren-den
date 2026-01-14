@@ -8,20 +8,15 @@ export default function Signup() {
     const [userPassword, setUserPassword] = useState("");
     const [userEmail, setUserEmail] = useState("");
 
+    const isValid = userName.trim() && userPassword.trim() && userEmail.includes("@")
+
     const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        
-        const url = import.meta.env.VITE_API_URL;
-        if (userName.trim().length === 0 || userPassword.trim().length === 0) {
-            return alert("All fields must be filled.");
-        }
 
-       
-        if (userEmail.trim().length === 0) {
-            return alert("All fields must be filled.");
-        }
+        const url = import.meta.env.VITE_API_URL;
+
         const data = {
             username: userName,
             email: userEmail,
@@ -38,7 +33,7 @@ export default function Signup() {
             });
 
             if (!response.ok) {
-                throw new Error(`Response status:${response.status}`);
+                throw new Error(`You entered invalid data.`);
             }
             const result = await response.json();
             alert(
@@ -49,7 +44,7 @@ export default function Signup() {
             setUserPassword("");
             setUserEmail("");
 
-            navigate("/workouts");
+            navigate("/login");
         }
         catch(error) {
             alert(error);
@@ -59,12 +54,13 @@ export default function Signup() {
         <div className="auth-page">
             <div className="auth-card">
                 <h1 className="auth-title">Sign Up</h1>
-                <form className="auth-form">
+                <form className="auth-form" onSubmit={(e) => handleSubmit(e)}>
                     <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
                     <input type="text" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="email address"/>
                     <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
+                    
+                    <button className="auth-submit" disabled={!isValid} type="submit">Create</button>
                 </form>
-                <button className="auth-submit" type="submit" onClick={(e) => handleSubmit(e)}>Create</button>
                 <p className="auth-footer">
                     Already registered?
                     <Link to="/login">Sign In</Link>

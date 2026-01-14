@@ -82,6 +82,15 @@
     filter: brightness(0.92);
 }
 
+.auth-submit:disabled {
+  background: #444;
+  color: #999;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: none;
+}
+
+
 /* ===== Footer ===== */
 .auth-footer {
     margin-top: 20px;
