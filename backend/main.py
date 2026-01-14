@@ -174,7 +174,7 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
     
     user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(asc(Workout.date))).all() # type: ignore
     if not user_exercises:
-        raise HTTPException(404, "Not Found")
+        return []
     
     user_exercise_data = []
         
