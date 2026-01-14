@@ -225,7 +225,7 @@ async def get_recent_exercises(current_user: Annotated[User, Depends(get_current
     user_exercises_data = []
     
     if not user_exercises:
-        raise HTTPException(404, "Not Found")
+        return []
 
     for unique_ex in user_exercises:
         if unique_ex.exercise_name.lower() not in unique_ex_names:

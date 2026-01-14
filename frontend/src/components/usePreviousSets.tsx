@@ -45,12 +45,12 @@ export function usePreviousSets() {
                     const response = await fetch(url, {headers: headers})
     
                     if (!response.ok) {
-                        throw new Error(`Response status: ${response.status}`);
+                        setWorkoutExercises([]);
+                        return;
                     }
     
                     const result = await response.json();
                     setWorkoutExercises(result);
-                    console.log(result);
                 }
                 catch (error) {
                     alert(error);
