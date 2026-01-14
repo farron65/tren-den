@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
 import "./graph.css";
+import sadFaceIcon from "../assets/sad.png";
+import happyFaceIcon from "../assets/happiness.png";
 
 interface ChartPoint {
     "workout_name": string
@@ -52,7 +54,6 @@ export default function Graphs() {
 
     async function getExerciseData(exerciseName: string) {
         if (!exerciseName) return;
-        console.log(exerciseName);
 
         try {
             const response = await fetch(`${url}/analytics/${exerciseName}`, {headers: headers});
@@ -62,7 +63,7 @@ export default function Graphs() {
             }
     
             const result = await response.json();
-            setExercise(result); 
+            if (result) setExercise(result); 
 
         }
         catch (error) {
@@ -117,9 +118,25 @@ export default function Graphs() {
     return (
         <div className="page graph-page">
             <div className="graph-card">
+                {exerciseData.length === 0 &&
+                    <div className="graph-empty">
+                        <div className="graph-empty-content">
+                            <div className="graph-empty-row">
+                                <span>No data yet for this exercise</span>
+                                <img src={sadFaceIcon} className="graph-empty-icon" />
+                            </div>
+
+                            <div className="graph-empty-row">
+                                <span>Log a workout with this exercise to see your progress here</span>
+                                <img src={happyFaceIcon} className="graph-empty-icon" />
+                            </div>
+                        </div>
+                    </div>
+
+                }
                 <LineChart className="progress-chart" responsive data={exerciseData}
                     style={{ width: "100%" }}
-                    margin={{ top: 20, right: 0, bottom: 0, left: 0, }}>
+                    margin={{ top: 20, right: 32, bottom: 0, left: 8 }}>
                     <CartesianGrid/>
                     <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
                     <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>

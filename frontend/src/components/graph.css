@@ -1,150 +1,239 @@
 /* ===== Graph Page ===== */
 .graph-page {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 18px 20px 32px;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 18px 20px 32px;
 
-  color: #eaeaea;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+    color: #eaeaea;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
 /* ===== Chart Card ===== */
 .graph-card {
-  background: #0b0b0b;
-  border: 1px solid #151515;
-  padding: 14px;
+    position: relative;
+    background: #0b0b0b;
+    border: 1px solid #151515;
+    padding: 14px;
+}
+
+/* ===== Empty Graph Overlay ===== */
+.graph-empty {
+    position: absolute;
+    inset: 0px 0px 48px 40px;
+
+    display: grid;
+    place-items: center;
+
+    z-index: 2; /* above chart */
+    pointer-events: auto; /* ALLOW hover */
+}
+
+/* Centered block */
+.graph-empty-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Rows (same style for both) */
+.graph-empty-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    /* ↓ slightly dimmer, neutral gray */
+    color: #d1d5db;
+
+    /* ↓ neutral glass (no brown / green mix) */
+    background-color: rgba(13, 148, 136, 0.16);
+
+    backdrop-filter: blur(8px);
+
+    font-size: clamp(14px, 1.4vw, 16px);
+    font-weight: 800;
+    letter-spacing: 0.35px;
+
+    padding: clamp(10px, 1.2vw, 12px) clamp(16px, 2.5vw, 20px);
+    border-radius: 10px;
+
+    transition: background-color 0.2s ease, box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+/* Hover — now ACTUALLY works */
+@media (hover: hover) {
+    .graph-empty-row:hover {
+        background-color: rgba(13, 148, 136, 0.28);
+        box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.45);
+        transform: translateY(-1px);
+    }
+}
+
+/* Text */
+.graph-empty-row span {
+    max-width: 90%;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Icons — dimmed slightly, neutral */
+.graph-empty-icon {
+    display: block;
+    width: clamp(18px, 2.2vw, 20px);
+    height: clamp(18px, 2.2vw, 20px);
+
+    opacity: 0.85;
+    filter: invert(1) brightness(1.1); /* NOT overbright */
+}
+
+/* Mobile tightening */
+@media (max-width: 600px) {
+    .graph-empty-content {
+        gap: 8px;
+    }
+
+    .graph-empty-row {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+
+    .graph-empty-icon {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 /* ===== Chart sizing ===== */
 .progress-chart {
-  width: 100%;
-  height: 380px;
+    width: 100%;
+    height: 380px;
 }
 
 @media (min-width: 1400px) {
-  .progress-chart {
-    height: 420px;
-  }
+    .progress-chart {
+        height: 420px;
+    }
 }
 
 @media (max-width: 1100px) {
-  .progress-chart {
-    height: 360px;
-  }
+    .progress-chart {
+        height: 360px;
+    }
 }
 
 @media (max-width: 700px) {
-  .progress-chart {
-    height: 300px;
-  }
+    .progress-chart {
+        height: 300px;
+    }
 
-  .graph-page {
-    padding: 14px 16px 28px;
-  }
+    .graph-page {
+        padding: 14px 16px 28px;
+    }
 }
 
 /* ===== Recharts text ===== */
 .progress-chart text {
-  fill: #cfcfcf;
-  font-size: 12px;
-  font-weight: 600;
+    fill: #cfcfcf;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .recharts-cartesian-grid line {
-  stroke: #1a1a1a;
+    stroke: #1a1a1a;
 }
 
 .recharts-legend-item-text {
-  color: #cfcfcf !important;
-  font-size: 13px;
+    color: #cfcfcf !important;
+    font-size: 13px;
 }
 
 /* ===== Controls ===== */
 .graph-controls {
-  display: flex;
-  gap: 14px;
-  align-items: flex-end;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: wrap;
 }
 
 .graph-input,
 .graph-select {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .graph-controls label {
-  font-size: 11px;
-  letter-spacing: 1px;
-  font-weight: 800;
-  color: #8a8a8a;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: #8a8a8a;
 }
 
 .graph-controls input,
 .graph-controls select {
-  background: #0f0f0f;
-  border: 1px solid #151515;
-  color: #ffffff;
+    background: #0f0f0f;
+    border: 1px solid #151515;
+    color: #ffffff;
 
-  padding: 8px 10px;
-  font-size: 13px;
-  font-weight: 700;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 700;
 
-  outline: none;
-  transition: border-color 0.2s ease;
+    outline: none;
+    transition: border-color 0.2s ease;
 }
 
 .graph-controls input::placeholder {
-  color: #666;
+    color: #666;
 }
 
 .graph-controls input:focus,
 .graph-controls select:focus {
-  border-color: #2c8863;
+    border-color: #2c8863;
 }
 
 /* ===== Tooltip ===== */
 .graph-tooltip {
-  background: #0f0f0f;
-  border: 1px solid #2c8863;
-  border-radius: 6px;
+    background: #0f0f0f;
+    border: 1px solid #2c8863;
+    border-radius: 6px;
 
-  padding: 12px 14px;
-  font-size: 13px;
-  color: #eaeaea;
-  min-width: 200px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #eaeaea;
+    min-width: 200px;
 }
 
 .graph-tooltip strong {
-  font-weight: 900;
-  font-size: 14px;
-  color: #ffffff;
+    font-weight: 900;
+    font-size: 14px;
+    color: #ffffff;
 }
 
 .graph-tooltip .tooltip-date {
-  font-size: 12px;
-  color: #9a9a9a;
-  margin-bottom: 6px;
+    font-size: 12px;
+    color: #9a9a9a;
+    margin-bottom: 6px;
 }
 
 .graph-tooltip hr {
-  border: none;
-  border-top: 1px solid #1a1a1a;
-  margin: 6px 0;
+    border: none;
+    border-top: 1px solid #1a1a1a;
+    margin: 6px 0;
 }
 
 .graph-tooltip .set-line {
-  font-size: 12px;
-  color: #cfcfcf;
+    font-size: 12px;
+    color: #cfcfcf;
 }
 
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
-  .graph-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .graph-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
