@@ -1,16 +1,16 @@
 .app-layout {
-  display: flex;
-  min-height: 100vh;
+    display: flex;
+    min-height: 100vh;
 }
 
 .main-content {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .page {
-  width: 100%;
-  max-width: 900px;
-  padding: 16px 20px 32px;
+    width: 100%;
+    max-width: 900px;
+    padding: 16px 20px 32px;
 }

@@ -83,13 +83,12 @@
 }
 
 .auth-submit:disabled {
-  background: #444;
-  color: #999;
-  cursor: not-allowed;
-  pointer-events: none;
-  filter: none;
+    background: #444;
+    color: #999;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: none;
 }
-
 
 /* ===== Footer ===== */
 .auth-footer {
@@ -104,8 +103,7 @@
     color: #ffffff;
     text-decoration: none;
     font-weight: 700;
-    transition: color 0.25s ease, font-size 0.25s ease-in-out,
-        filter 0.08s ease;;
+    transition: color 0.25s ease, font-size 0.25s ease-in-out, filter 0.08s ease;
 }
 
 .auth-footer a:hover {

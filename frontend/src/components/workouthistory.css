@@ -2,283 +2,284 @@
 
 /* ===== App ===== */
 .app {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 28px 18px 40px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 18px 40px;
 }
 
 /* ===== Header ===== */
 .header {
-  padding-left: 14px;
-  margin-bottom: 26px;
+    padding-left: 14px;
+    margin-bottom: 26px;
 }
 
 .header h1 {
-  font-size: 30px;
-  font-weight: 900;
-  letter-spacing: 1.5px;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
 }
 
 .subtitle {
-  font-size: 12px;
-  color: #9a9a9a;
-  letter-spacing: 1px;
+    font-size: 12px;
+    color: #9a9a9a;
+    letter-spacing: 1px;
 }
 
 .icon-row {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+    display: flex;
+    gap: 14px;
+    align-items: center;
 }
 
 /* base icon */
 .icon {
-  width: 38px;
-  height: 38px;
-  background: #ffffff;
+    width: 38px;
+    height: 38px;
+    background: #ffffff;
 
-  /* mask setup */
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: 68%;
+    /* mask setup */
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: 68%;
 
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: 68%;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 68%;
 }
 
 /* icon images */
 .bench {
-  -webkit-mask-image: url("../assets/bench-press.png");
-  mask-image: url("../assets/bench-press.png");
-  opacity: 0.8;
+    -webkit-mask-image: url("../assets/bench-press.png");
+    mask-image: url("../assets/bench-press.png");
+    opacity: 0.8;
 }
 
 .squat {
-  -webkit-mask-image: url("../assets/squat.png");
-  mask-image: url("../assets/squat.png");
-  opacity: 0.9;
-  width: 46px;
+    -webkit-mask-image: url("../assets/squat.png");
+    mask-image: url("../assets/squat.png");
+    opacity: 0.9;
+    width: 46px;
 }
 
 .deadlift {
-  -webkit-mask-image: url("../assets/deadlift.png");
-  mask-image: url("../assets/deadlift.png");
-  width: 50px;
-  opacity: 1;
+    -webkit-mask-image: url("../assets/deadlift.png");
+    mask-image: url("../assets/deadlift.png");
+    width: 50px;
+    opacity: 1;
 }
 
 .dumbbell {
-  -webkit-mask-image: url("../assets/dumbbell.png");
-  mask-image: url("../assets/dumbbell.png");
-  opacity: 0.85;
+    -webkit-mask-image: url("../assets/dumbbell.png");
+    mask-image: url("../assets/dumbbell.png");
+    opacity: 0.85;
 }
 
 /* ===== Empty State ===== */
 .empty-state {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 /* slightly muted icons */
 .icon-row.muted .icon {
-  opacity: 0.35;
+    opacity: 0.35;
 }
 
 /* main empty container */
 .empty-card {
-  margin-top: 48px;
-  padding: 42px 26px;
-  background: #080808;
-  border: 1px dashed #222;
-  text-align: center;
+    margin-top: 48px;
+    padding: 42px 26px;
+    background: #080808;
+    border: 1px dashed #222;
+    text-align: center;
 }
 
 /* title */
 .empty-title {
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 1.4px;
-  margin-bottom: 10px;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    margin-bottom: 10px;
 }
 
 /* subtitle */
 .empty-subtitle {
-  font-size: 13px;
-  color: #8a8a8a;
-  letter-spacing: 0.8px;
-  margin-bottom: 32px;
+    font-size: 13px;
+    color: #8a8a8a;
+    letter-spacing: 0.8px;
+    margin-bottom: 32px;
 }
 
 /* CTA */
 .empty-state .start-btn {
-  background: #b00000;
-  border: none;
-  color: #000;
-  padding: 16px 26px;
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 1.6px;
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    background: #b00000;
+    border: none;
+    color: #000;
+    padding: 16px 26px;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease,
+        color 0.15s ease;
 }
 
 .empty-state .start-btn:hover {
-  background-color: #a90000;
-  color: #fff;
-  transform: translateY(-1px);
+    background-color: #a90000;
+    color: #fff;
+    transform: translateY(-1px);
 }
 
 /* ===== History ===== */
 .history {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 /* ===== Workout Card ===== */
 .workout-card {
-  position: relative;
-  background: #0b0b0b;
-  border: 1px solid #151515;
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: border 0.15s ease, transform 0.15s ease;
+    position: relative;
+    background: #0b0b0b;
+    border: 1px solid #151515;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border 0.15s ease, transform 0.15s ease;
 }
 
 .workout-card:hover {
-  border-color: #b00000;
-  transform: translateY(-1px);
+    border-color: #b00000;
+    transform: translateY(-1px);
 }
 
 /* ===== Main Info ===== */
 .workout-main {
-  flex: 1;
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    flex: 1;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .workout-name {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: #ffffff;
 }
 
 .workout-date {
-  font-size: 12px;
-  color: #8a8a8a;
+    font-size: 12px;
+    color: #8a8a8a;
 }
 
 /* ===== Menu ===== */
 .more-btn {
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 22px;
-  cursor: pointer;
-  padding: 4px 8px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
 }
 
 .more-btn:hover {
-  color: #b00000;
+    color: #b00000;
 }
 
 /* ===== Delete ===== */
 .delete-btn {
-  position: absolute;
-  right: 18px;
-  top: 52px;
-  background: #160000;
-  color: #ff2b2b;
-  border: 1px solid #ff2b2b;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
+    position: absolute;
+    right: 18px;
+    top: 52px;
+    background: #160000;
+    color: #ff2b2b;
+    border: 1px solid #ff2b2b;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
 }
 
 /* ===== Footer Actions ===== */
 .actions {
-  margin-top: 36px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
 }
 
 .actions button {
-  background: #0b0b0b;
-  border: 1px solid #2a2a2a;
-  color: #ffffff;
-  padding: 16px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: border 0.15s ease, color 0.15s ease;
+    background: #0b0b0b;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: border 0.15s ease, color 0.15s ease;
 }
 
 .actions button:hover {
-  border-color: #b00000;
-  color: #ff2b2b;
+    border-color: #b00000;
+    color: #ff2b2b;
 }
 
 /* ===== Modal ===== */
 .modal {
-  position: fixed;
-  inset: 0;
+    position: fixed;
+    inset: 0;
 }
 
 .overlay {
-  background: rgba(0, 0, 0, 0.85);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-box {
-  background: #0b0b0b;
-  border: 1px solid #b00000;
-  padding: 26px;
-  width: 90%;
-  max-width: 420px;
+    background: #0b0b0b;
+    border: 1px solid #b00000;
+    padding: 26px;
+    width: 90%;
+    max-width: 420px;
 }
 
 .modal-box h3 {
-  font-weight: 900;
-  letter-spacing: 1px;
-  margin-bottom: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
 }
 
 .modal-box p {
-  font-size: 13px;
-  color: #9a9a9a;
-  margin-bottom: 22px;
+    font-size: 13px;
+    color: #9a9a9a;
+    margin-bottom: 22px;
 }
 
 .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
 
 .modal-actions button {
-  background: #111;
-  border: none;
-  color: #ffffff;
-  padding: 10px 16px;
-  font-weight: 700;
-  cursor: pointer;
+    background: #111;
+    border: none;
+    color: #ffffff;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 .modal-actions .danger {
-  background: #ff2b2b;
-  color: #000000;
+    background: #ff2b2b;
+    color: #000000;
 }

@@ -1,141 +1,136 @@
 /* ===== Sidebar ===== */
 .sidebar {
-  width: 220px;
-  height: 100vh;
-  background: #0f0f0f;
-  color: #ffffff;
-  padding: 20px;
-  overflow: hidden;
-  transition: width 0.15s ease;
+    width: 220px;
+    height: 100vh;
+    background: #0f0f0f;
+    color: #ffffff;
+    padding: 20px;
+    overflow: hidden;
+    transition: width 0.15s ease;
 }
 
 /* ===== Collapsed ===== */
 .sidebar.collapsed {
-  width: 64px;
-  background: #040404;
-  border-right: 1px solid #1a1a1a;
-  height: auto;
+    width: 64px;
+    background: #040404;
+    border-right: 1px solid #1a1a1a;
+    height: auto;
 }
 
 /* ===== Top Section ===== */
 .sidebar-top {
-  position: relative;
-  margin-bottom: 32px;
+    position: relative;
+    margin-bottom: 32px;
 }
 
 /* ===== Logo ===== */
 .logo {
-  font-weight: 900;
-  letter-spacing: 2px;
-  font-size: 18px;
-  white-space: nowrap;
-  transition: opacity 0.1s ease;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 18px;
+    white-space: nowrap;
+    transition: opacity 0.1s ease;
 }
 
 .sidebar.collapsed .logo {
-  opacity: 0;
+    opacity: 0;
 }
 
 /* ===== Collapse Button ===== */
 .collapse-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: #111;
-  border: 1px solid #222;
-  padding: 6px;
-  cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #111;
+    border: 1px solid #222;
+    padding: 6px;
+    cursor: pointer;
 }
 
 .collapse-btn img {
-  width: 20px;
-  height: 20px;
-  filter: invert(1);
-  opacity: 0.85;
-  transition:
-    opacity 0.15s ease,
-    transform 0.05s ease;
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+    opacity: 0.85;
+    transition: opacity 0.15s ease, transform 0.05s ease;
 }
 
 .collapse-btn:hover img {
-  opacity: 1;
+    opacity: 1;
 }
 
 .collapse-btn:active img {
-  transform: scale(0.95);
+    transform: scale(0.95);
 }
 
 /* ===== Collapsed Button Position ===== */
 .sidebar.collapsed .collapse-btn {
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
 }
 
 /* ===== Nav ===== */
 .nav {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  transition: opacity 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: opacity 0.1s ease;
 }
 
 /* ===== Disable nav when collapsed ===== */
 .sidebar.collapsed .nav {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* ===== Nav Links ===== */
 .nav a {
-  position: relative;
-  color: #9a9a9a;
-  text-decoration: none;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 10px 12px;
-  border-left: 3px solid transparent;
-  user-select: none;
-  white-space: nowrap;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    transform 0.05s ease;
+    position: relative;
+    color: #9a9a9a;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 12px;
+    border-left: 3px solid transparent;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease,
+        background-color 0.15s ease, transform 0.05s ease;
 }
 
 /* ===== Hover ===== */
 .nav a:hover {
-  color: #ffffff;
-  background-color: #0b0b0b;
-  border-left-color: #b00000;
+    color: #ffffff;
+    background-color: #0b0b0b;
+    border-left-color: #b00000;
 }
 
 /* ===== Active ===== */
 .nav a.active {
-  color: #ffffff;
-  background-color: #0b0b0b;
-  border-left-color: #b00000;
+    color: #ffffff;
+    background-color: #0b0b0b;
+    border-left-color: #b00000;
 }
 
 /* ===== Press ===== */
 .nav a:active {
-  transform: translateX(2px) scale(0.98);
-  background-color: #160000;
-  border-left-color: #ff2b2b;
-  color: #ff2b2b;
+    transform: translateX(2px) scale(0.98);
+    background-color: #160000;
+    border-left-color: #ff2b2b;
+    color: #ff2b2b;
 }
 
 /* ===== Red Flash ===== */
 .nav a::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(176, 0, 0, 0.15);
-  opacity: 0;
-  transition: opacity 0.1s ease;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(176, 0, 0, 0.15);
+    opacity: 0;
+    transition: opacity 0.1s ease;
 }
 
 .nav a:active::after {
-  opacity: 1;
+    opacity: 1;
 }
