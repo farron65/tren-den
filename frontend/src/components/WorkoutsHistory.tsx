@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
-import "./history.css";
+import "./workouthistory.css";
 
 interface Workout {
     id: string,
@@ -93,9 +93,25 @@ export default function WorkoutsHistory() {
 
     if (workouts.length == 0){
         return (
-            <div>
-                <h1>No past workouts</h1>
-                <button onClick={() => navigate("/create-workout")}>Create Workout</button>
+            <div className="page app empty-state">
+                <header className="header">
+                    <h1>WORKOUT LOGs</h1>
+                    
+                    <div className="icon-row muted">
+                        <span className="icon bench" />
+                        <span className="icon squat" />
+                        <span className="icon deadlift" />
+                        <span className="icon dumbbell" />
+                    </div>
+                </header>
+                <div className="empty-card">
+                    <p className="empty-title">No workouts yet</p>
+                    <p className="empty-subtitle">
+                        Start your first workout to begin tracking progress.
+                    </p>
+                    
+                    <button className="start-btn" onClick={() => navigate("/create-workout")}>START WORKOUT</button>
+                </div>
             </div>
         )
     }
@@ -103,7 +119,7 @@ export default function WorkoutsHistory() {
     return (
         <div className="page app">
             <header className="header">
-            <h1>WORKOUT LOG</h1>
+            <h1>WORKOUT LOGs</h1>
             
             <div className="icon-row">
                 <span className="icon bench" />
