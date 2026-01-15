@@ -10,7 +10,7 @@ export default function Sidebar() {
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-top">
-        <h2 className="logo">TRENDEN</h2>
+        <h2 className="logo">TREN DEN</h2>
 
         <button
           className="collapse-btn"
