@@ -101,10 +101,22 @@
 }
 
 .template-name {
-  font-size: 18px;
+    font-size: 18px;
   font-weight: 800;
   letter-spacing: 1px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    transform 0.12s ease,
+    letter-spacing 0.12s ease;
 }
+
+.template-name:hover {
+  color: #2c8863;
+  transform: translateX(2px);
+  letter-spacing: 1.2px;
+}
+
 
 /* ===== Start Button ===== */
 .start-btn {

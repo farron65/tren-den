@@ -78,6 +78,31 @@ export default function ListTemplates() {
         setModal(!modal);
     }
 
+    if (templates.length === 0) {
+              return (
+            <div className="page app empty-state">
+                <header className="header">
+                    <h1>TEMPLATES</h1>
+                    
+                    <div className="icon-row muted">
+                        <span className="icon bench" />
+                        <span className="icon squat" />
+                        <span className="icon deadlift" />
+                        <span className="icon dumbbell" />
+                    </div>
+                </header>
+                <div className="empty-card">
+                    <p className="empty-title">No templates yet</p>
+                    <p className="empty-subtitle">
+                        Create a workout template to reuse your exercises and log workouts faster.
+                    </p>
+                    
+                    <button className="start-btn" onClick={() => navigate("/create-template")}>CREATE TEMPLATE</button>
+                </div>
+            </div>
+        )
+    }
+
     return (
         
         <div className="page templates-page">
@@ -97,14 +122,14 @@ export default function ListTemplates() {
                 {templates.map((template) => (
                 <section key={template.id} className="template-card">
                     <div className="template-header">
-                    <h2 className="template-name">{template.workout_name}</h2>
+                        <h2 className="template-name" onClick={() => navigate(`/templates/${template.id}`)}>{template.workout_name}</h2>
 
-                    <button
-                        className="start-btn"
-                        onClick={() => navigate(`/log-workout/${template.id}`)}
-                    >
-                        START
-                    </button>
+                        <button
+                            className="start-btn"
+                            onClick={() => navigate(`/log-workout/${template.id}`)}
+                        >
+                            START
+                        </button>
                     </div>
 
                     <div className="template-exercises">

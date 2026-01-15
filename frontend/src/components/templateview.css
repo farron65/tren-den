@@ -1,0 +1,102 @@
+/* ===== Template View ===== */
+.template-view {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 18px 40px;
+}
+
+/* ===== Header ===== */
+.template-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 14px;
+  margin-bottom: 28px;
+}
+
+.template-view-title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 1.6px;
+}
+
+/* ===== Header Actions ===== */
+.template-view-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* reuse existing buttons, add same interaction feel */
+.template-view-actions .start-btn {
+  background: #ffffff;
+  color: #000;
+}
+
+.template-view-actions .start-btn:hover {
+  background: #2c8863;
+  color: #fff;
+}
+
+.template-view-actions .edit-btn,
+.template-view-actions .back-btn {
+  padding: 8px 14px;
+}
+
+/* ===== Body ===== */
+.template-view-body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ===== Exercise Block (match template-card feel) ===== */
+.exercise-block {
+  background: #0b0b0b;
+  border: 1px solid #151515;
+  padding: 18px;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.exercise-block:hover {
+  transform: translateY(-2px);
+  border-color: #2c8863;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* ===== Exercise Title ===== */
+.exercise-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+/* ===== Sets ===== */
+.set-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-view .set-row {
+  background: #111;
+  border: 1px solid #222;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ccc;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.set-row:hover {
+  background-color: #141414;
+  border-color: #333;
+  transform: translateX(2px);
+}

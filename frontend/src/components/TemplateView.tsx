@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import "./templateview.css";
+
 interface Set {
     id: string
     weight: number,
@@ -14,6 +16,7 @@ interface Exercise {
 }
 
 interface Template {
+    id: string
     workout_name: string,
     date: string,
     exercises: Exercise[]
@@ -21,6 +24,7 @@ interface Template {
 
 export default function TemplateView() {
     const [template, SetTemplate] = useState<Template>({
+        id: "",
         workout_name: "",
         date: "",
         exercises: []
@@ -36,7 +40,6 @@ export default function TemplateView() {
     useEffect(() => {
         const fetchTemplate = async () => {
             if (!access_token) {
-                alert("Access token needed");
                 return;
             }
 
@@ -56,33 +59,32 @@ export default function TemplateView() {
         fetchTemplate();
     }, []);
 
-    if (template.exercises.length == 0) {
-        return (
-            <div>
-                Empty template
-            </div>
-        );
-    }
-
     return (
-        <div>
-            <h1>
-                {template.workout_name}
-            </h1>
-            <button onClick={() => navigate("/workouts")}>Home</button>
-            <button onClick={() => navigate("/templates")}>Go back</button>
-            {template.exercises.map((exercise: Exercise) => (
-                <li key={exercise.id}>
-                    <h3>{exercise.exercise_name}</h3>
-                    {exercise.sets.map((set: any) => (
-                        <div key={set.id}>
-                            <label>
+        <div className="page app template-view">
+            <header className="template-view-header">
+                <h1 className="template-view-title">{template.workout_name}</h1>
+
+                <div className="template-view-actions">
+                    <button className="start-btn" onClick={() => navigate(`/log-workout/${template.id}`)}>START</button>
+                    <button className="edit-btn" onClick={() => navigate(`/edit-template/${template.id}`)}>EDIT</button>
+                    <button className="back-btn" onClick={() => navigate("/templates")}>BACK</button>
+                </div>
+            </header>
+            <section className="template-view-body">
+                {template.exercises.map((exercise: Exercise) => (
+                <div key={exercise.id} className="exercise-block">
+                    <h3 className="exercise-title">{exercise.exercise_name}</h3>
+                    <div className="set-list">
+                        {exercise.sets.map((set: any) => (
+                            <div key={set.id} className="set-row">
                                 {set.weight} lbs x {set.reps}
-                            </label>
-                        </div>
-                    ))}
-                </li>
-            ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                ))}
+            </section>
+            
         </div>
     );
 }
