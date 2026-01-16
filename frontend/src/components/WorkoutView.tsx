@@ -100,7 +100,6 @@ export default function WorkoutView() {
                     <div className="set-table">
                         <div className="set-row header view">
                             <span>SET</span>
-                            <span></span> {/* Couldn't fix alignment, so did this instead*/}
                             <span>LBS</span>
                             <span>REPS</span>
                         </div>

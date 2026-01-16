@@ -200,3 +200,124 @@
 .delete-template-btn:active {
     transform: scale(0.94);
 }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .templates-header {
+        margin-left: 40px;
+    }
+}
+
+@media (max-width: 450px) {
+    .templates-page {
+        padding: 16px 12px 32px;
+    }
+
+    /* Header */
+    .templates-header {
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        margin-left: 50px;
+    }
+
+    .templates-title {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .templates-header button {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    /* Template Cards */
+    .templates-list {
+        gap: 20px;
+    }
+
+    .template-card {
+        padding: 14px;
+    }
+
+    .template-header {
+        margin-bottom: 10px;
+    }
+
+    .template-name {
+        font-size: 16px;
+        letter-spacing: 1px;
+    }
+
+    .start-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .template-exercises {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .template-exercise {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .template-actions {
+        gap: 8px;
+    }
+
+    .edit-btn,
+    .delete-template-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    /* Template View */
+    .template-view {
+        padding: 16px 12px 32px;
+    }
+
+    .template-view-header {
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .template-view-title {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .template-view-actions {
+        gap: 6px;
+    }
+
+    .template-view-actions .start-btn,
+    .template-view-actions .edit-btn,
+    .template-view-actions .back-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .template-view-body {
+        gap: 20px;
+    }
+
+    .exercise-block {
+        padding: 14px;
+    }
+
+    .exercise-title {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .set-list {
+        gap: 5px;
+    }
+
+    .template-view .set-row {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}

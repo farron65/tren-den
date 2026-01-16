@@ -416,3 +416,126 @@ input.workout-date::-webkit-calendar-picker-indicator {
     transform: scale(0.97);
     filter: brightness(0.92);
 }
+
+@media (max-width: 670px) {
+    .workout-header {
+        gap: 10px;
+    }
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 450px) {
+    .workout-page {
+        padding: 16px 12px 32px;
+    }
+
+    /* Header */
+    .workout-header {
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .workout-title-input {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .workout-date {
+        font-size: 10px;
+    }
+
+    input.workout-date {
+        font-size: 10px;
+    }
+
+    .finish-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .cancel-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    /* Exercise List */
+    .exercise-list {
+        gap: 24px;
+    }
+
+    /* Exercise Block */
+    .exercise-block {
+        padding: 14px;
+    }
+
+    .exercise-header {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .exercise-name {
+        font-size: 15px;
+    }
+
+    .delete-btn img {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Set Table */
+    .set-table {
+        gap: 5px;
+    }
+
+    .set-row {
+        grid-template-columns:
+            36px /* SET */
+            1fr /* PREVIOUS */
+            70px /* LBS */
+            70px /* REPS */
+            32px /* CHECK */
+            14px; /* DELETE */
+        gap: 8px;
+    }
+
+    .set-row.header {
+        font-size: 9px;
+        margin-bottom: 3px;
+    }
+
+    .set-index {
+        padding: 5px 0;
+        font-size: 12px;
+    }
+
+    .previous {
+        font-size: 11px;
+    }
+
+    .set-row input {
+        padding: 5px 3px;
+        font-size: 13px;
+    }
+
+    .check-btn img {
+        width: 14px;
+        height: 14px;
+    }
+
+    .set-delete-btn {
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .add-set-btn {
+        margin-top: 8px;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .add-exercise-btn {
+        margin-top: 16px;
+        padding: 12px;
+        font-size: 13px;
+    }
+}

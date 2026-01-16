@@ -97,8 +97,7 @@
 .set-row.header.view {
     display: grid;
     grid-template-columns:
-        20px
-        0px
+        48px
         1fr
         1fr;
     font-size: 11px;
@@ -172,5 +171,87 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .workout-header {
+        margin-left: 40px;
+    }
+}
+
+@media (max-width: 450px) {
+    .workout-page {
+        padding: 16px 12px 32px;
+    }
+
+    /* Header */
+    .workout-header {
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        margin-left: 54px;
+    }
+
+    .workout-view-title {
+        font-size: 16px;
+        letter-spacing: 1px;
+    }
+
+    .workout-date {
+        font-size: 10px;
+    }
+
+    .workout-header button {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    /* Exercise List */
+    .exercise-list {
+        gap: 24px;
+    }
+
+    /* Exercise Block */
+    .exercise-block {
+        padding: 14px;
+    }
+
+    .exercise-header {
+        margin-bottom: 10px;
+    }
+
+    .exercise-name.view {
+        font-size: 15px;
+    }
+
+    /* Set Table */
+    .set-table {
+        gap: 5px;
+    }
+
+    .set-row.header.view {
+        grid-template-columns:
+            36px
+            1fr
+            1fr;
+        font-size: 9px;
+    }
+
+    .set-row.view {
+        grid-template-columns:
+            36px
+            1fr
+            1fr;
+        gap: 10px;
+    }
+
+    .set-row.view > span {
+        padding: 6px 0;
+        font-size: 13px;
+    }
+
+    .set-index {
+        font-size: 12px;
     }
 }

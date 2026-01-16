@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
 import "./graph.css";
@@ -23,6 +23,8 @@ export default function Graphs() {
     const [exerciseData, setExercise] = useState<ChartPoint[]>([]);
     const [selectedMetric, setSelectedMetric] = useState("weight");
 
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
+
     const access_token = localStorage.getItem("access_token");
     const url = import.meta.env.VITE_API_URL;
     const headers = {"Authorization": `Bearer ${access_token}`};
@@ -32,11 +34,21 @@ export default function Graphs() {
         session_volume: {color: "#3b82f6"},
         best_set_volume: {color: "#f59e0b"},
     }
-
+    
     const DOT_STYLE = {
         fill: "#eaeaea",     // same as your text color
         stroke: "#0b0b0b",   // chart background
     };
+    
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 450);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    const chartMargin = isMobile 
+        ? { top: 10, right: 8, bottom: 0, left: -20 }
+        : { top: 20, right: 32, bottom: 0, left: 0 };
 
     const debounce = <T extends unknown[]> (
         callback: (...args: T) => void,
@@ -136,11 +148,11 @@ export default function Graphs() {
                 }
                 <LineChart className="progress-chart" responsive data={exerciseData}
                     style={{ width: "100%" }}
-                    margin={{ top: 20, right: 32, bottom: 0, left: 8 }}>
+                    margin={chartMargin}>
                     <CartesianGrid/>
                     <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
                     <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>
-                    <Tooltip cursor={{ strokeDasharray: "3 3"}} content={SetsToolTip}/>
+                    <Tooltip cursor={{ strokeDasharray: "3 3"}} offset={isMobile ? 20 : 10} content={SetsToolTip}/>
                     <Line dataKey={selectedMetric} name={selectedMetric} fill="#1dd617ff"
                         stroke={METRIC_STYLE[selectedMetric].color}
                         strokeWidth={3}

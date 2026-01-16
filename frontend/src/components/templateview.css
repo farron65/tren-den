@@ -81,6 +81,7 @@
 }
 
 .template-view .set-row {
+    display: block;
     background: #111;
     border: 1px solid #222;
     padding: 8px 12px;
@@ -95,4 +96,68 @@
     background-color: #141414;
     border-color: #333;
     transform: translateX(2px);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .template-view-header {
+        margin-left: 46px;
+    }
+}
+
+@media (max-width: 450px) {
+    .template-view-header {
+        margin-left: 56px;
+    }
+
+    .template-view {
+        padding: 16px 12px 32px;
+    }
+
+    .template-view-header {
+        /* flex-direction: column; */
+        align-items: flex-start;
+        gap: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+
+    .template-view-title {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .template-view-actions {
+        gap: 6px;
+        width: 100%;
+    }
+
+    .template-view-actions .start-btn,
+    .template-view-actions .edit-btn,
+    .template-view-actions .back-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .template-view-body {
+        gap: 20px;
+    }
+
+    .exercise-block {
+        padding: 14px;
+    }
+
+    .exercise-title {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .set-list {
+        gap: 5px;
+    }
+
+    .template-view .set-row {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
 }

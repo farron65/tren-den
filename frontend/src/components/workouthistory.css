@@ -9,7 +9,6 @@
 
 /* ===== Header ===== */
 .header {
-    padding-left: 14px;
     margin-bottom: 26px;
 }
 
@@ -282,4 +281,10 @@
 .modal-actions .danger {
     background: #ff2b2b;
     color: #000000;
+}
+
+@media (max-width: 768px) {
+    .app .header h1, .icon-row {
+        padding-left: 30px;
+    }
 }

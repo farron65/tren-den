@@ -134,3 +134,92 @@
 .nav a:active::after {
     opacity: 1;
 }
+
+/* ===== MOBILE SIDEBAR ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -220px;
+        width: 220px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+        left: 0;
+        width: 220px;
+        background: #0f0f0f;
+        border-right: 1px solid #1a1a1a;
+        height: 100vh;
+    }
+
+    .sidebar.collapsed .logo {
+        opacity: 1;
+    }
+
+    .sidebar.collapsed .nav {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .sidebar.collapsed .collapse-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: auto;
+        transform: none;
+    }
+
+    /* Hamburger button when sidebar is hidden */
+    .mobile-hamburger {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 999;
+        background: #111;
+        border: 1px solid #222;
+        padding: 8px;
+        cursor: pointer;
+        display: block;
+    }
+
+    .mobile-hamburger img {
+        width: 20px;
+        height: 20px;
+        filter: invert(1);
+        opacity: 0.85;
+    }
+
+    .sidebar:not(.collapsed) ~ .mobile-hamburger {
+        display: none;
+    }
+
+    /* Overlay background */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+}
+
+/* Hide mobile hamburger on desktop */
+@media (min-width: 769px) {
+    .mobile-hamburger {
+        display: none;
+    }
+    
+    .sidebar-overlay {
+        display: none;
+    }
+}
