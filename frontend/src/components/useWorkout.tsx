@@ -57,7 +57,8 @@ export function useWorkout(initialWorkout: Workout) {
         setWorkoutForm({...workoutForm, exercises: updatedSet})
     }
 
-    function ToggleSetCompleted(exerciseId: string, setId: string) {
+    function ToggleSetCompleted(exerciseId: string, setId: string, prevWeight?: number, prevReps?: number) {
+
         setWorkoutForm({
             ...workoutForm,
             exercises: workoutForm.exercises.map(ex =>
@@ -66,7 +67,9 @@ export function useWorkout(initialWorkout: Workout) {
                     ...ex,
                     sets: ex.sets.map(s =>
                     s.id === setId
-                        ? { ...s, completed: !s.completed }
+                        ? { ...s, completed: !s.completed,
+                                weight: !s.weight ? prevWeight || s.weight : s.weight,
+                                reps: !s.reps ? prevReps || s.reps : s.reps}
                         : s
                     )
                 }

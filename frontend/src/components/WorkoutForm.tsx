@@ -194,8 +194,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 {exercise.sets.map((set, index) => {
                     const prevSet = index > 0 ? exercise.sets[index - 1] : null;
 
-                    const prevWeight = prevSet?.weight || "";
-                    const prevReps = prevSet?.reps || "";
+                    const prevWeight = prevSet?.weight || undefined;
+                    const prevReps = prevSet?.reps || undefined;
 
                     return (
                         <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
@@ -233,7 +233,9 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
                             <button
                                 className={`check-btn ${set.completed ? "checked" : ""}`}
-                                onClick={() => ToggleSetCompleted(exercise.id, set.id)}
+                                onClick={() => {
+                                    ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps);
+                                }}
                                 >
                                 <img src={checkIcon} alt="complete set" />
                             </button>
