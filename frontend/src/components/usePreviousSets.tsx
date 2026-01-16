@@ -70,12 +70,15 @@ export function usePreviousSets() {
         if (!targetExName) return;
 
         const headers = {"Authorization": `Bearer ${access_token}`}
-        const url = `http://127.0.0.1:8000/exercises/${targetExName}`;
+
+        const baseURL = import.meta.env.VITE_API_URL;
+
+        const url = `${baseURL}/exercises/${targetExName}`;
         try {
             const response = await fetch(url, {headers: headers});
 
             if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`)
+                return; 
             }
 
             const previousSetData = await response.json();
