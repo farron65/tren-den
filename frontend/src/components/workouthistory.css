@@ -287,4 +287,8 @@
     .app .header h1, .icon-row {
         padding-left: 30px;
     }
+
+    header {
+        margin-left: 20px;
+    }
 }
