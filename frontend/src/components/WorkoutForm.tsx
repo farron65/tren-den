@@ -214,7 +214,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
                             {!PreviousWorkoutSetReps &&
                                 <span className="previous">
-                                    <label> - </label>
+                                    <label> — </label>
                                 </span>
                             }
 
