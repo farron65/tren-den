@@ -42,7 +42,7 @@ I built this project to design and ship a complete full-stack application, and t
 
 - Deployed and usable
 - Actively under development
-- UI polish and bug fixes in progress (especially mobile)
+- UI polish and bug fixes in progress
 
 ---
 
