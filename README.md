@@ -2,7 +2,7 @@
 
 Tren Den is a full-stack workout tracking web app that lets users log workouts and visualize exercise progress over time.
 
-I built this project to design and ship a complete full-stack application, and to address a common limitation in many workout apps, where progress charts and user created templates are restricted behind paywalls.
+I built this project to design and ship my first complete full-stack application, and to address a common limitation in many workout apps, where progress charts and user created templates are restricted behind paywalls.
 
 **Live demo:** https://trenden.netlify.app/
 
