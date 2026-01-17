@@ -231,14 +231,14 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                 )}
                             />
 
-                            <button
+                            {!isTemplate && <button
                                 className={`check-btn ${set.completed ? "checked" : ""}`}
                                 onClick={() => {
                                     ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps);
                                 }}
                                 >
                                 <img src={checkIcon} alt="complete set" />
-                            </button>
+                            </button>}
                             <button
                                 className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
                                 onClick={() => DeleteSet(exercise.id, set.id)}

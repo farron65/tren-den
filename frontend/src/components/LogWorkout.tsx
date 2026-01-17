@@ -341,8 +341,8 @@ export default function LogWorkout() {
 
                 {exercise.sets.map((set, index) => {
                     const previousSet = index > 0 ? exercise.sets[index - 1] : null;
-                    const previousWeight = previousSet ? previousSet.weight : "";
-                    const previousReps = previousSet ? previousSet.reps : "";
+                    const previousWeight = previousSet ? previousSet.weight : undefined;
+                    const previousReps = previousSet ? previousSet.reps : undefined;
 
                     return (
                         <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
@@ -381,7 +381,7 @@ export default function LogWorkout() {
                             />
                             <button
                                 className={`check-btn ${set.completed ? "checked" : ""}`}
-                                onClick={() => ToggleSetCompleted(exercise.id, set.id)}
+                                onClick={() => ToggleSetCompleted(exercise.id, set.id, previousWeight, previousReps)}
                                 >
                                 <img src={checkIcon} alt="complete set" />
                             </button>
