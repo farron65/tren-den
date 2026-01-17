@@ -98,14 +98,14 @@ export function usePreviousSets() {
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
-            return <label> - </label>
+            return;
         }
         
         const previousOriginalSet = originalExercise.sets.at(setIndex);
         if (!previousOriginalSet || previousOriginalSet.reps === 0) {
-            return <label> - </label>
+            return;
         }
-        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
+        return [previousOriginalSet.weight, previousOriginalSet.reps]
     }
 
     return { workoutExercises, debouncedRequest, ShowPreviousSets}

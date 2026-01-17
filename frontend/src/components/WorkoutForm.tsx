@@ -192,18 +192,31 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 </div>
 
                 {exercise.sets.map((set, index) => {
+
+                    const PreviousWorkoutSetValues = ShowPreviousSets(exercise.exercise_name, index);
+                    const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
+                    const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
+
                     const prevSet = index > 0 ? exercise.sets[index - 1] : null;
 
-                    const prevWeight = prevSet?.weight || undefined;
-                    const prevReps = prevSet?.reps || undefined;
+                    const prevWeight = prevSet?.weight;
+                    const prevReps = prevSet?.reps;
 
                     return (
                         <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
                             <span className="set-index">{index + 1}</span>
 
-                            <span className="previous">
-                                {ShowPreviousSets(exercise.exercise_name, index)}
-                            </span>
+                            {PreviousWorkoutSetReps && 
+                                <span className="previous">
+                                    <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
+                                </span>
+                            }
+
+                            {!PreviousWorkoutSetReps &&
+                                <span className="previous">
+                                    <label> - </label>
+                                </span>
+                            }
 
                             <input
                                 type="number"
@@ -234,7 +247,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                             {!isTemplate && <button
                                 className={`check-btn ${set.completed ? "checked" : ""}`}
                                 onClick={() => {
-                                    ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps);
+                                    ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps);
                                 }}
                                 >
                                 <img src={checkIcon} alt="complete set" />

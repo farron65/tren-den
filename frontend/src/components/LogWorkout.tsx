@@ -182,18 +182,18 @@ export default function LogWorkout() {
         return today.toISOString();
     }
 
-    function showPreviousSet(targetExName: string, setIndex: number) {
+    function ShowPreviousSet(targetExName: string, setIndex: number) {
 
         const originalExercise = originalTemplate.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
-            return <label> - </label>
+            return;
         }
         const previousOriginalSet = originalExercise.sets.at(setIndex);
         if (!previousOriginalSet || (previousOriginalSet.weight === 0 && previousOriginalSet.reps === 0)) {
-            return <label> - </label>
+            return;
         }
-        return <label>{previousOriginalSet.weight} lbs x {previousOriginalSet.reps}</label>
+        return [previousOriginalSet.weight, previousOriginalSet.reps];
     }
 
     // Uses REF because this function is called by a debounced callback
@@ -340,22 +340,36 @@ export default function LogWorkout() {
                 </div>
 
                 {exercise.sets.map((set, index) => {
+
+                    const PreviousWorkoutSetValues = ShowPreviousSet(exercise.exercise_name, index);
+                    const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
+                    const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
+                    console.log(PreviousWorkoutSetWeight, PreviousWorkoutSetReps);
+
                     const previousSet = index > 0 ? exercise.sets[index - 1] : null;
-                    const previousWeight = previousSet ? previousSet.weight : undefined;
-                    const previousReps = previousSet ? previousSet.reps : undefined;
+                    const previousWeight = previousSet?.weight;
+                    const previousReps = previousSet?.reps;
 
                     return (
                         <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
                             <span className="set-index">{index + 1}</span>
 
-                            <span className="previous">
-                                {showPreviousSet(exercise.exercise_name, index)}
-                            </span>
+                            {PreviousWorkoutSetReps &&
+                                <span className="previous">
+                                    <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
+                                </span>
+                            }
+
+                            {!PreviousWorkoutSetWeight && !PreviousWorkoutSetReps && 
+                                <span className="previous">
+                                    <label> - </label>
+                                </span>
+                            }
 
                             <input
                                 type="number"
                                 value={set.weight || ""}
-                                placeholder={`${previousWeight}`}
+                                placeholder={`${previousWeight ? previousWeight : "—"}`}
                                 onChange={(e) =>
                                 ChangeSetValues(
                                     exercise.id,
@@ -369,7 +383,7 @@ export default function LogWorkout() {
                             <input
                                 type="number"
                                 value={set.reps || ""}
-                                placeholder={`${previousReps}`}
+                                placeholder={`${previousReps ? previousReps : "—"}`}
                                 onChange={(e) =>
                                 ChangeSetValues(
                                     exercise.id,
@@ -381,7 +395,7 @@ export default function LogWorkout() {
                             />
                             <button
                                 className={`check-btn ${set.completed ? "checked" : ""}`}
-                                onClick={() => ToggleSetCompleted(exercise.id, set.id, previousWeight, previousReps)}
+                                onClick={() => ToggleSetCompleted(exercise.id, set.id, previousWeight, previousReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps)}
                                 >
                                 <img src={checkIcon} alt="complete set" />
                             </button>
