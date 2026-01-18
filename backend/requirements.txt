@@ -9,3 +9,5 @@ python-multipart
 passlib
 pydantic
 email-validator
+resend
+secrets
