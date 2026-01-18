@@ -1,9 +1,13 @@
 from sqlmodel import SQLModel, create_engine, Session
+from models import User, Workout, Exercise, SetDetails, Template
 
 from typing import Annotated
 from fastapi import Depends
 
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:MonTren65$@localhost:5432/postgres"
 
