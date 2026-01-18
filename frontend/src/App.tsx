@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import ForgetPassword from "./components/ForgetPassword";
+import ResetPassword from "./components/ResetPassword";
 
 import AppLayout from "./components/AppLayout";
 
@@ -41,10 +43,11 @@ function App() {
         <BrowserRouter>
             <Routes>
 
-                <Route path={"/signup"} element={<Signup />}></Route>
+                <Route path={"/signup"} element={<Signup/>}></Route>
                 <Route path={"/"} element={<Login updateToken={updateToken}/>}></Route>
                 <Route path={"/login"} element={<Login updateToken={updateToken}/>}></Route>
-
+                <Route path={"/forgot-password"} element={<ForgetPassword/>}></Route>
+                <Route path={"/reset-password"} element={<ResetPassword/>}></Route>
                 <Route element={
                     <ProtectedRoute token={access_token}>
                         <AppLayout/>

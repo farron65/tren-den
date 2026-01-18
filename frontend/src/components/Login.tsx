@@ -59,7 +59,10 @@ export default function Login({updateToken}: LoginProps) {
                 <form className="auth-form" onSubmit={(e) => handleSubmit(e)}>
                     <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="username" required/>
                     <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="password"/>
-                    
+                    <div className="forgot-password">
+                        <Link to={"/forgot-password"}>Forgot password?</Link>
+                    </div>
+
                     <button className="auth-submit" disabled={!isValid} type="submit">Login</button>
                 </form>
                 <p className="auth-footer">
