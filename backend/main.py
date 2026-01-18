@@ -4,11 +4,14 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.security import OAuth2PasswordRequestForm
+import secrets
+
+import resend
 
 from sqlmodel import select
 from sqlalchemy import func, desc, asc
 
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime, timezone
 
 from typing import Annotated, Optional
 
@@ -16,12 +19,14 @@ from database import create_db_and_tables, SessionDep
 
 from models import Workout, Exercise, SetDetails, User, Template
 
-from schemas import WorkoutCreate, UserSignUp, Token, WorkoutResponse, UserRead, DeleteAccountRequest, ExerciseCreate, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
+from schemas import WorkoutCreate, UserSignUp, UserForgotPassword, UserResetPassword, Token, WorkoutResponse, UserRead, DeleteAccountRequest, ExerciseCreate, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
 
 from config import *
 from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
 
 from queries import get_exercise_sets, get_user_workout
+    
+resend.api_key = RESEND_EMAIL_API_KEY
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,6 +79,61 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
         data={"sub": user.username}, expires_delta=access_token_expire
     )
     return Token(access_token=access_token, token_type="bearer")
+
+@app.post("/forgot-password")
+async def forgo_password(user_email: UserForgotPassword, session: SessionDep):
+    print(user_email, user_email.email)
+    user_in_db = session.exec(select(User).where(User.email == user_email.email)).first()
+    
+    if not user_in_db:
+        return {"message": "Successfully sent the email"} # to fool the hackers 😀
+    
+    reset_token = secrets.token_urlsafe(32)
+    reset_token_exp = datetime.now(timezone.utc) + timedelta(minutes=15)
+    
+    user_in_db.reset_token = reset_token
+    user_in_db.reset_token_exp = reset_token_exp
+    
+    session.commit()
+    session.refresh(user_in_db)
+    
+    params: resend.Emails.SendParams = {
+        "from": "onboarding@resend.dev",
+        "to": user_in_db.email,
+        "subject": "Reset your password",
+        "html":
+            f"""
+            <h1>Hello {user_in_db.username},</h1>
+            <p>We received a request to reset your password<p>
+            <a href="https://trenden.netlify.app/reset-password?token={reset_token}">Reset your password<a/>
+            <strong>This link will expire in 15 minutes. If you did not request a new password, please disregard this message.</strong
+            """
+    }
+    
+    email = resend.Emails.send(params)
+
+    return {"message": "Successfully sent the email"}
+    
+@app.post("/reset-password")
+async def reset_password(reset_forgot_password: UserResetPassword, session: SessionDep):
+    user_in_db = session.exec(select(User).where(User.reset_token == reset_forgot_password.token)).first()
+    if not user_in_db:
+        raise HTTPException(404, "Reset token doesn't exist")
+    
+    if not user_in_db.reset_token_exp:
+        raise HTTPException(404, "Not Found")
+    
+    if user_in_db.reset_token_exp < datetime.now(timezone.utc):
+        raise HTTPException(401, "Unauthorized")
+    
+    user_in_db.hashed_password = hash_password(reset_forgot_password.new_password)
+    user_in_db.reset_token = None
+    user_in_db.reset_token_exp = None
+    
+    session.commit()
+    session.refresh(user_in_db)
+    
+    return {"message": "Successfully updated user's password"}
 
 @app.post("/workouts", response_model=WorkoutResponse)
 async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):

@@ -9,6 +9,13 @@ class UserSignUp(BaseModel):
     username: str
     email: EmailStr
     password: str
+
+class UserForgotPassword(BaseModel):
+    email: EmailStr
+    
+class UserResetPassword(BaseModel):
+    token: str
+    new_password: str
     
 class UserRead(BaseModel):
     username: str
