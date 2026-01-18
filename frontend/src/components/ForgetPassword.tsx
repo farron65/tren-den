@@ -31,6 +31,7 @@ export default function ForgetPassword() {
             }
 
             const result = await response.json();
+            console.log(result);
             if (result) setSuccess(true);
         }
         catch (error) {
