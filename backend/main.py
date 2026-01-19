@@ -89,7 +89,7 @@ async def forgo_password(user_email: UserForgotPassword, session: SessionDep):
         return {"message": "Successfully sent the email"} # to fool the hackers 😀
     
     reset_token = secrets.token_urlsafe(32)
-    reset_token_exp = datetime.now(timezone.utc) + timedelta(minutes=15)
+    reset_token_exp = datetime.now() + timedelta(minutes=15)
     
     user_in_db.reset_token = reset_token
     user_in_db.reset_token_exp = reset_token_exp
@@ -123,7 +123,7 @@ async def reset_password(reset_forgot_password: UserResetPassword, session: Sess
     if not user_in_db.reset_token_exp:
         raise HTTPException(404, "Not Found")
     
-    if user_in_db.reset_token_exp < datetime.now(timezone.utc):
+    if user_in_db.reset_token_exp < datetime.now():
         raise HTTPException(401, "Unauthorized")
     
     user_in_db.hashed_password = hash_password(reset_forgot_password.new_password)
