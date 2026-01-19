@@ -18,7 +18,10 @@ export default function ResetPassword() {
     
     const isValid = password.trim() && confirmPassword.trim() && password === confirmPassword;
 
-    async function HandleSubmit() {
+    async function HandleSubmit(e: React.FormEvent) {
+
+        e.preventDefault()
+
         const url = `${baseURL}/reset-password`;
 
         const dataToSend = {
@@ -56,7 +59,7 @@ export default function ResetPassword() {
                 <h1 className="auth-title">Forgot Password</h1>
 
                 {!success && 
-                    <form className="auth-form" onSubmit={() => HandleSubmit}>
+                    <form className="auth-form" onSubmit={(e) => HandleSubmit(e)}>
                         <input
                             type="password"
                             placeholder="new password"
