@@ -35,8 +35,6 @@ export default function ResetPassword() {
             body: JSON.stringify(dataToSend)
         }
 
-        console.log(JSON.stringify(dataToSend));
-
         try {
             const response = await fetch(url, requestOptions);
             if (!response.ok) {
@@ -44,8 +42,6 @@ export default function ResetPassword() {
             }
 
             const result = await response.json();
-            console.log(result);
-
             if (result) setSuccess(true);
         }
         catch (error) {
