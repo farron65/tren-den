@@ -53,10 +53,11 @@ I built this project to design and ship my first complete full-stack application
 1. Clone the repository
 2. Create a PostgreSQL database
 3. Set environment variables:
-   - `DATABASE_URL`
-   - `SECRET_KEY`
-   - `ACCESS_TOKEN_EXPIRE_MINUTES`
-   - `ALGORITHM`
+   - `DATABASE_URL` - PostgreSQL connection string
+   - `SECRET_KEY` - used to sign JWTs
+   - `ACCESS_TOKEN_EXPIRE_MINUTES` - JWT expiration time
+   - `ALGORITHM` - JWT signing algorithm (I'm using HS256)
+   - `RESEND_EMAIL_API_KEY` - API key for sending emails
 4. Run:
 ```bash
    uvicorn main:app --reload
@@ -65,8 +66,9 @@ I built this project to design and ship my first complete full-stack application
 ### Frontend
 
 1. Create an `.env.local` file inside /frontend
-2. Set the VITE_API_URL (e.g. `VITE_API_URL=http://localhost:8000`)
-3. Run:
+2. Set environment variables:
+  - `VITE_API_URL` - base URL of the FastAPI backend (e.g. `VITE_API_URL=http://localhost:8000`)
+5. Run:
 ```bash
    npm install
    npm run dev
