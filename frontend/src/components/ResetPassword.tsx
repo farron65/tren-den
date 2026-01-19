@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 import "./auth.css";
-import { data, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 export default function ResetPassword() {
     
