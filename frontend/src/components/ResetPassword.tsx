@@ -85,13 +85,11 @@ export default function ResetPassword() {
                 {success && (
                     <div className="auth-success">
                         <span className="auth-success-icon">&#10003;</span>
-                        <p>Check your email for a reset link</p>
+                        <p>Successfully changed the password!</p>
                     </div>
                 )}
 
-
                 <p className="auth-footer">
-                    Remembered your password?
                     <a href="/login">Back to login</a>
                 </p>
             </div>
