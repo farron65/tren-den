@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 import bcrypt
 import jwt
+import secrets
 
 from fastapi.security import OAuth2PasswordBearer
 
@@ -11,7 +12,7 @@ from config import SECRET_KEY, ALGORITHM
 from database import SessionDep
 
 from sqlmodel import select
-from models import User
+from models import User, RefreshToken
 
 # OAuth2 scheme that extracts JWT tokens from Authorization headers
 # tokenUrl tells FastAPI docs where to authenticate (the /login endpoint)
@@ -51,6 +52,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     payload.update({"exp": expire})
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def create_refresh_token(user_id: int, session: SessionDep) -> str:
+    
+    refresh_token = secrets.token_urlsafe(32)
+    exp = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    token = RefreshToken(refresh_token=refresh_token, user_id=user_id, exp=exp, revoked=False)
+    session.add(token)
+    session.commit()
+    session.refresh(token)
+    
+    return refresh_token
+    
      
 def get_current_user(token: Annotated[str, Depends(oauth2)], session: SessionDep):
     credentials_exception = HTTPException(

@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -10,6 +10,8 @@ class User(SQLModel, table=True):
     
     workouts: list["Workout"] = Relationship(back_populates="user", cascade_delete=True)
     templates: list["Template"] = Relationship(back_populates="user", cascade_delete=True)
+    
+    refresh_tokens: list["RefreshToken"] = Relationship(back_populates="user", cascade_delete=True)
     
     reset_token: str | None = Field(default=None)
     reset_token_exp: datetime | None = Field(default=None)
@@ -50,3 +52,13 @@ class SetDetails(SQLModel, table=True):
     exercise_id: int | None = Field(default=None, foreign_key="exercise.id")
     exercise: Exercise = Relationship(back_populates="sets")
     
+class RefreshToken(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    refresh_token: str = Field(nullable=False, index=True, unique=True)
+    
+    user_id: int = Field(nullable=False, foreign_key="user.id")
+    user: User = Relationship(back_populates="refresh_tokens")
+    
+    exp: datetime = Field(nullable=False)
+    revoked: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)

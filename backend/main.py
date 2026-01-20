@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.security import OAuth2PasswordRequestForm
@@ -17,12 +17,12 @@ from typing import Annotated, Optional
 
 from database import create_db_and_tables, SessionDep
 
-from models import Workout, Exercise, SetDetails, User, Template
+from models import User, Template, Workout, Exercise, SetDetails, RefreshToken
 
 from schemas import WorkoutCreate, UserSignUp, UserForgotPassword, UserResetPassword, Token, WorkoutResponse, UserRead, DeleteAccountRequest, ExerciseCreate, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
 
 from config import *
-from auth import authenticate_user, hash_password, get_current_active_user, create_access_token
+from auth import authenticate_user, hash_password, get_current_active_user, create_access_token, create_refresh_token
 
 from queries import get_exercise_sets, get_user_workout
     
@@ -74,15 +74,47 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     if not user:
         raise HTTPException(401, "Not authorized")
     
-    access_token_expire = timedelta(minutes=55)
+    if user.id is None:
+        raise HTTPException(500, "User ID is missing after authentication")
+    
+    access_token_expire = timedelta(minutes=1)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expire
     )
-    return Token(access_token=access_token, token_type="bearer")
+    
+    refresh_token = create_refresh_token(user.id, session)
+    return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+
+@app.post("/auth/refresh", response_model=Token)
+async def refresh_token_endpoint(session: SessionDep, refresh_token: str = Form( )):
+    token = session.exec(select(RefreshToken).where(RefreshToken.refresh_token == refresh_token)).first()
+    
+    if not token or token.revoked:
+        raise HTTPException(401, "Invalid refresh token")
+    
+    if token.exp.replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc):
+        raise HTTPException(401, "Refresh token is expired")
+    
+    user = token.user
+    
+    if not user.id:
+        raise HTTPException(500, "User ID is missing")
+    
+    token.revoked = True
+    session.add(token)
+    session.commit()
+    
+    new_access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=timedelta(minutes=1)
+    )
+    
+    new_refresh_token = create_refresh_token(user.id, session)
+    
+    return Token(access_token=new_access_token, refresh_token=new_refresh_token, token_type="bearer")
 
 @app.post("/forgot-password")
-async def forgo_password(user_email: UserForgotPassword, session: SessionDep):
-    print(user_email, user_email.email)
+async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     user_in_db = session.exec(select(User).where(User.email == user_email.email)).first()
     
     if not user_in_db:
