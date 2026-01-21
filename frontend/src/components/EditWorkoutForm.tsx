@@ -167,6 +167,12 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                     </div>
 
                     {exercise.sets.map((set, index) => {
+
+
+                        const PreviousWorkoutSetValues = ShowPreviousSets(exercise.exercise_name, index);
+                        const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
+                        const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
+
                         const prevSet = index > 0 ? exercise.sets[index-1] : null;
                         
                         const prevWeight = prevSet?.weight || "";
@@ -177,7 +183,9 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                                 <span className="set-index">{index + 1}</span>
                                 
                                 <span className="previous">
-                                    {ShowPreviousSets(exercise.exercise_name, index)}
+                                    <label>
+                                        {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
+                                    </label>
                                 </span>
 
                                 <input type="number"
