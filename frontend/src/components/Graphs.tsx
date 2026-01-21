@@ -4,6 +4,7 @@ import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "r
 import "./graph.css";
 import sadFaceIcon from "../assets/sad.png";
 import happyFaceIcon from "../assets/happiness.png";
+import { authenticatedFetch } from "../api/apiClient";
 
 interface ChartPoint {
     "workout_name": string
@@ -24,10 +25,6 @@ export default function Graphs() {
     const [selectedMetric, setSelectedMetric] = useState("weight");
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
-
-    const access_token = localStorage.getItem("access_token");
-    const url = import.meta.env.VITE_API_URL;
-    const headers = {"Authorization": `Bearer ${access_token}`};
 
     const METRIC_STYLE: Record<string, {color: string}> = {
         weight: {color: "#2c8863"},
@@ -68,7 +65,7 @@ export default function Graphs() {
         if (!exerciseName) return;
 
         try {
-            const response = await fetch(`${url}/analytics/${exerciseName}`, {headers: headers});
+            const response = await authenticatedFetch(`/analytics/${exerciseName}`, "GET");
     
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);

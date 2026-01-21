@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./workouthistory.css";
 
 interface Workout {
@@ -15,11 +17,6 @@ export default function WorkoutsHistory() {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     const navigate = useNavigate();
-    
-    const access_token = localStorage.getItem("access_token");
-    
-    const baseURL = import.meta.env.VITE_API_URL;
-    const url = `${baseURL}/workouts`;
 
     const [modal, setModal] = useState(false);
     const [modalText, setModalText] = useState("");
@@ -27,16 +24,13 @@ export default function WorkoutsHistory() {
 
     useEffect(() => {
         const fetchWorkouts = async () => {
-            if (!access_token){
-                alert("Access token needed");
-                return;
-            }
             try {
-                const response = await fetch(url, {headers: {"Authorization": `Bearer ${access_token}`}});
-                if (!response.ok) {
-                    throw new Error(`Response status:${response.status}`);
-                }
+                const response = await authenticatedFetch("/workouts", "GET");
                 
+                if (!response.ok) {
+                    return;
+                }
+
                 const result = await response.json();
                 setWorkouts(result);
             }
@@ -48,21 +42,12 @@ export default function WorkoutsHistory() {
     }, []);
 
     async function handleDelete(targetID: string) {
-        const url = `${baseURL}/workouts/${targetID}`;
-        const requestOptions = {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-            }
-        }
 
         try {
-            const response = await fetch(url, requestOptions);
-    
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
+            const response = await authenticatedFetch(`/workouts/${targetID}`, "DELETE");
+
+            if (!response.ok) return;
+
             alert("Successfully deleted workout");
             const updatedWorkouts = workouts.filter((workout) => workout.id != targetID);
             setWorkouts(updatedWorkouts);

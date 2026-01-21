@@ -34,9 +34,10 @@ const ProtectedRoute = ({ token, redirectPath="/", children }: ProtectedRoutePro
 function App() {
     const [access_token, setToken] = useState<string | null>(localStorage.getItem("access_token"));
 
-    const updateToken = (newToken: string) => {
-        localStorage.setItem("access_token", newToken);
-        setToken(newToken);
+    const updateToken = (newAccessToken: string, newRefreshToken: string) => {
+        localStorage.setItem("access_token", newAccessToken);
+        localStorage.setItem("refresh_token", newRefreshToken)
+        setToken(newAccessToken);
     }
 
     return (

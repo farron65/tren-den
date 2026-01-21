@@ -7,6 +7,7 @@ import checkIcon from "../assets/check.png";
 
 import { useWorkout } from "./useWorkout";
 import { usePreviousSets } from "./usePreviousSets";
+import { authenticatedFetch } from "../api/apiClient";
 
 interface WorkoutProps {
     isTemplate: boolean
@@ -30,24 +31,18 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
 
     const navigate = useNavigate();
 
-    const access_token = localStorage.getItem("access_token");
-    const headers = {"Authorization": `Bearer ${access_token}`}
-
     const formID = useParams();
-
-    const url = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchTemplate = async () => {
             try {
                 let response;
                 if (isTemplate) {
-                    console.log(url);
-                    response = await fetch(`${url}/templates/${formID.id}`, {headers: headers});
+                    response = await authenticatedFetch(`/templates/${formID.id}`, "GET");
                 }
 
                 else {
-                    response = await fetch(`${url}/workouts/${formID.id}`, {headers: headers})
+                    response = await authenticatedFetch(`/workouts/${formID.id}`, "GET")
                 }
 
                 if (!response.ok) {
@@ -63,14 +58,11 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                 setLoading(false);
             }
         }
-            fetchTemplate();
-            console.log("I worked")
-            
+        fetchTemplate();
     }, []);
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
-        console.log(workoutForm.workout_name, workoutForm.date);
         const dataToSend = {
             workout_name: workoutForm.workout_name,
             date: workoutForm.date,
@@ -87,11 +79,11 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             let response;
             if (isTemplate) {
                 const {date, ...templateUpdateData} = dataToSend
-                response = await fetch(`${url}/templates/${formID.id}`, getRequestOptions(templateUpdateData));
+                response = await authenticatedFetch(`/templates/${formID.id}`, "PUT", templateUpdateData);
             }
 
             else {
-                response = await fetch(`${url}/workouts/${formID.id}`, getRequestOptions(dataToSend));
+                response = await authenticatedFetch(`/workouts/${formID.id}`, "PUT", dataToSend);
             }
 
             if (!response.ok) {
@@ -99,7 +91,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             }
 
             const result = await response.json();
-            console.log(result);
+
             if (isTemplate) {
                 alert("Successfully saved template changes");
 
@@ -118,18 +110,6 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
         catch (error) {
             alert(error);
         }
-    }
-
-    function getRequestOptions(data: object) {
-        const requestOptions = {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data),
-        }
-        return requestOptions
     }
 
     function getUserDate(workoutDate: string) {

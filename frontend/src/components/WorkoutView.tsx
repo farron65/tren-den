@@ -1,34 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./workoutview.css";
 
 export default function WorkoutView() {
     const workoutId = useParams();
     const [workout, setWorkout] = useState<any>(null);
-    const access_token = localStorage.getItem("access_token");
 
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchWorkout = async () => {
-            const baseURL = import.meta.env.VITE_API_URL;
-
-            const url = `${baseURL}/workouts/` + workoutId.id;
-
-            if (!access_token) {
-                alert("Access token needed");
-                return;
-            }
-
             try {
-                const response = await fetch(url, {headers: {"Authorization": `Bearer ${access_token}`}});
+                const response = await authenticatedFetch(`/workouts/${workoutId.id}`, "GET");
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
                 setWorkout(result);
-                console.log(result);
             }
             catch(error) {
                 alert(error);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import "./auth.css";
 
 type LoginProps = {
-    updateToken: (token: string) => void
+    updateToken: (access_token: string, refresh_token: string) => void
 }
 export default function Login({updateToken}: LoginProps) {
 
@@ -38,7 +38,7 @@ export default function Login({updateToken}: LoginProps) {
             }
     
             const result = await response.json();
-            updateToken(result.access_token);
+            updateToken(result.access_token, result.refresh_token);
     
             setUserName("");
             setUserPassword("");

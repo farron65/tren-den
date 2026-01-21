@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./templatelist.css";
 
 interface Exercise {
@@ -22,16 +24,11 @@ export default function ListTemplates() {
     const [templateID, setTemplateID] = useState(0);
 
     const navigate = useNavigate();
-    const access_token = localStorage.getItem("access_token");
-
-    const baseURL = import.meta.env.VITE_API_URL;
-    const url = `${baseURL}/templates`
 
     async function handleDelete(targetId: number) {
-        const headers = {"Authorization": `Bearer ${access_token}`}
 
         try {
-            const response = await fetch(`${url}/${targetId}`, {method: "DELETE", headers: headers});
+            const response = await authenticatedFetch(`/templates/${targetId}`,  "DELETE");
             
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
@@ -50,14 +47,9 @@ export default function ListTemplates() {
     useEffect(() => {   
 
         const fetchTemplates = async () => {
-            if (!access_token) {
-                alert("Access token needed");
-                return;
-            }
-            const headers = {"Authorization": `Bearer ${access_token}`}
 
             try {
-                const response = await fetch(url, {headers: headers});
+                const response = await authenticatedFetch("/templates", "GET");
                 
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);

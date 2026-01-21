@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./workoutform.css";
 
 import { useWorkout } from "./useWorkout";
@@ -73,18 +75,13 @@ export default function LogWorkout() {
     const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
     
     const navigate = useNavigate();
-    const access_token = localStorage.getItem("access_token");
-    const headers = {"Authorization": `Bearer ${access_token}`}
-
     const templateId = useParams();
-    
-    const baseURL = import.meta.env.VITE_API_URL;
-    const url = `${baseURL}/templates/${templateId.id}`;
+
 
     useEffect(() => {
         const fetchTemplate = async () => {
             try {
-                const response = await fetch(url, {headers: headers});
+                const response = await authenticatedFetch(`/templates/${templateId.id}`, "GET");
 
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
@@ -119,10 +116,9 @@ export default function LogWorkout() {
                 }))
             }))
         }
-        const requestOptions = getRequestOptions("POST", dataToSend);
+
         try {
-            console.log(url)
-            const saveWorkout = await fetch(`${baseURL}/workouts/`, requestOptions);
+            const saveWorkout = await authenticatedFetch(`/workouts`, "POST", dataToSend);
             if (!saveWorkout.ok) {
                 throw new Error(`Response status: ${saveWorkout.status}`);
             }
@@ -130,9 +126,8 @@ export default function LogWorkout() {
 
             if (method === "Save") {
                 const exercises = dataToSend.exercises;
-    
-                console.log(url);
-                const response = await fetch(url, getRequestOptions("PATCH", exercises));
+
+                const response = await authenticatedFetch(`/templates/${templateId.id}`, "PATCH", exercises);
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
                 }
@@ -141,7 +136,7 @@ export default function LogWorkout() {
 
             else if (method === "Update") {
                 const { date, ...updatedWorkout} = dataToSend;
-                const response = await fetch(url, getRequestOptions("PUT", updatedWorkout));
+                const response = await authenticatedFetch(`/templates/${templateId.id}`, "PUT", updatedWorkout);
     
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
@@ -155,18 +150,6 @@ export default function LogWorkout() {
         catch (error) {
             alert(error);
         }
-    }
-
-    function getRequestOptions(method: string, dataToSend: {}) {
-        const requestOptions = {
-            method: method,
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dataToSend),
-        }
-        return requestOptions;
     }
 
     function getDate(dateType: string) {
@@ -199,11 +182,8 @@ export default function LogWorkout() {
     // Uses REF because this function is called by a debounced callback
     // Avoids stale closures by reading from templateRef.current
     async function getPreviousSets(targetExName: string) {
-
-        const headers = {"Authorization": `Bearer ${access_token}`}
-        const url = `${baseURL}/exercises/${targetExName}`;
         try {
-            const response = await fetch(url, {headers: headers});
+            const response = await authenticatedFetch(`"/exercises/${targetExName}`, "GET");
 
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`)
@@ -344,7 +324,6 @@ export default function LogWorkout() {
                     const PreviousWorkoutSetValues = ShowPreviousSet(exercise.exercise_name, index);
                     const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
                     const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
-                    console.log(PreviousWorkoutSetWeight, PreviousWorkoutSetReps);
 
                     const previousSet = index > 0 ? exercise.sets[index - 1] : null;
                     const previousWeight = previousSet?.weight;

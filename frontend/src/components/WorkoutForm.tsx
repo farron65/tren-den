@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./workoutform.css";
 
 import deleteButtonIcon from "../assets/delete.png";
@@ -40,15 +42,12 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
     
     const navigate = useNavigate();
-    const access_token = localStorage.getItem("access_token");
 
     async function handleSubmit(e: React.FormEvent) {
 
         e.preventDefault();
         
         const workout_name = workoutForm.workout_name ? workoutForm.workout_name : getHH();
-
-        const url = import.meta.env.VITE_API_URL;
 
         const validData = workoutForm.exercises.every(isValidData);
         if (!validData) {
@@ -72,7 +71,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             if (isTemplate) {
                 const {date, ...templateToSend} = dataToSend;
 
-                const response = await fetch(`${url}/templates`, getRequestOptions("POST", templateToSend));
+                const response = await authenticatedFetch("/templates", "POST", templateToSend);
                 
                 if (!response.ok) {
                     if (response.status === 409) {
@@ -89,11 +88,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 );
             }
             else {
-                const response = await fetch(`${url}/workouts`, getRequestOptions("POST", dataToSend));
-                
-                if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
-                }
+                const response = await authenticatedFetch("/workouts", "POST", dataToSend);
+
                 const result = await response.json();
                 alert("Successfully created a new workout");
     
@@ -105,18 +101,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         catch (error) {
             alert(error);
         }
-    }
-
-    function getRequestOptions(method: string, data: object) {
-        const requestOptions = {
-            method: method,
-            headers: {
-                "Authorization": `Bearer ${access_token}`,
-                "Content-Type": "application/json"
-                },
-            body: JSON.stringify(data)
-        }
-        return requestOptions;
     }
 
     function getDate(dateType: string) {

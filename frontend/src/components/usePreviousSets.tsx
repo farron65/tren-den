@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
+import { authenticatedFetch } from "../api/apiClient"
+
 interface Set {
     id: string
     weight: number,
@@ -17,8 +19,6 @@ interface Exercise {
 export function usePreviousSets() {
     const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
 
-    const access_token = localStorage.getItem("access_token");
-
     const debounce = <T extends unknown[]> (
             callback: (...args: T) => void,
             delay: number,
@@ -34,21 +34,16 @@ export function usePreviousSets() {
         };
             
         const debouncedRequest = useRef(debounce(GetPreviousSets, 1000));
-        
-        const baseURL = import.meta.env.VITE_API_URL
-        const url = `${baseURL}/recent/exercises`;
-        const headers = {"Authorization": `Bearer ${access_token}`}
     
         useEffect(() => {
             const fetchExercises = async () => {
                 try {
-                    const response = await fetch(url, {headers: headers})
-    
+                    const response = await authenticatedFetch("/recent/exercises", "GET");
+                    
                     if (!response.ok) {
-                        setWorkoutExercises([]);
-                        return;
+                        return; 
                     }
-    
+
                     const result = await response.json();
                     setWorkoutExercises(result);
                 }
@@ -60,22 +55,16 @@ export function usePreviousSets() {
         }, []);
 
     async function GetPreviousSets(targetExName: string, allExercises: Exercise[]) {
-        // console.log(targetExName, workoutExercises);
         const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
-        // console.log(exerciseInWorkout);
+
         if (exerciseInWorkout) {
             return;
         }
 
         if (!targetExName) return;
 
-        const headers = {"Authorization": `Bearer ${access_token}`}
-
-        const baseURL = import.meta.env.VITE_API_URL;
-
-        const url = `${baseURL}/exercises/${targetExName}`;
         try {
-            const response = await fetch(url, {headers: headers});
+            const response = await authenticatedFetch(`/exercises/${targetExName}`, "GET");
 
             if (!response.ok) {
                 return; 

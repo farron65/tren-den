@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { authenticatedFetch } from "../api/apiClient";
+
 import "./templateview.css";
 
 interface Set {
@@ -31,20 +33,12 @@ export default function TemplateView() {
     });
     const templateId = useParams();
     const navigate = useNavigate();
-    
-    const access_token = localStorage.getItem("access_token");
-    
-    const baseURL = import.meta.env.VITE_API_URL;
-    const url = `${baseURL}/templates/${templateId.id}`
 
     useEffect(() => {
         const fetchTemplate = async () => {
-            if (!access_token) {
-                return;
-            }
 
             try {
-                const response = await fetch(url, {headers: {"Authorization": `Bearer ${access_token}`}});
+                const response = await authenticatedFetch(`/templates/${templateId.id}`, "GET");
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
                 }
