@@ -10,7 +10,7 @@ I built this project to design and ship my first complete full-stack application
 
 ## What It Does
 
-- User authentication (JWT)
+- User authentication with access & refresh tokens (JWT)
 - Create and manage workouts
 - Add exercises and sets (weight, reps)
 - Relational data model:
@@ -41,9 +41,8 @@ I built this project to design and ship my first complete full-stack application
 ## Current Status
 
 - Deployed and usable
-- Actively under development
 - UI polish and bug fixes in progress
-
+- Ongoing maintenance
 ---
 
 ## Local Development
@@ -69,7 +68,7 @@ I built this project to design and ship my first complete full-stack application
 2. Set environment variables:
   - `VITE_API_URL` - base URL of the FastAPI backend (e.g. `VITE_API_URL=http://localhost:8000`)
 5. Run:
-```bash
-   npm install
-   npm run dev
-```
+    ```bash
+    npm install
+    npm run dev
+    ```
