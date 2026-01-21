@@ -77,7 +77,7 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
     if user.id is None:
         raise HTTPException(500, "User ID is missing after authentication")
     
-    access_token_expire = timedelta(minutes=1)
+    access_token_expire = timedelta(minutes=15)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expire
     )
@@ -106,7 +106,7 @@ async def refresh_token_endpoint(session: SessionDep, refresh_token: str = Form(
     
     new_access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=1)
+        expires_delta=timedelta(minutes=15)
     )
     
     new_refresh_token = create_refresh_token(user.id, session)
