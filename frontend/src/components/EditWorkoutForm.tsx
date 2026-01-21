@@ -183,9 +183,16 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                                 <span className="set-index">{index + 1}</span>
                                 
                                 <span className="previous">
-                                    <label>
-                                        {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
-                                    </label>
+                                    {PreviousWorkoutSetReps && 
+                                        <label>
+                                            {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
+                                        </label>
+                                    }
+                                    {!PreviousWorkoutSetReps &&
+                                        <label>
+                                            —
+                                        </label>
+                                    }
                                 </span>
 
                                 <input type="number"

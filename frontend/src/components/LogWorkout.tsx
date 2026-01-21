@@ -341,7 +341,7 @@ export default function LogWorkout() {
 
                             {!PreviousWorkoutSetWeight && !PreviousWorkoutSetReps && 
                                 <span className="previous">
-                                    <label> - </label>
+                                    <label> — </label>
                                 </span>
                             }
 
