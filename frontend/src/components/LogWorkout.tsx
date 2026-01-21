@@ -183,7 +183,7 @@ export default function LogWorkout() {
     // Avoids stale closures by reading from templateRef.current
     async function getPreviousSets(targetExName: string) {
         try {
-            const response = await authenticatedFetch(`"/exercises/${targetExName}`, "GET");
+            const response = await authenticatedFetch(`/exercises/${targetExName}`, "GET");
 
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`)
