@@ -26,6 +26,12 @@ export default function Graphs() {
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
 
+    const METRIC_NAME: Record<string, string> = {
+        weight: "Heaviest Weight",
+        session_volume: "Session Volume",
+        best_set_volume: "Best Set Volume"
+    }
+
     const METRIC_STYLE: Record<string, {color: string}> = {
         weight: {color: "#2c8863"},
         session_volume: {color: "#3b82f6"},
@@ -150,7 +156,7 @@ export default function Graphs() {
                     <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
                     <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>
                     <Tooltip cursor={{ strokeDasharray: "3 3"}} offset={isMobile ? 20 : 10} content={SetsToolTip}/>
-                    <Line dataKey={selectedMetric} name={selectedMetric} fill="#1dd617ff"
+                    <Line dataKey={selectedMetric} name={METRIC_NAME[selectedMetric]} fill="#1dd617ff"
                         stroke={METRIC_STYLE[selectedMetric].color}
                         strokeWidth={3}
                         dot={{ r: 4, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke}}
