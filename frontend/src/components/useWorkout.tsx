@@ -194,5 +194,5 @@ export function useWorkout(initialWorkout: Workout) {
         )}))
     }
 
-    return { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, stopAllOtherRestTimers, sleep, countdown, resetRestTime}
+    return { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime}
 }

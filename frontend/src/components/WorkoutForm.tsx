@@ -15,8 +15,8 @@ interface Set {
     weight: number,
     reps: number,
     completed: boolean,
-    deleting?: boolean,
-    restTime: number
+    restTime: number,
+    deleting?: boolean
 }
 
 interface Exercise {
@@ -31,7 +31,7 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, stopAllOtherRestTimers, sleep, countdown, resetRestTime } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
@@ -188,12 +188,11 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const prevWeight = prevSet?.weight;
                     const prevReps = prevSet?.reps;
 
-                    const setRestTime = set.restTime;
-                    const setRestMinutes = Math.floor((setRestTime / (1000 * 60)) % 60);
-                    const setRestSeconds = Math.floor(setRestTime / 1000) % 60;
+                    const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
+                    const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
                     const TOTAL_REST_TIME = 180000;
-                    const restProgress = Math.max(0, (setRestTime / TOTAL_REST_TIME) * 100); // for css
+                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
 
                     return (
                         <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
@@ -254,8 +253,9 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                         }
                                     }}
                                     >
-                                    <img src={checkIcon} alt="complete set" />
-                                </button>}
+                                        <img src={checkIcon} alt="complete set" />
+                                    </button>
+                                }
                                 <button
                                     className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
                                     onClick={() => DeleteSet(exercise.id, set.id)}
@@ -263,16 +263,18 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                     &#10006;
                                 </button>
                             </div>
-
-                            <div className="rest-timer-bar">
-                                <div className="rest-progress" style={{ width: `${restProgress}%`}}>
+                            
+                            {!isTemplate &&
+                                <div className="rest-timer-bar">
+                                    <div className="rest-progress" style={{ width: `${restProgress}%`}}>
+                                    </div>
+                                    {set.restTime > 0 && (
+                                        <span className="rest-time">
+                                            {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
+                                        </span>
+                                    )}
                                 </div>
-                                {setRestTime > 0 && (
-                                    <span className="rest-time">
-                                        {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
-                                    </span>
-                                )}
-                            </div>
+                            }
                         </div>
                     );
                 })}
