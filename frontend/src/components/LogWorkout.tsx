@@ -14,7 +14,8 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    completed?: boolean
+    completed: boolean,
+    restTime: number,
     deleting?: boolean
 }
 
@@ -26,7 +27,7 @@ interface Exercise {
 
 export default function LogWorkout() {
 
-    const { workoutForm, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
             workout_name: "",
             date: "",
             exercises: []
@@ -320,7 +321,6 @@ export default function LogWorkout() {
                 </div>
 
                 {exercise.sets.map((set, index) => {
-
                     const PreviousWorkoutSetValues = ShowPreviousSet(exercise.exercise_name, index);
                     const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
                     const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
@@ -329,61 +329,91 @@ export default function LogWorkout() {
                     const previousWeight = previousSet?.weight;
                     const previousReps = previousSet?.reps;
 
+                    const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
+                    const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
+                    
+                    const TOTAL_REST_TIME = 180000;
+                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
+
+
                     return (
-                        <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
-                            <span className="set-index">{index + 1}</span>
+                        <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}`}>
+                            <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
 
-                            {PreviousWorkoutSetReps &&
-                                <span className="previous">
-                                    <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
-                                </span>
-                            }
+                                <span className="set-index">{index + 1}</span>
 
-                            {!PreviousWorkoutSetWeight && !PreviousWorkoutSetReps && 
-                                <span className="previous">
-                                    <label> — </label>
-                                </span>
-                            }
-
-                            <input
-                                type="number"
-                                value={set.weight || ""}
-                                placeholder={`${previousWeight ? previousWeight : "—"}`}
-                                onChange={(e) =>
-                                ChangeSetValues(
-                                    exercise.id,
-                                    set.id,
-                                    "weight",
-                                    +e.target.value
-                                )
+                                {PreviousWorkoutSetReps &&
+                                    <span className="previous">
+                                        <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
+                                    </span>
                                 }
-                            />
 
-                            <input
-                                type="number"
-                                value={set.reps || ""}
-                                placeholder={`${previousReps ? previousReps : "—"}`}
-                                onChange={(e) =>
-                                ChangeSetValues(
-                                    exercise.id,
-                                    set.id,
-                                    "reps",
-                                    Number(e.target.value)
-                                )
+                                {!PreviousWorkoutSetWeight && !PreviousWorkoutSetReps && 
+                                    <span className="previous">
+                                        <label> — </label>
+                                    </span>
                                 }
-                            />
-                            <button
-                                className={`check-btn ${set.completed ? "checked" : ""}`}
-                                onClick={() => ToggleSetCompleted(exercise.id, set.id, previousWeight, previousReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps)}
-                                >
-                                <img src={checkIcon} alt="complete set" />
-                            </button>
-                            <button
-                                className={`set-delete-btn ${set.completed ? "deleted" : ""}`}
-                                onClick={() => DeleteSet(exercise.id, set.id)}
-                                >
-                                &#10006;
-                            </button>
+
+                                <input
+                                    type="number"
+                                    value={set.weight || ""}
+                                    placeholder={`${previousWeight ? previousWeight : "—"}`}
+                                    onChange={(e) =>
+                                    ChangeSetValues(
+                                        exercise.id,
+                                        set.id,
+                                        "weight",
+                                        +e.target.value
+                                    )
+                                    }
+                                />
+
+                                <input
+                                    type="number"
+                                    value={set.reps || ""}
+                                    placeholder={`${previousReps ? previousReps : "—"}`}
+                                    onChange={(e) =>
+                                    ChangeSetValues(
+                                        exercise.id,
+                                        set.id,
+                                        "reps",
+                                        Number(e.target.value)
+                                    )
+                                    }
+                                />
+                                <button
+                                    className={`check-btn ${set.completed ? "checked" : ""}`}
+                                    onClick={() => {
+                                        ToggleSetCompleted(exercise.id, set.id, previousWeight, previousReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps)
+                                        if (!set.completed) {
+                                            countdown(exercise.id, set.id);
+                                        }
+                                        else {
+                                            if (requestsInFlight.current[set.id]) {
+                                            requestsInFlight.current[set.id] = false;
+                                            resetRestTime(exercise.id, set.id);
+                                        }}
+                                    }}
+                                    >
+                                    <img src={checkIcon} alt="complete set" />
+                                </button>
+                                <button
+                                    className={`set-delete-btn ${set.completed ? "deleted" : ""}`}
+                                    onClick={() => DeleteSet(exercise.id, set.id)}
+                                    >
+                                    &#10006;
+                                </button>
+                            </div>
+
+                            <div className="rest-timer-bar">
+                                <div className="rest-progress" style={{ width: `${restProgress}%`}}>
+                                </div>
+                                {set.restTime > 0 && (
+                                    <span className="rest-time">
+                                        {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     );
                 })}
