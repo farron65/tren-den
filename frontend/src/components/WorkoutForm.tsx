@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { authenticatedFetch } from "../api/apiClient";
@@ -14,8 +14,9 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    completed?: boolean,
-    deleting?: boolean
+    completed: boolean,
+    deleting?: boolean,
+    restTime: number
 }
 
 interface Exercise {
@@ -40,7 +41,9 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
-    
+
+    const requestsInFlight = useRef<Record<string, boolean>>({});
+
     const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
@@ -101,6 +104,89 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         catch (error) {
             alert(error);
         }
+    }
+
+    function stopAllOtherRestTimers(setID: string) {
+        console.log("Given: ", setID)
+        
+        for (const key of Object.keys(requestsInFlight.current)) {
+            if (key !== setID) {
+                requestsInFlight.current[key] = false;
+            }
+        }
+
+        setWorkoutForm((prevState) => ({
+            ...prevState,
+            exercises: prevState.exercises.map((exercise) => (
+                {...exercise,
+                    sets: exercise.sets.map((set) => {
+                        if (set.id === setID) {
+                            return set;
+                        } else if (requestsInFlight.current[set.id] === false) {
+                            return {...set, restTime: 180000};
+                        } else {
+                            return set;
+                        }
+                    })
+                }
+            ))
+        }))
+    }
+
+    async function sleep(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function countdown(exerciseTargetID: string, setID: string) {
+        
+        const targetExercise: Exercise | undefined = workoutForm.exercises.find((exercise) => exercise.id === exerciseTargetID)
+        if (!targetExercise) return;
+        const targetSet = targetExercise.sets.find((set) => set.id === setID)
+        if (!targetSet) return;
+        let setRestTime = targetSet?.restTime;
+        if (!setRestTime) return;
+
+        console.log(!requestsInFlight.current[setID], targetSet.completed);
+        if (!requestsInFlight.current[setID]) {
+            stopAllOtherRestTimers(setID);
+            requestsInFlight.current[setID] = true
+
+            while (setRestTime > 0 && requestsInFlight.current[setID]) {
+
+                await sleep(100);
+
+                setRestTime -= 1000;
+                console.log("rest time: ", setRestTime);
+                if (!requestsInFlight.current[setID]) {
+                    return;
+                }
+      
+                setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => 
+                    exercise.id === exerciseTargetID
+                    ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
+                        ? {...set, restTime: setRestTime!}
+                        : set)}
+                    : exercise
+                )}))
+            }
+
+            resetRestTime(exerciseTargetID, setID);
+        }
+
+        else {
+            requestsInFlight.current[setID] = false;
+            resetRestTime(exerciseTargetID, setID);
+            return;
+        }
+    }
+
+    function resetRestTime(exerciseID: string, setID: string) {
+        setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
+            ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
+                ? {...set, restTime: 180000}
+                : set)}
+            : exercise
+        )}))
     }
 
     function getDate(dateType: string) {
@@ -176,7 +262,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 </div>
 
                 {exercise.sets.map((set, index) => {
-
                     const PreviousWorkoutSetValues = ShowPreviousSets(exercise.exercise_name, index);
                     const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
                     const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];
@@ -186,62 +271,91 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const prevWeight = prevSet?.weight;
                     const prevReps = prevSet?.reps;
 
+                    const setRestTime = set.restTime;
+                    const setRestMinutes = Math.floor((setRestTime / (1000 * 60)) % 60);
+                    const setRestSeconds = Math.floor(setRestTime / 1000) % 60;
+
+                    const TOTAL_REST_TIME = 180000;
+                    const restProgress = Math.max(0, (setRestTime / TOTAL_REST_TIME) * 100); // for css
+
                     return (
-                        <div key={set.id} className={`set-row ${set.completed ? "checked" : ""} ${set.deleting ? "deleting" : ""}`}>
-                            <span className="set-index">{index + 1}</span>
+                        <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
+                            <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
 
-                            {PreviousWorkoutSetReps && 
-                                <span className="previous">
-                                    <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
-                                </span>
-                            }
+                                <span className="set-index">{index + 1}</span>
 
-                            {!PreviousWorkoutSetReps &&
-                                <span className="previous">
-                                    <label> — </label>
-                                </span>
-                            }
+                                {PreviousWorkoutSetReps && 
+                                    <span className="previous">
+                                        <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
+                                    </span>
+                                }
 
-                            <input
-                                type="number"
-                                value={set.weight || ""}
-                                placeholder={prevWeight ? String(prevWeight) : "—"}
-                                onChange={(e) =>
-                                ChangeSetValues(
-                                    exercise.id,
-                                    set.id,
-                                    "weight",
-                                    +e.target.value
+                                {!PreviousWorkoutSetReps &&
+                                    <span className="previous">
+                                        <label> — </label>
+                                    </span>
+                                }
+
+                                <input
+                                    type="number"
+                                    value={set.weight || ""}
+                                    placeholder={prevWeight ? String(prevWeight) : "—"}
+                                    onChange={(e) =>
+                                    ChangeSetValues(
+                                        exercise.id,
+                                        set.id,
+                                        "weight",
+                                        +e.target.value
+                                    )}
+                                />
+
+                                <input
+                                    type="number"
+                                    value={set.reps || ""}
+                                    placeholder={prevReps ? String(prevReps) : "—"}
+                                    onChange={(e) =>
+                                    ChangeSetValues(
+                                        exercise.id,
+                                        set.id,
+                                        "reps",
+                                        +e.target.value
+                                    )}
+                                />
+
+                                {!isTemplate && <button
+                                    className={`check-btn ${set.completed ? "checked" : ""}`}
+                                    onClick={() => {
+                                        ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps);
+                                        if (!set.completed) {
+                                            countdown(exercise.id, set.id);
+                                        }
+                                        else {
+                                            if (requestsInFlight.current[set.id]) {
+                                                requestsInFlight.current[set.id] = false;
+                                                resetRestTime(exercise.id, set.id);
+                                            }
+                                        }
+                                    }}
+                                    >
+                                    <img src={checkIcon} alt="complete set" />
+                                </button>}
+                                <button
+                                    className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
+                                    onClick={() => DeleteSet(exercise.id, set.id)}
+                                    >
+                                    &#10006;
+                                </button>
+                            </div>
+
+                            <div className="rest-timer-bar">
+                                <div className="rest-progress" style={{ width: `${restProgress}%`}}>
+                                </div>
+                                {setRestTime > 0 && (
+                                    <span className="rest-time">
+                                        {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
+                                    </span>
                                 )}
-                            />
-
-                            <input
-                                type="number"
-                                value={set.reps || ""}
-                                placeholder={prevReps ? String(prevReps) : "—"}
-                                onChange={(e) =>
-                                ChangeSetValues(
-                                    exercise.id,
-                                    set.id,
-                                    "reps",
-                                    +e.target.value
-                                )}
-                            />
-
-                            {!isTemplate && <button
-                                className={`check-btn ${set.completed ? "checked" : ""}`}
-                                onClick={() => {
-                                    ToggleSetCompleted(exercise.id, set.id, prevWeight, prevReps, PreviousWorkoutSetWeight, PreviousWorkoutSetReps);
-                                }}
-                                >
-                                <img src={checkIcon} alt="complete set" />
-                            </button>}
-                            <button
-                                className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
-                                onClick={() => DeleteSet(exercise.id, set.id)}
-                                >
-                                &#10006;
-                            </button>
+                            </div>
                         </div>
                     );
                 })}

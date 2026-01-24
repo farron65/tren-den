@@ -4,8 +4,9 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    completed?: boolean
-    deleting?: boolean
+    completed: boolean,
+    deleting?: boolean,
+    restTime: number
 }
 
 interface Exercise {
@@ -40,7 +41,7 @@ export function useWorkout(initialWorkout: Workout) {
 
     function AddNewSet(id: string) {
         const newSet = workoutForm.exercises.map((exercise) => exercise.id == id
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0}]}
+            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, restTime: 180000}]}
             : exercise
         )
         setWorkoutForm({...workoutForm, exercises: newSet});
