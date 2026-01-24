@@ -31,7 +31,7 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, stopAllOtherRestTimers, sleep, countdown, resetRestTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
@@ -42,7 +42,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
 
-    const requestsInFlight = useRef<Record<string, boolean>>({});
+    // const requestsInFlight = useRef<Record<string, boolean>>({});
 
     const navigate = useNavigate();
 
@@ -104,89 +104,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         catch (error) {
             alert(error);
         }
-    }
-
-    function stopAllOtherRestTimers(setID: string) {
-        console.log("Given: ", setID)
-        
-        for (const key of Object.keys(requestsInFlight.current)) {
-            if (key !== setID) {
-                requestsInFlight.current[key] = false;
-            }
-        }
-
-        setWorkoutForm((prevState) => ({
-            ...prevState,
-            exercises: prevState.exercises.map((exercise) => (
-                {...exercise,
-                    sets: exercise.sets.map((set) => {
-                        if (set.id === setID) {
-                            return set;
-                        } else if (requestsInFlight.current[set.id] === false) {
-                            return {...set, restTime: 180000};
-                        } else {
-                            return set;
-                        }
-                    })
-                }
-            ))
-        }))
-    }
-
-    async function sleep(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    async function countdown(exerciseTargetID: string, setID: string) {
-        
-        const targetExercise: Exercise | undefined = workoutForm.exercises.find((exercise) => exercise.id === exerciseTargetID)
-        if (!targetExercise) return;
-        const targetSet = targetExercise.sets.find((set) => set.id === setID)
-        if (!targetSet) return;
-        let setRestTime = targetSet?.restTime;
-        if (!setRestTime) return;
-
-        console.log(!requestsInFlight.current[setID], targetSet.completed);
-        if (!requestsInFlight.current[setID]) {
-            stopAllOtherRestTimers(setID);
-            requestsInFlight.current[setID] = true
-
-            while (setRestTime > 0 && requestsInFlight.current[setID]) {
-
-                await sleep(100);
-
-                setRestTime -= 1000;
-                console.log("rest time: ", setRestTime);
-                if (!requestsInFlight.current[setID]) {
-                    return;
-                }
-      
-                setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => 
-                    exercise.id === exerciseTargetID
-                    ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                        ? {...set, restTime: setRestTime!}
-                        : set)}
-                    : exercise
-                )}))
-            }
-
-            resetRestTime(exerciseTargetID, setID);
-        }
-
-        else {
-            requestsInFlight.current[setID] = false;
-            resetRestTime(exerciseTargetID, setID);
-            return;
-        }
-    }
-
-    function resetRestTime(exerciseID: string, setID: string) {
-        setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
-            ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                ? {...set, restTime: 180000}
-                : set)}
-            : exercise
-        )}))
     }
 
     function getDate(dateType: string) {
