@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
