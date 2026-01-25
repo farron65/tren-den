@@ -179,50 +179,52 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                         const prevReps = prevSet?.reps || "";
 
                         return (
-                            <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}  ${set.completed ? "checked" : ""}`}>
-                                <span className="set-index">{index + 1}</span>
-                                
-                                <span className="previous">
-                                    {PreviousWorkoutSetReps && 
-                                        <label>
-                                            {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
-                                        </label>
-                                    }
-                                    {!PreviousWorkoutSetReps &&
-                                        <label>
-                                            —
-                                        </label>
-                                    }
-                                </span>
+                            <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""} `}>
+                                <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
+                                    <span className="set-index">{index + 1}</span>
+                                    
+                                    <span className="previous">
+                                        {PreviousWorkoutSetReps && 
+                                            <label>
+                                                {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
+                                            </label>
+                                        }
+                                        {!PreviousWorkoutSetReps &&
+                                            <label>
+                                                —
+                                            </label>
+                                        }
+                                    </span>
 
-                                <input type="number"
-                                    value={set.weight || ""} placeholder={prevWeight ? String(prevWeight) : "—"}
-                                    onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", +e.target.value)}
-                                />
-                                <input type="number"
-                                    value={set.reps || ""} placeholder={prevReps ? String(prevReps) : "—"}
-                                    onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", +e.target.value)}
-                                />
-                                {!isTemplate && 
+                                    <input type="number"
+                                        value={set.weight || ""} placeholder={prevWeight ? String(prevWeight) : "—"}
+                                        onChange={(e) => ChangeSetValues(exercise.id, set.id, "weight", +e.target.value)}
+                                    />
+                                    <input type="number"
+                                        value={set.reps || ""} placeholder={prevReps ? String(prevReps) : "—"}
+                                        onChange={(e) => ChangeSetValues(exercise.id, set.id, "reps", +e.target.value)}
+                                    />
+                                    {!isTemplate && 
+                                        <button
+                                            className={`check-btn ${set.completed ? "" : "checked"}`}
+                                            onClick={() => ToggleSetCompleted(exercise.id, set.id)}
+                                            >
+                                            <img src={checkIcon} alt="complete set" />
+                                        </button>}
                                     <button
-                                        className={`check-btn ${set.completed ? "" : "checked"}`}
-                                        onClick={() => ToggleSetCompleted(exercise.id, set.id)}
+                                        className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
+                                        onClick={() => DeleteSet(exercise.id, set.id)}
                                         >
-                                        <img src={checkIcon} alt="complete set" />
-                                    </button>}
-                                <button
-                                    className={`set-delete-btn ${set.deleting ? "deleted" : ""}`}
-                                    onClick={() => DeleteSet(exercise.id, set.id)}
-                                    >
-                                    &#10006;
-                                </button>
+                                        &#10006;
+                                    </button>
+                                </div>
                             </div>
                         )
                     })}
                 </div>
-            <button className="add-set-btn" onClick={() => AddNewSet(exercise.id)}>
-                + ADD SET
-            </button>
+                <button className="add-set-btn" onClick={() => AddNewSet(exercise.id)}>
+                    + ADD SET
+                </button>
         </section>
         )
     );
