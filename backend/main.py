@@ -173,7 +173,7 @@ async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user
     db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
     
     for exercise in workout.exercises:
-        db_exercise = Exercise(exercise_name=exercise.exercise_name, workout=db_workout)
+        db_exercise = Exercise(exercise_name=exercise.exercise_name, rest_time=exercise.rest_time, workout=db_workout)
         
         for set in exercise.sets:
             db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
@@ -193,7 +193,7 @@ async def post_template(template: TemplateCreate, session: SessionDep, current_u
     db_template = Template(workout_name=template.workout_name, user=current_user)
     
     for exercise in template.exercises:
-        db_exercise = Exercise(exercise_name=exercise.exercise_name, template=db_template)
+        db_exercise = Exercise(exercise_name=exercise.exercise_name, rest_time=exercise.rest_time, template=db_template)
         
         for set in exercise.sets:
             db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
@@ -322,7 +322,7 @@ async def get_recent_exercises(current_user: Annotated[User, Depends(get_current
     for unique_ex in user_exercises:
         if unique_ex.exercise_name.lower() not in unique_ex_names:
             unique_ex_names.add(unique_ex.exercise_name.lower())
-            temp = {"id": unique_ex.id, "exercise_name": unique_ex.exercise_name, "sets": []}
+            temp = {"id": unique_ex.id, "exercise_name": unique_ex.exercise_name, "rest_time": unique_ex.rest_time, "sets": []}
             for ex_set in unique_ex.sets:
                 temp["sets"].append({"id": ex_set.id, "weight": ex_set.weight, "reps": ex_set.reps})
             user_exercises_data.append(temp)

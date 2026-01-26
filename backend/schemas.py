@@ -41,6 +41,7 @@ class SetInDB(Set):
 
 class ExerciseCreate(BaseModel):
     exercise_name: str
+    rest_time: int
     sets: list[Set]
     
 class WorkoutCreate(BaseModel):
@@ -59,6 +60,7 @@ class ExerciseSummary(BaseModel):
 class ExerciseResponse(BaseModel):
     id: int
     exercise_name: str
+    rest_time: int
     sets: list[SetInDB]
     
 class WorkoutResponse(BaseModel):

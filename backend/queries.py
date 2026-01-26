@@ -8,7 +8,8 @@ def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDe
     
     if not user_exercise:
         return None
-    user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "sets": []}
+    user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
+    
     for set in user_exercise.sets:
         user_exercise_data["sets"].append({"id": set.id, "weight": set.weight, "reps": set.reps})
 

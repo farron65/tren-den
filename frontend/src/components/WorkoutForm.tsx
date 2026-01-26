@@ -14,14 +14,15 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    completed: boolean,
     restTime: number,
+    completed: boolean,
     deleting?: boolean
 }
 
 interface Exercise {
     id: string,
     exercise_name: string,
+    restTime: number,
     sets: Set[]
 }
 
@@ -37,7 +38,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         exercises: []
     })
 
-    const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
+    const { workoutExercises, debouncedRequest, ShowPreviousSets, GetExerciseRestTime} = usePreviousSets();
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -138,7 +139,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     }
     
     function ChangeExerciseName(id: string, newExerciseName: string) {
-        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName} : exercise);
+        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName, restTime: GetExerciseRestTime(newExerciseName)} : exercise);
         setWorkoutForm({...workoutForm, exercises: updatedExerciseName});
 
         debouncedRequest.current(newExerciseName, workoutExercises);
@@ -191,9 +192,9 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
-                    const TOTAL_REST_TIME = 180000;
-                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
-
+                    const TOTAL_REST_TIME = exercise.restTime;
+                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME)*100); // for css
+                    
                     return (
                         <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
                             <div className={`set-row-content ${set.completed ? "checked" : ""}`}>

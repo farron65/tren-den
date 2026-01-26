@@ -44,6 +44,7 @@ class Exercise(SQLModel, table=True):
     template: Template = Relationship(back_populates="exercises")
     
     sets: list["SetDetails"] = Relationship(back_populates="exercise", cascade_delete=True)
+    rest_time: int = Field(default=180)
 
 class SetDetails(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

@@ -12,6 +12,7 @@ interface Set {
 interface Exercise {
     id: string,
     exercise_name: string,
+    restTime: number
     sets: Set[]
 }
 
@@ -31,7 +32,7 @@ export function useWorkout(initialWorkout: Workout) {
     }
 
     function AddExercise() {
-        const newExercise = [...workoutForm.exercises, {id: crypto.randomUUID(), exercise_name: "", sets: []}]
+        const newExercise = [...workoutForm.exercises, {id: crypto.randomUUID(), exercise_name: "", restTime: 180, sets: []}]
         setWorkoutForm({...workoutForm, exercises: newExercise})
     }
     
@@ -42,11 +43,21 @@ export function useWorkout(initialWorkout: Workout) {
 
     function AddNewSet(id: string) {
         const newSet = workoutForm.exercises.map((exercise) => exercise.id == id
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, restTime: 180000}]}
+            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, restTime: exercise.restTime}]}
             : exercise
         )
+        console.log(newSet);
         setWorkoutForm({...workoutForm, exercises: newSet});
     }
+
+    // function GetExerciseRestTime(targetExName: string) {
+    //     const restTime = workoutForm.exercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName)?.restTime
+    //     console.log(restTime);
+    //     if (!restTime) return 120000;
+    //     const n = restTime * 1000
+    //     console.log("EX NAME: ", targetExName, " FOUND REST TIME IS: ", n);
+    //     return n;
+    // }
 
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? 0 : value;
@@ -128,7 +139,7 @@ export function useWorkout(initialWorkout: Workout) {
                         if (set.id === setID) {
                             return set;
                         } else if (requestsInFlight.current[set.id] === false) {
-                            return {...set, restTime: 180000};
+                            return {...set, restTime: exercise.restTime};
                         } else {
                             return set;
                         }
@@ -148,8 +159,10 @@ export function useWorkout(initialWorkout: Workout) {
         if (!targetExercise) return;
         const targetSet = targetExercise.sets.find((set) => set.id === setID)
         if (!targetSet) return;
-        let setRestTime = targetSet?.restTime;
+        let setRestTime = targetExercise?.restTime;
         if (!setRestTime) return;
+
+        console.log("REST TIME IS: ", setRestTime);
 
         console.log(!requestsInFlight.current[setID], targetSet.completed);
         if (!requestsInFlight.current[setID]) {
@@ -188,7 +201,7 @@ export function useWorkout(initialWorkout: Workout) {
     function resetRestTime(exerciseID: string, setID: string) {
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                ? {...set, restTime: 180000}
+                ? {...set, restTime: exercise.restTime}
                 : set)}
             : exercise
         )}))
