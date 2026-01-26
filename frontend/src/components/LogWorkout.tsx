@@ -331,6 +331,8 @@ export default function LogWorkout() {
 
                     const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
+
+                    if (!set.restTime) set.restTime = 180000;
                     
                     const TOTAL_REST_TIME = 180000;
                     const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
@@ -390,9 +392,10 @@ export default function LogWorkout() {
                                         }
                                         else {
                                             if (requestsInFlight.current[set.id]) {
-                                            requestsInFlight.current[set.id] = false;
-                                            resetRestTime(exercise.id, set.id);
-                                        }}
+                                                requestsInFlight.current[set.id] = false;
+                                                resetRestTime(exercise.id, set.id);
+                                            }
+                                        }
                                     }}
                                     >
                                     <img src={checkIcon} alt="complete set" />

@@ -244,7 +244,7 @@ input.workout-date::-webkit-calendar-picker-indicator {
     display: grid;
     grid-template-columns:
         1fr /* SET */
-        1.21fr /* PREVIOUS */
+        1.16fr /* PREVIOUS */
         100px /* LBS (wider) */
         68px /* REPS (wider) */
         40px /* CHECK */

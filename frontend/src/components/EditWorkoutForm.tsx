@@ -159,8 +159,8 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                 {/* Sets */}
                 <div className="set-table">
                     <div className="set-row header">
-                        <span>Set</span>
-                        <span>Previous</span>
+                        <span>SET</span>
+                        <span>PREVIOUS</span>
                         <span>LBS</span>
                         <span>Reps</span>
                         <span></span>
@@ -175,26 +175,25 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
 
                         const prevSet = index > 0 ? exercise.sets[index-1] : null;
                         
-                        const prevWeight = prevSet?.weight || "";
-                        const prevReps = prevSet?.reps || "";
+                        const prevWeight = prevSet?.weight;
+                        const prevReps = prevSet?.reps;
 
                         return (
                             <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""} `}>
                                 <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
                                     <span className="set-index">{index + 1}</span>
                                     
+                                    {PreviousWorkoutSetReps &&
                                     <span className="previous">
-                                        {PreviousWorkoutSetReps && 
-                                            <label>
-                                                {PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}
-                                            </label>
-                                        }
-                                        {!PreviousWorkoutSetReps &&
-                                            <label>
-                                                —
-                                            </label>
-                                        }
+                                        <label>{PreviousWorkoutSetWeight} lbs x {PreviousWorkoutSetReps}</label>
                                     </span>
+                                    }
+
+                                    {!PreviousWorkoutSetWeight && !PreviousWorkoutSetReps && 
+                                        <span className="previous">
+                                            <label> — </label>
+                                        </span>
+                                    }
 
                                     <input type="number"
                                         value={set.weight || ""} placeholder={prevWeight ? String(prevWeight) : "—"}
