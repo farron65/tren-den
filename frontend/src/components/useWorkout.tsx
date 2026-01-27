@@ -50,14 +50,12 @@ export function useWorkout(initialWorkout: Workout) {
         setWorkoutForm({...workoutForm, exercises: newSet});
     }
 
-    // function GetExerciseRestTime(targetExName: string) {
-    //     const restTime = workoutForm.exercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName)?.restTime
-    //     console.log(restTime);
-    //     if (!restTime) return 120000;
-    //     const n = restTime * 1000
-    //     console.log("EX NAME: ", targetExName, " FOUND REST TIME IS: ", n);
-    //     return n;
-    // }
+    function GetExerciseRestTime(targetExName: string) {
+        const restTime = workoutForm.exercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName)?.restTime
+        if (!restTime) return 180000;
+        console.log(restTime);
+        return restTime * 1000;
+    }
 
     function ChangeSetValues(exerciseId: string, setId: string, field: "weight" | "reps", value: number) {
         const newSetValue = isNaN(value) ? 0 : value;
@@ -207,5 +205,5 @@ export function useWorkout(initialWorkout: Workout) {
         )}))
     }
 
-    return { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime}
+    return { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime}
 }

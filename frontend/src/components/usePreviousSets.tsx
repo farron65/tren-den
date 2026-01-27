@@ -98,12 +98,5 @@ export function usePreviousSets() {
         return [previousOriginalSet.weight, previousOriginalSet.reps]
     }
 
-    function GetExerciseRestTime(targetExName: string) {
-        const restTime = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName)?.rest_time
-        if (!restTime) return 180000;
-        console.log(restTime);
-        return restTime * 1000;
-    }
-
-    return { workoutExercises, debouncedRequest, ShowPreviousSets, GetExerciseRestTime}
+    return { workoutExercises, debouncedRequest, ShowPreviousSets}
 }

@@ -32,13 +32,13 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
     })
 
-    const { workoutExercises, debouncedRequest, ShowPreviousSets, GetExerciseRestTime} = usePreviousSets();
+    const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");

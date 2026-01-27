@@ -28,11 +28,11 @@ interface Exercise {
 
 export default function LogWorkout() {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, AddExercise, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
             workout_name: "",
             date: "",
             exercises: []
-    });
+    });;
 
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -91,6 +91,7 @@ export default function LogWorkout() {
                 const result = await response.json();
 
                 setWorkoutForm(result); // editable workout
+                console.log(result);
                 setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
                 // templateRef.current = result.previous_workout_data; // keep ref in sync
                 originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
@@ -273,7 +274,7 @@ export default function LogWorkout() {
 
     function ChangeExerciseName(targetExID: string, newExerciseName: string) {
         const updatedExercise = workoutForm.exercises.map((exercise: Exercise) => exercise.id === targetExID
-            ? {...exercise, exercise_name: newExerciseName}
+            ? {...exercise, exercise_name: newExerciseName, restTime: GetExerciseRestTime(newExerciseName)}
             : exercise
         );
         setWorkoutForm({...workoutForm, exercises: updatedExercise});
@@ -329,6 +330,8 @@ export default function LogWorkout() {
                     const previousSet = index > 0 ? exercise.sets[index - 1] : null;
                     const previousWeight = previousSet?.weight;
                     const previousReps = previousSet?.reps;
+
+                    console.log(exercise);
 
                     const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
