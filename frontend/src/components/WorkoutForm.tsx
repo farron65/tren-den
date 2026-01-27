@@ -22,7 +22,7 @@ interface Set {
 interface Exercise {
     id: string,
     exercise_name: string,
-    restTime: number,
+    rest_time: number,
     sets: Set[]
 }
 
@@ -64,6 +64,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
             date: getDate("post"),
             exercises: workoutForm.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
+                rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight, 
                     reps: set.reps
@@ -74,7 +75,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         try {
             if (isTemplate) {
                 const {date, ...templateToSend} = dataToSend;
-
                 const response = await authenticatedFetch("/templates", "POST", templateToSend);
                 
                 if (!response.ok) {
@@ -192,7 +192,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
-                    const TOTAL_REST_TIME = exercise.restTime;
+                    const TOTAL_REST_TIME = exercise.rest_time;
                     const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME)*100); // for css
                     
                     return (

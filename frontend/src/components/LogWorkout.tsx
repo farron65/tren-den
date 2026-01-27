@@ -22,7 +22,7 @@ interface Set {
 interface Exercise {
     id: string,
     exercise_name: string,
-    restTime: number,
+    rest_time: number,
     sets: Set[]
 }
 
@@ -89,9 +89,8 @@ export default function LogWorkout() {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
-
+                
                 setWorkoutForm(result); // editable workout
-                console.log(result);
                 setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
                 // templateRef.current = result.previous_workout_data; // keep ref in sync
                 originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
@@ -113,6 +112,7 @@ export default function LogWorkout() {
             date: getDate("post"),
             exercises: workoutForm.exercises.map((exercise: Exercise) => ({
                 exercise_name: exercise.exercise_name,
+                rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
                     reps: set.reps
@@ -331,16 +331,14 @@ export default function LogWorkout() {
                     const previousWeight = previousSet?.weight;
                     const previousReps = previousSet?.reps;
 
-                    console.log(exercise);
+                    if (!set.restTime) set.restTime = 180000;
 
                     const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
-                    if (!set.restTime) set.restTime = 180000;
                     
                     const TOTAL_REST_TIME = 180000;
                     const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
-
 
                     return (
                         <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}`}>
