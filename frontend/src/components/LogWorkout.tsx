@@ -22,6 +22,7 @@ interface Set {
 interface Exercise {
     id: string,
     exercise_name: string,
+    restTime: number,
     sets: Set[]
 }
 
