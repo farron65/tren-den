@@ -193,8 +193,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
                     const TOTAL_REST_TIME = exercise.rest_time;
-                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME)*100); // for css
-                    
+                    const restProgress = Math.max(0, (set.restTime / (TOTAL_REST_TIME * 10))); // for css
+          
                     return (
                         <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
                             <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
