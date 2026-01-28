@@ -9,7 +9,9 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:MonTren65$@localhost:5432/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("Database url is missing")
 
 engine = create_engine(DATABASE_URL)
 
