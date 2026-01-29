@@ -119,7 +119,6 @@ export function useWorkout(initialWorkout: Workout) {
     }
 
     function stopAllOtherRestTimers(setID: string) {
-        console.log("Given: ", setID)
         
         for (const key of Object.keys(requestsInFlight.current)) {
             if (key !== setID) {
@@ -158,9 +157,6 @@ export function useWorkout(initialWorkout: Workout) {
         let setRestTime = targetExercise?.rest_time*1000;
         if (!setRestTime) return;
 
-        console.log("REST TIME IS: ", setRestTime);
-
-        console.log(!requestsInFlight.current[setID], targetSet.completed);
         if (!requestsInFlight.current[setID]) {
             stopAllOtherRestTimers(setID);
             requestsInFlight.current[setID] = true
@@ -170,7 +166,7 @@ export function useWorkout(initialWorkout: Workout) {
                 await sleep(1000);
 
                 setRestTime -= 1000;
-                console.log("rest time: ", setRestTime);
+                // console.log("rest time: ", setRestTime);
                 if (!requestsInFlight.current[setID]) {
                     return;
                 }

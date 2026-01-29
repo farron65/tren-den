@@ -68,6 +68,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             date: workoutForm.date,
             exercises: workoutForm.exercises.map((exercise) => ({
                 exercise_name: exercise.exercise_name,
+                rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
                     reps: set.reps
