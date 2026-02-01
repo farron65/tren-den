@@ -25,6 +25,7 @@ interface Workout {
 export function useWorkout(initialWorkout: Workout) {
     const [workoutForm, setWorkoutForm] = useState<Workout>(initialWorkout);
     const requestsInFlight = useRef<Record<string, boolean>>({});
+    const updatedSetRestTimes = useRef<Record<string, number>>({});
     
     function ChangeWorkoutValues(newWorkout_name: string) {
         const updatedWorkout = {...workoutForm, workout_name: newWorkout_name}
@@ -125,7 +126,6 @@ export function useWorkout(initialWorkout: Workout) {
                 requestsInFlight.current[key] = false;
             }
         }
-
         setWorkoutForm((prevState) => ({
             ...prevState,
             exercises: prevState.exercises.map((exercise) => (
@@ -133,6 +133,8 @@ export function useWorkout(initialWorkout: Workout) {
                     sets: exercise.sets.map((set) => {
                         if (set.id === setID) {
                             return set;
+                        } else if (set.completed) {
+                            return {...set, restTime: updatedSetRestTimes.current[set.id]};
                         } else if (requestsInFlight.current[set.id] === false) {
                             return {...set, restTime: exercise.rest_time*1000};
                         } else {
@@ -154,19 +156,19 @@ export function useWorkout(initialWorkout: Workout) {
         if (!targetExercise) return;
         const targetSet = targetExercise.sets.find((set) => set.id === setID)
         if (!targetSet) return;
-        let setRestTime = targetExercise?.rest_time*1000;
+        let setRestTime = targetSet?.restTime;
         if (!setRestTime) return;
-
+        
         if (!requestsInFlight.current[setID]) {
+            updatedSetRestTimes.current[setID] = setRestTime; 
             stopAllOtherRestTimers(setID);
             requestsInFlight.current[setID] = true
 
             while (setRestTime > 0 && requestsInFlight.current[setID]) {
 
-                await sleep(1000);
+                await sleep(100);
 
                 setRestTime -= 1000;
-                // console.log("rest time: ", setRestTime);
                 if (!requestsInFlight.current[setID]) {
                     return;
                 }
@@ -192,12 +194,21 @@ export function useWorkout(initialWorkout: Workout) {
 
     function resetRestTime(exerciseID: string, setID: string) {
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
-            ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                ? {...set, restTime: exercise.rest_time * 1000}
+            ? {...exercise, sets: exercise.sets.map((set) => set.id === setID 
+                ? {...set, restTime: updatedSetRestTimes.current[setID]}
                 : set)}
             : exercise
         )}))
     }
 
-    return { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime}
+    function updateSetTime(exerciseID: string, setID: string, newRestTime: number) {
+        setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
+            ? {...exercise, rest_time: newRestTime/1000, sets: exercise.sets.map((set) => set.id === setID
+                ? {...set, restTime: newRestTime}
+                : set)}
+            : exercise
+        )}))
+    }
+
+    return { workoutForm, requestsInFlight, updatedSetRestTimes, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
 }

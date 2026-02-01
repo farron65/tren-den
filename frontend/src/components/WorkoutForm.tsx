@@ -32,13 +32,18 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
+    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
     })
 
     const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
+
+    const [restTime, setRestTime] = useState({
+        setID: "",
+        time: "",
+    });
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -145,6 +150,35 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         debouncedRequest.current(newExerciseName, workoutExercises);
     }
 
+    function getSetRestTime(setRestTime: number) {
+        const setRestMinutes = Math.floor((setRestTime/ (1000 * 60)) % 60);
+        const setRestSeconds = Math.floor(setRestTime/ 1000) % 60;
+        return `${setRestMinutes}:${String(setRestSeconds).padStart(2, "0")}`
+    }
+
+    function updateRestTime(targetExerciseID: string, targetSetID: string, restTime: string, completed?: boolean) {
+        // let time;
+        if (completed) return;
+        let newRestTime;
+        if (restTime.includes(":")) {
+            restTime = restTime.split(":").join("");
+        }
+        setRestTime({setID: targetSetID, time: restTime })
+        if (restTime.length > 2 && restTime.length < 4) {
+            newRestTime = parseInt(restTime.charAt(0)) * 60000;
+            newRestTime += parseInt(restTime.slice(1).padStart(2, "0")) * 1000
+
+            setRestTime({setID: "", time: ""});
+            updateSetTime(targetExerciseID, targetSetID, newRestTime);
+        }
+    }
+
+    function FocusInput(targetSetID: string, completed: boolean) {
+        if (!completed) {
+            setRestTime({setID: targetSetID, time: ""});
+        }
+    }
+
     const exercises = workoutForm.exercises.map((exercise) => (
         <section key={exercise.id} className="exercise-block">
             {/* Exercise header */}
@@ -188,9 +222,6 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
                     const prevWeight = prevSet?.weight;
                     const prevReps = prevSet?.reps;
-
-                    const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
-                    const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
 
                     const TOTAL_REST_TIME = exercise.rest_time;
                     const restProgress = Math.max(0, (set.restTime / (TOTAL_REST_TIME * 10))); // for css
@@ -269,11 +300,13 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                 <div className="rest-timer-bar">
                                     <div className="rest-progress" style={{ width: `${restProgress}%`}}>
                                     </div>
-                                    {set.restTime > 0 && (
-                                        <span className="rest-time">
-                                            {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
-                                        </span>
-                                    )}
+                                    <input className="rest-time" 
+                                        onChange={(e) => updateRestTime(exercise.id, set.id, e.target.value, set.completed)}
+                                        onFocus={() => FocusInput(set.id, set.completed)}
+                                        placeholder={getSetRestTime(set.restTime)}
+                                        value={restTime.setID === set.id ? restTime.time : getSetRestTime(set.restTime)}
+                                    />
+                                    
                                 </div>
                             }
                         </div>
