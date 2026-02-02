@@ -28,7 +28,7 @@ interface Exercise {
 
 export default function LogWorkout() {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime } = useWorkout({
+    const { workoutForm, inputRestTime, requestsInFlight, setRestTime, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
             workout_name: "",
             date: "",
             exercises: []
@@ -281,6 +281,38 @@ export default function LogWorkout() {
         debouncedRequest.current(newExerciseName);
     }
 
+    function getSetRestTime(setRestTime: number) {
+        const setRestMinutes = Math.floor((setRestTime/ (1000 * 60)) % 60);
+        const setRestSeconds = Math.floor(setRestTime/ 1000) % 60;
+        return `${setRestMinutes}:${String(setRestSeconds).padStart(2, "0")}`
+    }
+
+    // Handles manual rest time edits for a SINGLE set.
+    // Only updates state, it doesn't start/stop timers
+    function updateInputSetTime(targetExerciseID: string, targetSetID: string, inputRestTime: string, completed?: boolean) {
+        // Only commit once user has entered enough digits: e.g 245 -> 2:45
+
+        if (completed) return;
+        let newRestTime;
+        if (inputRestTime.includes(":")) {
+            inputRestTime = inputRestTime.split(":").join("");
+        }
+        setRestTime({setID: targetSetID, time: inputRestTime })
+        if (inputRestTime.length > 2 && inputRestTime.length < 4) {
+            newRestTime = parseInt(inputRestTime.charAt(0)) * 60000;
+            newRestTime += parseInt(inputRestTime.slice(1).padStart(2, "0")) * 1000
+
+            setRestTime({setID: "", time: ""});
+            updateSetTime(targetExerciseID, targetSetID, newRestTime);
+        }
+    }
+
+    function FocusInput(targetSetID: string, completed: boolean) {
+        if (!completed) {
+            setRestTime({setID: targetSetID, time: ""});
+        }
+    }
+
     if (loading)  {
         return <h1>Loading</h1>
     }
@@ -332,10 +364,6 @@ export default function LogWorkout() {
                     const previousReps = previousSet?.reps;
 
                     if (!set.restTime) set.restTime = 180000;
-
-                    const setRestMinutes = Math.floor((set.restTime / (1000 * 60)) % 60);
-                    const setRestSeconds = Math.floor(set.restTime / 1000) % 60;
-
                     
                     const TOTAL_REST_TIME = 180000;
                     const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
@@ -413,11 +441,12 @@ export default function LogWorkout() {
                             <div className="rest-timer-bar">
                                 <div className="rest-progress" style={{ width: `${restProgress}%`}}>
                                 </div>
-                                {set.restTime > 0 && (
-                                    <span className="rest-time">
-                                        {setRestMinutes}:{String(setRestSeconds).padStart(2, "0")}
-                                    </span>
-                                )}
+                                <input className="rest-time" 
+                                    onChange={(e) => updateInputSetTime(exercise.id, set.id, e.target.value, set.completed)}
+                                    onFocus={() => FocusInput(set.id, set.completed)}
+                                    placeholder={getSetRestTime(set.restTime)}
+                                    value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.restTime)}
+                                />
                             </div>
                         </div>
                     );

@@ -24,7 +24,18 @@ interface Workout {
 
 export function useWorkout(initialWorkout: Workout) {
     const [workoutForm, setWorkoutForm] = useState<Workout>(initialWorkout);
+
+    const [inputRestTime, setRestTime] = useState({
+        setID: "",
+        time: "",
+    });
+
+    // Track which set is currently has an active rest timer.
+    // Keyed by set ID to allow multiple sets to exist but only one to run.
     const requestsInFlight = useRef<Record<string, boolean>>({});
+
+    // Stores each set's original rest time before the countdown starts.
+    // Used to restore correct values one the timer ends or switches
     const updatedSetRestTimes = useRef<Record<string, number>>({});
     
     function ChangeWorkoutValues(newWorkout_name: string) {
@@ -126,6 +137,8 @@ export function useWorkout(initialWorkout: Workout) {
                 requestsInFlight.current[key] = false;
             }
         }
+
+        // Each set restores its own rest time from ref updatedSetRestTimers
         setWorkoutForm((prevState) => ({
             ...prevState,
             exercises: prevState.exercises.map((exercise) => (
@@ -150,6 +163,8 @@ export function useWorkout(initialWorkout: Workout) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // Starts or stops a rest timer for a specific set
+    // Saves the set's original rest time in ref before countdown
     async function countdown(exerciseTargetID: string, setID: string) {
         
         const targetExercise: Exercise | undefined = workoutForm.exercises.find((exercise) => exercise.id === exerciseTargetID)
@@ -160,6 +175,7 @@ export function useWorkout(initialWorkout: Workout) {
         if (!setRestTime) return;
         
         if (!requestsInFlight.current[setID]) {
+            // Cache the original rest time so it can be restored later
             updatedSetRestTimes.current[setID] = setRestTime; 
             stopAllOtherRestTimers(setID);
             requestsInFlight.current[setID] = true
@@ -193,6 +209,8 @@ export function useWorkout(initialWorkout: Workout) {
     }
 
     function resetRestTime(exerciseID: string, setID: string) {
+        // Restore a set's rest time to its cached original value
+        // Used when countdown ends or is manually stopped
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === setID 
                 ? {...set, restTime: updatedSetRestTimes.current[setID]}
@@ -201,6 +219,8 @@ export function useWorkout(initialWorkout: Workout) {
         )}))
     }
 
+    // Updates a single set rest time
+    // Also updates exercise rest_time so future sets inherit it
     function updateSetTime(exerciseID: string, setID: string, newRestTime: number) {
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, rest_time: newRestTime/1000, sets: exercise.sets.map((set) => set.id === setID
@@ -210,5 +230,5 @@ export function useWorkout(initialWorkout: Workout) {
         )}))
     }
 
-    return { workoutForm, requestsInFlight, updatedSetRestTimes, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
+    return { workoutForm, inputRestTime, requestsInFlight, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
 }

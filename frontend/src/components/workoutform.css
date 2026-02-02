@@ -324,7 +324,7 @@ input.workout-date::-webkit-calendar-picker-indicator {
     font-weight: 700;
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    pointer-events: none;
+    /* pointer-events: none; */
 }
 
 /* ===== Add Set ===== */

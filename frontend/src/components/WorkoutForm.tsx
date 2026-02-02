@@ -32,18 +32,13 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, requestsInFlight, setWorkoutForm, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
+    const { workoutForm, inputRestTime, requestsInFlight, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
     })
 
     const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
-
-    const [restTime, setRestTime] = useState({
-        setID: "",
-        time: "",
-    });
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -156,17 +151,20 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         return `${setRestMinutes}:${String(setRestSeconds).padStart(2, "0")}`
     }
 
-    function updateRestTime(targetExerciseID: string, targetSetID: string, restTime: string, completed?: boolean) {
-        // let time;
+    // Handles manual rest time edits for a SINGLE set.
+    // Only updates state, it doesn't start/stop timers
+    function updateInputSetTime(targetExerciseID: string, targetSetID: string, inputRestTime: string, completed?: boolean) {
+        // Only commit once user has entered enough digits: e.g 245 -> 2:45
+
         if (completed) return;
         let newRestTime;
-        if (restTime.includes(":")) {
-            restTime = restTime.split(":").join("");
+        if (inputRestTime.includes(":")) {
+            inputRestTime = inputRestTime.split(":").join("");
         }
-        setRestTime({setID: targetSetID, time: restTime })
-        if (restTime.length > 2 && restTime.length < 4) {
-            newRestTime = parseInt(restTime.charAt(0)) * 60000;
-            newRestTime += parseInt(restTime.slice(1).padStart(2, "0")) * 1000
+        setRestTime({setID: targetSetID, time: inputRestTime })
+        if (inputRestTime.length > 2 && inputRestTime.length < 4) {
+            newRestTime = parseInt(inputRestTime.charAt(0)) * 60000;
+            newRestTime += parseInt(inputRestTime.slice(1).padStart(2, "0")) * 1000
 
             setRestTime({setID: "", time: ""});
             updateSetTime(targetExerciseID, targetSetID, newRestTime);
@@ -301,10 +299,10 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                     <div className="rest-progress" style={{ width: `${restProgress}%`}}>
                                     </div>
                                     <input className="rest-time" 
-                                        onChange={(e) => updateRestTime(exercise.id, set.id, e.target.value, set.completed)}
+                                        onChange={(e) => updateInputSetTime(exercise.id, set.id, e.target.value, set.completed)}
                                         onFocus={() => FocusInput(set.id, set.completed)}
                                         placeholder={getSetRestTime(set.restTime)}
-                                        value={restTime.setID === set.id ? restTime.time : getSetRestTime(set.restTime)}
+                                        value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.restTime)}
                                     />
                                     
                                 </div>
