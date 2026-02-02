@@ -230,5 +230,5 @@ export function useWorkout(initialWorkout: Workout) {
         )}))
     }
 
-    return { workoutForm, inputRestTime, requestsInFlight, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
+    return { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
 }

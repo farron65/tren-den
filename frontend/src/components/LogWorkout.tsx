@@ -28,7 +28,7 @@ interface Exercise {
 
 export default function LogWorkout() {
 
-    const { workoutForm, inputRestTime, requestsInFlight, setRestTime, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
+    const { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setRestTime, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
             workout_name: "",
             date: "",
             exercises: []
@@ -365,8 +365,11 @@ export default function LogWorkout() {
 
                     if (!set.restTime) set.restTime = 180000;
                     
-                    const TOTAL_REST_TIME = 180000;
-                    const restProgress = Math.max(0, (set.restTime / TOTAL_REST_TIME) * 100); // for css
+                    let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
+                    if (!TOTAL_REST_TIME) {
+                        TOTAL_REST_TIME = exercise.rest_time * 1000 // to turn s to ms;
+                    }
+                    const restProgress = Math.max(0, ((set.restTime / TOTAL_REST_TIME) * 100)); // for css
 
                     return (
                         <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}`}>

@@ -32,7 +32,7 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, inputRestTime, requestsInFlight, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
+    const { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
@@ -221,8 +221,12 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const prevWeight = prevSet?.weight;
                     const prevReps = prevSet?.reps;
 
-                    const TOTAL_REST_TIME = exercise.rest_time;
-                    const restProgress = Math.max(0, (set.restTime / (TOTAL_REST_TIME * 10))); // for css
+                    let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
+                    if (!TOTAL_REST_TIME) {
+                        TOTAL_REST_TIME = exercise.rest_time * 1000 // to turn s to ms;
+                    }
+
+                    const restProgress = Math.max(0, ((set.restTime / TOTAL_REST_TIME) * 100)); // for css
           
                     return (
                         <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
