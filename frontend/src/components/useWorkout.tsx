@@ -182,7 +182,7 @@ export function useWorkout(initialWorkout: Workout) {
 
             while (setRestTime > 0 && requestsInFlight.current[setID]) {
 
-                await sleep(100);
+                await sleep(1000);
 
                 setRestTime -= 1000;
                 if (!requestsInFlight.current[setID]) {

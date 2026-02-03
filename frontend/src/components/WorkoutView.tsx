@@ -5,9 +5,37 @@ import { authenticatedFetch } from "../api/apiClient";
 
 import "./workoutview.css";
 
+interface Set {
+    id: string
+    weight: number,
+    reps: number,
+    completed: boolean,
+    deleting?: boolean,
+    rest_time: number
+}
+
+interface Exercise {
+    id: string,
+    exercise_name: string,
+    rest_time: number
+    sets: Set[]
+}
+
+interface Workout {
+    id: string,
+    workout_name: string,
+    date: string,
+    exercises: Exercise[]
+}
+
 export default function WorkoutView() {
     const workoutId = useParams();
-    const [workout, setWorkout] = useState<any>(null);
+    const [workout, setWorkout] = useState<Workout>({
+        id: "",
+        workout_name: "",
+        date: "",
+        exercises: []
+    });
 
     const navigate = useNavigate();
 
@@ -28,7 +56,40 @@ export default function WorkoutView() {
         fetchWorkout();
     }, []);
 
-    function getWorkoutDate(workoutDate: Date) {
+    async function SaveWorkoutAsTemplate() {
+
+        const dataToSend = {
+            workout_name: workout.workout_name,
+            exercises: workout.exercises.map((exercise: Exercise) => ({
+                exercise_name: exercise.exercise_name,
+                rest_time: exercise.rest_time,
+                sets: exercise.sets.map((set: Set) => ({
+                    weight: set.weight,
+                    reps: set.reps,
+                    rest_time: set.rest_time
+                }))
+            }))
+        }
+
+        try {
+            const newWorkoutTemplate = await authenticatedFetch(`/templates`, "POST", dataToSend);
+            if (!newWorkoutTemplate.ok) {
+                if (newWorkoutTemplate.status === 409) {
+                    alert(`Template with name: '${workout.workout_name}' already exists. Please update the current workout name, to save it as a template.`);
+                    return;
+                }
+                throw new Error(`Response status: ${newWorkoutTemplate.status}`);
+            }
+
+            alert(`New template with name: '${workout.workout_name}' has been created successfully`);
+            navigate("/templates");
+        }
+        catch (error) {
+            alert(error);
+        }
+    }
+
+    function getWorkoutDate(workoutDate: string) {
         const dt = new Date(workoutDate)
 
         const month = dt.toLocaleString("default", {month: "short"});
@@ -72,6 +133,9 @@ export default function WorkoutView() {
                         }
                     >
                         EDIT
+                    </button>
+                    <button className="finish-btn" onClick={SaveWorkoutAsTemplate}>
+                        SAVE AS TEMPLATE
                     </button>
                 </div>
             </header>
