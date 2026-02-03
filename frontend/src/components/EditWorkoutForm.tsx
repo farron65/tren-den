@@ -71,7 +71,8 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
                 rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
-                    reps: set.reps
+                    reps: set.reps,
+                    rest_time: set.rest_time
                 }))
             }))
         }
