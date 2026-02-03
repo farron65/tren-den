@@ -15,7 +15,7 @@ interface Set {
     weight: number,
     reps: number,
     completed: boolean,
-    restTime: number,
+    rest_time: number,
     deleting?: boolean
 }
 
@@ -115,7 +115,8 @@ export default function LogWorkout() {
                 rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
-                    reps: set.reps
+                    reps: set.reps,
+                    rest_time: set.rest_time
                 }))
             }))
         }
@@ -362,15 +363,15 @@ export default function LogWorkout() {
                     const previousSet = index > 0 ? exercise.sets[index - 1] : null;
                     const previousWeight = previousSet?.weight;
                     const previousReps = previousSet?.reps;
-
-                    if (!set.restTime) set.restTime = 180000;
+                    
+                    if (!set.rest_time) set.rest_time = 180000;
                     
                     let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
                     if (!TOTAL_REST_TIME) {
-                        TOTAL_REST_TIME = exercise.rest_time * 1000 // to turn s to ms;
+                        TOTAL_REST_TIME = set.rest_time;
                     }
-                    const restProgress = Math.max(0, ((set.restTime / TOTAL_REST_TIME) * 100)); // for css
-
+                    const restProgress = Math.max(0, ((set.rest_time / TOTAL_REST_TIME) * 100)); // for css
+        
                     return (
                         <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}`}>
                             <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
@@ -447,8 +448,8 @@ export default function LogWorkout() {
                                 <input className="rest-time" 
                                     onChange={(e) => updateInputSetTime(exercise.id, set.id, e.target.value, set.completed)}
                                     onFocus={() => FocusInput(set.id, set.completed)}
-                                    placeholder={getSetRestTime(set.restTime)}
-                                    value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.restTime)}
+                                    placeholder={getSetRestTime(set.rest_time)}
+                                    value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.rest_time)}
                                 />
                             </div>
                         </div>

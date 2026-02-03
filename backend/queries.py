@@ -11,7 +11,7 @@ def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDe
     user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
     
     for set in user_exercise.sets:
-        user_exercise_data["sets"].append({"id": set.id, "weight": set.weight, "reps": set.reps})
+        user_exercise_data["sets"].append({"id": set.id, "weight": set.weight, "reps": set.reps, "rest_time": set.rest_time})
 
     return user_exercise_data 
 

@@ -6,7 +6,7 @@ interface Set {
     reps: number,
     completed: boolean,
     deleting?: boolean,
-    restTime: number
+    rest_time: number
 }
 
 interface Exercise {
@@ -55,7 +55,7 @@ export function useWorkout(initialWorkout: Workout) {
 
     function AddNewSet(id: string) {
         const newSet = workoutForm.exercises.map((exercise) => exercise.id == id
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, restTime: exercise.rest_time * 1000}]}
+            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, rest_time: exercise.rest_time * 1000}]}
             : exercise
         )
         setWorkoutForm({...workoutForm, exercises: newSet});
@@ -147,9 +147,9 @@ export function useWorkout(initialWorkout: Workout) {
                         if (set.id === setID) {
                             return set;
                         } else if (set.completed) {
-                            return {...set, restTime: updatedSetRestTimes.current[set.id]};
+                            return {...set, rest_time: updatedSetRestTimes.current[set.id]};
                         } else if (requestsInFlight.current[set.id] === false) {
-                            return {...set, restTime: exercise.rest_time*1000};
+                            return {...set, rest_time: exercise.rest_time*1000};
                         } else {
                             return set;
                         }
@@ -171,7 +171,7 @@ export function useWorkout(initialWorkout: Workout) {
         if (!targetExercise) return;
         const targetSet = targetExercise.sets.find((set) => set.id === setID)
         if (!targetSet) return;
-        let setRestTime = targetSet?.restTime;
+        let setRestTime = targetSet?.rest_time;
         if (!setRestTime) return;
         
         if (!requestsInFlight.current[setID]) {
@@ -192,7 +192,7 @@ export function useWorkout(initialWorkout: Workout) {
                 setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => 
                     exercise.id === exerciseTargetID
                     ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                        ? {...set, restTime: setRestTime!}
+                        ? {...set, rest_time: setRestTime!}
                         : set)}
                     : exercise
                 )}))
@@ -213,7 +213,7 @@ export function useWorkout(initialWorkout: Workout) {
         // Used when countdown ends or is manually stopped
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === setID 
-                ? {...set, restTime: updatedSetRestTimes.current[setID]}
+                ? {...set, rest_time: updatedSetRestTimes.current[setID]}
                 : set)}
             : exercise
         )}))
@@ -224,7 +224,7 @@ export function useWorkout(initialWorkout: Workout) {
     function updateSetTime(exerciseID: string, setID: string, newRestTime: number) {
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, rest_time: newRestTime/1000, sets: exercise.sets.map((set) => set.id === setID
-                ? {...set, restTime: newRestTime}
+                ? {...set, rest_time: newRestTime}
                 : set)}
             : exercise
         )}))

@@ -50,6 +50,7 @@ class SetDetails(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     weight: float
     reps: int
+    rest_time: int = Field(default=180000)
     exercise_id: int | None = Field(default=None, foreign_key="exercise.id")
     exercise: Exercise = Relationship(back_populates="sets")
     

@@ -14,7 +14,7 @@ interface Set {
     id: string
     weight: number,
     reps: number,
-    restTime: number,
+    rest_time: number,
     completed: boolean,
     deleting?: boolean
 }
@@ -67,7 +67,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 rest_time: 180,
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight, 
-                    reps: set.reps
+                    reps: set.reps,
+                    rest_time: set.rest_time
                 }))
             }))
         }
@@ -75,6 +76,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         try {
             if (isTemplate) {
                 const {date, ...templateToSend} = dataToSend;
+     
                 const response = await authenticatedFetch("/templates", "POST", templateToSend);
                 
                 if (!response.ok) {
@@ -139,7 +141,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     }
     
     function ChangeExerciseName(id: string, newExerciseName: string) {
-        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName, restTime: GetExerciseRestTime(newExerciseName)} : exercise);
+        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName, rest_time: GetExerciseRestTime(newExerciseName)} : exercise);
         setWorkoutForm({...workoutForm, exercises: updatedExerciseName});
 
         debouncedRequest.current(newExerciseName, workoutExercises);
@@ -223,10 +225,10 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
                     let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
                     if (!TOTAL_REST_TIME) {
-                        TOTAL_REST_TIME = exercise.rest_time * 1000 // to turn s to ms;
+                        TOTAL_REST_TIME = set.rest_time // to turn s to ms;
                     }
 
-                    const restProgress = Math.max(0, ((set.restTime / TOTAL_REST_TIME) * 100)); // for css
+                    const restProgress = Math.max(0, ((set.rest_time / TOTAL_REST_TIME) * 100)); // for css
           
                     return (
                         <div key={set.id} className={`set-row-wrapper ${set.deleting ? "deleting" : ""}`}>
@@ -305,8 +307,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                     <input className="rest-time" 
                                         onChange={(e) => updateInputSetTime(exercise.id, set.id, e.target.value, set.completed)}
                                         onFocus={() => FocusInput(set.id, set.completed)}
-                                        placeholder={getSetRestTime(set.restTime)}
-                                        value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.restTime)}
+                                        placeholder={getSetRestTime(set.rest_time)}
+                                        value={inputRestTime.setID === set.id ? inputRestTime.time : getSetRestTime(set.rest_time)}
                                     />
                                     
                                 </div>

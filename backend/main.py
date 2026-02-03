@@ -196,7 +196,7 @@ async def post_template(template: TemplateCreate, session: SessionDep, current_u
         db_exercise = Exercise(exercise_name=exercise.exercise_name, rest_time=exercise.rest_time, template=db_template)
         
         for set in exercise.sets:
-            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
+            db_set = SetDetails(weight=set.weight, reps=set.reps, rest_time=set.rest_time, exercise=db_exercise)
             
     session.add(db_template)
     session.flush()
@@ -220,11 +220,11 @@ async def get_user_template(template_id: int, current_user: Annotated[User, Depe
         raise HTTPException(404, "Template doesn't exist")
     
     latest_ex_sets = []
-
     for exercise in user_template.exercises:
         setValues = get_exercise_sets(exercise.exercise_name, current_user, session)
         if setValues:
             latest_ex_sets.append(setValues)
+            print("i'm working\n\n\n")
         
     return {"id": user_template.id, "workout_name": user_template.workout_name, "exercises": user_template.exercises, "previous_workout_data": latest_ex_sets}
     
@@ -404,7 +404,8 @@ async def update_template(template_id: int, updated_template: TemplateCreate, cu
         db_exercise = Exercise(exercise_name=updated_exercise.exercise_name, template=user_template)
         
         for updated_set in updated_exercise.sets:
-            db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, exercise=db_exercise)
+            db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, rest_time=updated_set.rest_time, exercise=db_exercise)
+            print(db_set)
         
         session.add(db_exercise)
     

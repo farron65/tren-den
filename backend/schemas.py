@@ -35,6 +35,7 @@ class UserResponse(BaseModel):
 class Set(BaseModel):
     weight: float = Field(ge=0, le=1000)
     reps: int = Field(ge=1, le=1000)
+    rest_time: int
     
 class SetInDB(Set):
     id: int
