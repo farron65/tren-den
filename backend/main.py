@@ -224,7 +224,6 @@ async def get_user_template(template_id: int, current_user: Annotated[User, Depe
         setValues = get_exercise_sets(exercise.exercise_name, current_user, session)
         if setValues:
             latest_ex_sets.append(setValues)
-            print("i'm working\n\n\n")
         
     return {"id": user_template.id, "workout_name": user_template.workout_name, "exercises": user_template.exercises, "previous_workout_data": latest_ex_sets}
     
@@ -380,7 +379,7 @@ async def update_template_values(template_id: int, updated_values: list[Exercise
                 db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=template_values[exercise.exercise_name.lower()])
     
                 session.add(db_set)      
-    print(user_template.exercises)
+                
     session.commit()
     session.refresh(user_template)    
     return user_template
