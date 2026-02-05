@@ -214,6 +214,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 </div>
 
                 {exercise.sets.map((set, index) => {
+                    console.log(exercise.exercise_name, index);
                     const PreviousWorkoutSetValues = ShowPreviousSets(exercise.exercise_name, index);
                     const PreviousWorkoutSetWeight = PreviousWorkoutSetValues?.[0];
                     const PreviousWorkoutSetReps = PreviousWorkoutSetValues?.[1];

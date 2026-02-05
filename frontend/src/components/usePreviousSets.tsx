@@ -39,7 +39,7 @@ export function usePreviousSets() {
         useEffect(() => {
             const fetchExercises = async () => {
                 try {
-                    const response = await authenticatedFetch("/recent/exercises", "GET");
+                    const response = await authenticatedFetch("/exercises/recent", "GET");
                     
                     if (!response.ok) {
                         return; 
@@ -56,6 +56,7 @@ export function usePreviousSets() {
         }, []);
 
     async function GetPreviousSets(targetExName: string, allExercises: Exercise[]) {
+        console.log(targetExName);
         const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
 
         if (exerciseInWorkout) {
@@ -84,7 +85,6 @@ export function usePreviousSets() {
     }
 
     function ShowPreviousSets(targetExName: string, setIndex: number) {
-
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {

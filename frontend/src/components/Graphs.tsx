@@ -71,7 +71,7 @@ export default function Graphs() {
         if (!exerciseName) return;
 
         try {
-            const response = await authenticatedFetch(`/analytics/${exerciseName}`, "GET");
+            const response = await authenticatedFetch(`/exercises/analytics/${exerciseName}`, "GET");
     
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
