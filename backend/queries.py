@@ -4,7 +4,7 @@ from sqlmodel import select
 from database import SessionDep
 
 def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
-    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.id))).first() # type: ignore
+    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date))).first() # type: ignore
     
     if not user_exercise:
         return None
