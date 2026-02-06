@@ -13,19 +13,26 @@ from models import User, Workout, Exercise, SetDetails
 from auth_utils import get_current_active_user
 from queries import get_exercise_sets
 
+import time
+
 router = APIRouter()
 
 @router.get("/analytics/{exercise_name}")
 async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    
+    start = time.time() 
+    query_start = time.time()
     user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(asc(Workout.date))).all() # type: ignore
+    print(f"Query took: {time.time() - query_start}s")
+    print(f"Found {len(user_exercises)} exercises")
+
     if not user_exercises:
         return []
     
+    process_start = time.time()
     user_exercise_data = []
         
     for exercise in user_exercises:
-        
+        print(f"Exercise has {len(exercise.sets)} sets")
         session_volume = 0 
         set_volume = 0
         heaviest_set = SetDetails(weight=0, reps=0)
@@ -54,6 +61,10 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
                         for set in exercise.sets
                     ]
             })
+        
+    print(f"Processing took: {time.time() - process_start}s")
+    
+    print(f"Total: {time.time() - start}s")
     
     return user_exercise_data
 
