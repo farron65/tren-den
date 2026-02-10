@@ -264,7 +264,6 @@ export default function LogWorkout() {
 
         const valid = exercise.sets.every((set) => {
             if (!set.reps) {
-                console.log("Rep is empty");
                 return false;
             }
             return true;

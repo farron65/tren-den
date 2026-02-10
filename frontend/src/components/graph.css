@@ -63,6 +63,49 @@
         transform 0.15s ease;
 }
 
+/* ===== Summary (Avg vs last 3 / 7) ===== */
+.graph-summary {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    margin-bottom: 10px;
+    padding: 10px 12px;
+
+    background: #0f0f0f;
+    border: 1px solid #151515;
+    border-radius: 8px;
+}
+
+.graph-summary-title {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9a9a9a;
+}
+
+.graph-summary-item {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #1a1a1a;
+}
+
+/* Positive / negative coloring */
+.graph-summary-item.positive {
+    color: #34d399; /* green */
+}
+
+.graph-summary-item.negative {
+    color: #f87171; /* red */
+}
+
+
 /* Hover — now ACTUALLY works */
 @media (hover: hover) {
     .graph-empty-row:hover {
@@ -202,6 +245,7 @@
 @media (max-width: 450px) {
     .graph-page {
         padding: 14px 12px 28px;
+        margin-top: 30px;
         gap: 14px;
     }
 

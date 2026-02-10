@@ -7,7 +7,7 @@ import happyFaceIcon from "../assets/happiness.png";
 import { authenticatedFetch } from "../api/apiClient";
 
 interface ChartPoint {
-    "workout_name": string
+    workout_name: string,
     date: string,
     session_volume: number,
     best_set_volume: number,
@@ -16,12 +16,22 @@ interface ChartPoint {
     sets: {
         weight: number,
         reps: number
+    },
+    volume_change: number
+
+}
+
+interface AnalyticsResponse {
+    data: ChartPoint[]
+    summary: {
+        avg_last_3: number | null,
+        avg_last_7: number | null
     }
 }
 
 export default function Graphs() {
 
-    const [exerciseData, setExercise] = useState<ChartPoint[]>([]);
+    const [exerciseData, setExercise] = useState<AnalyticsResponse | null>(null);
     const [selectedMetric, setSelectedMetric] = useState("weight");
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
@@ -100,7 +110,6 @@ export default function Graphs() {
         if (!active || !payload.length) return;
 
         const point = payload[0].payload;
-
         return (
             <div className="graph-tooltip">
                 <strong>{point.workout_name}</strong>
@@ -125,6 +134,17 @@ export default function Graphs() {
                             Set {i+1}: {set.weight} lbs x {set.reps}
                         </div>
                     ))}
+                    {point.volume_change &&
+                        <>
+                            {point.volume_change > 0 &&
+                                <strong>Volume +{point.volume_change}% vs last session</strong>
+                            }
+
+                            {point.volume_change < 0 &&
+                                <strong>Volume {point.volume_change}% vs last session</strong>
+                            }
+                        </>
+                    }
                 </div>
             </div>
         )
@@ -133,7 +153,7 @@ export default function Graphs() {
     return (
         <div className="page graph-page">
             <div className="graph-card">
-                {exerciseData.length === 0 &&
+                {(!exerciseData || !exerciseData.data || exerciseData.data.length === 0) &&
                     <div className="graph-empty">
                         <div className="graph-empty-content">
                             <div className="graph-empty-row">
@@ -149,7 +169,34 @@ export default function Graphs() {
                     </div>
 
                 }
-                <LineChart className="progress-chart" responsive data={exerciseData}
+                {exerciseData?.summary && 
+                    <div className="graph-summary">
+                        <div className="graph-summary-title">
+                            Latest workout vs recent average
+                        </div>
+
+                        {exerciseData.summary.avg_last_3 !== null && (
+                            <div
+                                className={`graph-summary-item
+                                    ${exerciseData.summary.avg_last_3 >= 0 ? "positive" : "negative"}`}
+                                >
+                                    vs last 3 workouts: {exerciseData.summary.avg_last_3 >= 0 ? "+" : ""}{exerciseData.summary.avg_last_3}%
+                                
+                                </div>
+                        )}
+                        {exerciseData.summary.avg_last_7 !== null && (
+                            <div
+                                className={`graph-summary-item ${
+                                    exerciseData.summary.avg_last_7 >= 0 ? "positive" : "negative"
+                                }`}
+                            >
+                                vs last 7 workouts: {exerciseData.summary.avg_last_7 >= 0 ? "+" : ""}{exerciseData.summary.avg_last_7}%
+                            </div>
+                        )}
+                    </div>
+                
+                }
+                <LineChart className="progress-chart" responsive data={exerciseData?.data}
                     style={{ width: "100%" }}
                     margin={chartMargin}>
                     <CartesianGrid/>

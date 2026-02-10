@@ -56,7 +56,6 @@ export function usePreviousSets() {
         }, []);
 
     async function GetPreviousSets(targetExName: string, allExercises: Exercise[]) {
-        console.log(targetExName);
         const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
 
         if (exerciseInWorkout) {
