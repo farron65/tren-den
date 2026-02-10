@@ -9,35 +9,29 @@ from database import SessionDep
 
 from models import User, Workout, Exercise, SetDetails
 
-# from config import 
 from auth_utils import get_current_active_user
-from queries import get_exercise_sets
-
-import time
+from queries import get_exercise_sets, get_exercise_history, compare_previous_values
 
 router = APIRouter()
 
 @router.get("/analytics/{exercise_name}")
 async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    start = time.time() 
-    query_start = time.time()
+
     user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(asc(Workout.date))).all() # type: ignore
-    print(f"Query took: {time.time() - query_start}s")
-    print(f"Found {len(user_exercises)} exercises")
 
     if not user_exercises:
         return []
     
-    process_start = time.time()
+    # process_start = time.time()
     user_exercise_data = []
-        
-    for exercise in user_exercises:
-        print(f"Exercise has {len(exercise.sets)} sets")
+    for ex in range(len(user_exercises)):
         session_volume = 0 
         set_volume = 0
         heaviest_set = SetDetails(weight=0, reps=0)
-        
-        for ex_set in exercise.sets:
+        volume_change = 0
+        if ex > 0: 
+            volume_change = compare_previous_values(user_exercises[ex-1], user_exercises[ex])
+        for ex_set in user_exercises[ex].sets:
             session_volume += ex_set.weight * ex_set.reps
             if ex_set.weight * ex_set.reps > set_volume:
                 set_volume = ex_set.weight * ex_set.reps 
@@ -47,8 +41,8 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
                 heaviest_set = ex_set
         
         user_exercise_data.append({
-                "date": exercise.workout.date,
-                "workout_name": exercise.workout.workout_name,
+                "date": user_exercises[ex].workout.date,
+                "workout_name": user_exercises[ex].workout.workout_name,
                 "session_volume": session_volume,
                 "best_set_volume": set_volume,
                 "weight": heaviest_set.weight,
@@ -58,15 +52,16 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
                         "weight": set.weight,
                         "reps": set.reps
                     }
-                        for set in exercise.sets
-                    ]
+                        for set in user_exercises[ex].sets
+                    ],
+                "volume_change": volume_change if ex > 0 else None
             })
-        
-    print(f"Processing took: {time.time() - process_start}s")
+    summary = get_exercise_history(exercise_name, current_user, session)
     
-    print(f"Total: {time.time() - start}s")
-    
-    return user_exercise_data
+    return {
+        "data": user_exercise_data,
+        "summary": summary
+    }
 
 @router.get("/recent") 
 async def get_recent_exercises(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):

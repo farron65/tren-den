@@ -18,3 +18,30 @@ def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDe
 def get_user_workout(workout_id: int, current_user: User, session: SessionDep) -> Workout | None:
     user_workout = session.exec(select(Workout).where(Workout.id == workout_id).where(Workout.user == current_user)).first()
     return user_workout if user_workout else None
+
+def get_exercise_history(exercise_name: str, current_user: User, session: SessionDep):
+    exercises_history = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date))).all() # type: ignore
+    current_volume = sum([s.weight * s.reps for s in exercises_history[0].sets])
+    
+    change_3 = None
+    change_7 = None
+ 
+    if len(exercises_history) >= 3:
+        previous_3 = sum([s.weight * s.reps for ex in exercises_history[1:4] for s in ex.sets])/len(exercises_history[1:4])
+        change_3 = round((current_volume / previous_3 -1 ) * 100, 1)
+    if (len(exercises_history) >= 7):
+        previous_7 = sum([s.weight * s.reps for ex in exercises_history[1:8] for s in ex.sets])/len(exercises_history[1:8])
+        change_7 = round((current_volume / previous_7 -1 ) * 100, 1)
+
+    return {
+        "avg_last_3": change_3 if change_3 else None,
+        "avg_last_7": change_7 if change_7 else None
+    }
+
+def compare_previous_values(prev_ex: Exercise, current_ex: Exercise):
+    prev_volume = sum([ex.weight * ex.reps for ex in prev_ex.sets])
+    current_volume = sum([ex.weight * ex.reps for ex in current_ex.sets])
+   
+    volume_change = round((current_volume / prev_volume - 1) * 100, 1)
+    return volume_change
+    
