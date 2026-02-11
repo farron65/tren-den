@@ -32,10 +32,10 @@ def get_exercise_history(exercise_name: str, current_user: User, session: Sessio
     if (len(exercises_history) >= 7):
         previous_7 = sum([s.weight * s.reps for ex in exercises_history[1:8] for s in ex.sets])/len(exercises_history[1:8])
         change_7 = round((current_volume / previous_7 -1 ) * 100, 1)
-
+    
     return {
-        "avg_last_3": change_3 if change_3 else None,
-        "avg_last_7": change_7 if change_7 else None
+        "avg_last_3": change_3, 
+        "avg_last_7": change_7 
     }
 
 def compare_previous_values(prev_ex: Exercise, current_ex: Exercise):

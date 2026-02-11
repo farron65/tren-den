@@ -105,6 +105,11 @@
     color: #f87171; /* red */
 }
 
+.graph-summary-item.stagnation {
+    color: #94a3b8; /* slate-400 */
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
 
 /* Hover — now ACTUALLY works */
 @media (hover: hover) {

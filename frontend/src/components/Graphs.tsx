@@ -178,19 +178,18 @@ export default function Graphs() {
                         {exerciseData.summary.avg_last_3 !== null && (
                             <div
                                 className={`graph-summary-item
-                                    ${exerciseData.summary.avg_last_3 >= 0 ? "positive" : "negative"}`}
+                                    ${exerciseData.summary.avg_last_3 > 0 ? "positive" : exerciseData.summary.avg_last_3 < 0 ? "negative" : "stagnation"}`}
                                 >
-                                    vs last 3 workouts: {exerciseData.summary.avg_last_3 >= 0 ? "+" : ""}{exerciseData.summary.avg_last_3}%
+                                    vs last 3 workouts: {exerciseData.summary.avg_last_3 > 0 ? "+" : ""}{exerciseData.summary.avg_last_3}%
                                 
                                 </div>
                         )}
                         {exerciseData.summary.avg_last_7 !== null && (
                             <div
                                 className={`graph-summary-item ${
-                                    exerciseData.summary.avg_last_7 >= 0 ? "positive" : "negative"
-                                }`}
+                                    exerciseData.summary.avg_last_7 > 0 ? "positive" : exerciseData.summary.avg_last_7 < 0 ? "negative" : "stagnation"}`}
                             >
-                                vs last 7 workouts: {exerciseData.summary.avg_last_7 >= 0 ? "+" : ""}{exerciseData.summary.avg_last_7}%
+                                vs last 7 workouts: {exerciseData.summary.avg_last_7 > 0 ? "+" : ""}{exerciseData.summary.avg_last_7}%
                             </div>
                         )}
                     </div>
