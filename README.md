@@ -41,8 +41,8 @@ I built this project to design and ship my first complete full-stack application
 ## Current Status
 
 - Deployed and usable
-- UI polish and bug fixes in progress
-- Ongoing maintenance
+- Feature-comple v1
+- Maintained as needed 
 ---
 
 ## Local Development
