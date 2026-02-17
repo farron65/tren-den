@@ -25,11 +25,11 @@ def get_exercise_history(exercise_name: str, current_user: User, session: Sessio
     
     change_3 = None
     change_7 = None
- 
-    if len(exercises_history) >= 3:
+
+    if len(exercises_history) > 3:
         previous_3 = sum([s.weight * s.reps for ex in exercises_history[1:4] for s in ex.sets])/len(exercises_history[1:4])
         change_3 = round((current_volume / previous_3 -1 ) * 100, 1)
-    if (len(exercises_history) >= 7):
+    if (len(exercises_history) > 7):
         previous_7 = sum([s.weight * s.reps for ex in exercises_history[1:8] for s in ex.sets])/len(exercises_history[1:8])
         change_7 = round((current_volume / previous_7 -1 ) * 100, 1)
     
