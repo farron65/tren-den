@@ -1,5 +1,4 @@
-from sqlmodel import SQLModel, create_engine, Session
-from models import User, Workout, Exercise, SetDetails, Template
+from sqlmodel import create_engine, Session
 
 from typing import Annotated
 from fastapi import Depends
@@ -14,9 +13,6 @@ if not DATABASE_URL:
     raise RuntimeError("Database url is missing")
 
 engine = create_engine(DATABASE_URL)
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
 
 def get_session():
     # Provides a db session for each request
