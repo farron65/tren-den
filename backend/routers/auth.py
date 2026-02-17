@@ -10,14 +10,27 @@ from datetime import timedelta, datetime, timezone
 from database import SessionDep
 
 from models import User, RefreshToken
-from schemas import  UserForgotPassword, UserResetPassword, Token
+from schemas import UserBase, UserSignUp, UserForgotPassword, UserResetPassword, Token
 
-import resend
-from config import RESEND_EMAIL_API_KEY
-
-resend.api_key = RESEND_EMAIL_API_KEY
+from services import email
 
 router = APIRouter()
+
+@router.post("/signup", response_model=UserBase)
+async def signup(user: UserSignUp, session: SessionDep):
+
+    existing_user = session.exec(select(User).where(User.username == user.username)).first()
+    
+    if existing_user:
+        raise HTTPException(409, "User already exists")
+    else:
+        user_password = hash_password(user.password)
+        db_user = User(username=user.username, email = user.email, hashed_password=user_password)
+    
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return user
 
 @router.post("/login", response_model=Token)
 async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()):
@@ -69,6 +82,7 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     user_in_db = session.exec(select(User).where(User.email == user_email.email)).first()
     
     if not user_in_db:
+        print("didn't find email")
         return {"message": "Successfully sent the email"} # to fool the hackers 😀
     
     reset_token = secrets.token_urlsafe(32)
@@ -80,21 +94,8 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     session.commit()
     session.refresh(user_in_db)
     
-    params: resend.Emails.SendParams = {
-        "from": "onboarding@resend.dev",
-        "to": user_in_db.email,
-        "subject": "Reset your password",
-        "html":
-            f"""
-            <h1>Hello {user_in_db.username},</h1>
-            <p>We received a request to reset your password<p>
-            <a href="https://trenden.netlify.app/reset-password?token={reset_token}">Reset your password<a/>
-            <strong>This link will expire in 15 minutes. If you did not request a new password, please disregard this message.</strong
-            """
-    }
-    
-    email = resend.Emails.send(params)
-
+    email.send_password_reset_email(user_in_db.email, user_in_db.username, reset_token)
+    print("send the email") #that is where i left of asl;dfkjasldkjfalskdjflaskdjfa
     return {"message": "Successfully sent the email"}
     
 @router.post("/reset-password")
