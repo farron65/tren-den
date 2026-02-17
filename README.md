@@ -41,7 +41,7 @@ I built this project to design and ship my first complete full-stack application
 ## Current Status
 
 - Deployed and usable
-- Feature-comple v1
+- Feature-complete v1
 - Maintained as needed 
 ---
 
@@ -72,3 +72,19 @@ I built this project to design and ship my first complete full-stack application
     npm install
     npm run dev
     ```
+
+## Testing
+
+Backend is tested using pytest and FastAPI's TestClient.
+
+Tests cover:
+- Auth endpoints (signup, login, token refresh, password reset)
+- Users
+- Workout CRUD
+- Templates
+- Exercise analytics (happy path, empty states, auth boundaries)
+
+To run tests:
+```bash
+pytest 
+```
