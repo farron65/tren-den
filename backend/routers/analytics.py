@@ -22,7 +22,6 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
     if not user_exercises:
         return []
     
-    # process_start = time.time()
     user_exercise_data = []
     for ex in range(len(user_exercises)):
         session_volume = 0 
