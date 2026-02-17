@@ -11,3 +11,5 @@ pydantic
 email-validator
 resend
 alembic
+httpx
+pytest
