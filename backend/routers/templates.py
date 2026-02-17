@@ -63,19 +63,19 @@ async def update_template_values(template_id: int, updated_values: list[Exercise
     if not user_template:
         raise HTTPException(400, "Bad Request")
 
-    template_values = dict()
+    template_values = dict() # faster look ups O(1) instead of list O(n)
     
     for template_exercise in user_template.exercises:
         template_values[template_exercise.exercise_name.lower()] = template_exercise
     
     for exercise in updated_values:
         if exercise.exercise_name.lower() in template_values:
-
-            template_values[exercise.exercise_name.lower()].sets = []
             
+            # Clear sets since they are about to be replaced by the ones from updated_values
+            template_values[exercise.exercise_name.lower()].sets = [] 
             
             for set in exercise.sets:
-                db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=template_values[exercise.exercise_name.lower()])
+                db_set = SetDetails(weight=set.weight, reps=set.reps, rest_time=set.rest_time, exercise=template_values[exercise.exercise_name.lower()])
     
                 session.add(db_set)      
                 
@@ -102,7 +102,6 @@ async def update_template(template_id: int, updated_template: TemplateCreate, cu
         
         for updated_set in updated_exercise.sets:
             db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, rest_time=updated_set.rest_time, exercise=db_exercise)
-            print(db_set)
         
         session.add(db_exercise)
     
