@@ -18,22 +18,6 @@ router = APIRouter()
 async def read_users_me(current_user = Depends(get_current_active_user)):
     return current_user
 
-@router.post("/signup", response_model=UserSignUp)
-async def signup(user: UserSignUp, session: SessionDep):
-
-    existing_user = session.exec(select(User).where(User.username == user.username)).first()
-    
-    if existing_user:
-        raise HTTPException(409, "User already exists")
-    else:
-        user_password = hash_password(user.password)
-        db_user = User(username=user.username, email = user.email, hashed_password=user_password)
-    
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return user
-
 @router.delete("/delete/me")
 async def delete_user(deletion_conf: DeleteAccountRequest, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user = authenticate_user(session, current_user.username, deletion_conf.password)
