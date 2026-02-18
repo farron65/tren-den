@@ -1,11 +1,13 @@
 from fastapi.testclient import TestClient
 
 from sqlmodel import select
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import User, Workout
 
-def test_create_workout_success(client: TestClient, create_and_login_user, create_workout, session_fixture):
+from auth_utils import create_access_token
+
+def test_post_workout_success(client: TestClient, create_and_login_user, create_workout, session_fixture):
     user_token = create_and_login_user["access_token"]
     
     user_workout = create_workout()
@@ -47,7 +49,7 @@ def test_create_workout_success(client: TestClient, create_and_login_user, creat
             assert db_set.reps == response_set["reps"]
             assert db_set.rest_time == response_set["rest_time"]
             
-def test_create_workout_bad_token(client: TestClient, create_and_login_user):
+def test_post_workout_bad_token(client: TestClient, create_and_login_user):
     user_token = create_and_login_user["access_token"] + "1"
     
     response = client.post(
@@ -64,7 +66,41 @@ def test_create_workout_bad_token(client: TestClient, create_and_login_user):
     assert response.status_code == 401
     assert response_data == {"detail": "Could not validate credentials"}
     
-def test_create_workout_invalid_field(client: TestClient, create_and_login_user):
+def test_post_workout_exp_token(client: TestClient, create_user):
+    user_credentials = create_user.json()
+    
+    token_exp = timedelta(minutes=-59)
+    expired_access_token = create_access_token(data={"sub": user_credentials["username"]}, expires_delta=token_exp)
+    
+    wk = {
+        "workout_name": "Upper",
+        "date": "2026-12-12",
+        "exercises": [
+            {
+                "exercise_name": "Lat pulldown",
+                "rest_time": 180,
+                "sets": [
+                    {
+                        "weight": 140,
+                        "reps": 8,
+                        "rest_time": 180
+                    }
+                ]
+            }
+        ]
+    }
+    
+    response = client.post(
+        "/workouts",
+        headers={
+            "Authorization": f"Bearer {expired_access_token}"
+        },
+        json=wk
+    )
+    
+    assert response.status_code == 401
+    
+def test_post_workout_invalid_field(client: TestClient, create_and_login_user):
     user_token = create_and_login_user["access_token"]
     
     user_workout = {

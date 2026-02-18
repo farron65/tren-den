@@ -82,7 +82,6 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     user_in_db = session.exec(select(User).where(User.email == user_email.email)).first()
     
     if not user_in_db:
-        print("didn't find email")
         return {"message": "Successfully sent the email"} # to fool the hackers 😀
     
     reset_token = secrets.token_urlsafe(32)
@@ -95,7 +94,7 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     session.refresh(user_in_db)
     
     email.send_password_reset_email(user_in_db.email, user_in_db.username, reset_token)
-    print("send the email") #that is where i left of asl;dfkjasldkjfalskdjflaskdjfa
+    
     return {"message": "Successfully sent the email"}
     
 @router.post("/reset-password")

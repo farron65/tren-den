@@ -16,7 +16,7 @@ from queries import get_user_workout
 router = APIRouter()
 
 @router.post("", response_model=WorkoutResponse)
-async def post_workout(workout: WorkoutCreate, session: SessionDep, current_user = Depends(get_current_active_user)):
+async def post_workout(workout: WorkoutCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
     db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
     

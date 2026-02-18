@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import users, auth, workouts, templates, analytics
 
-    
 app = FastAPI()
 
 origins = [
