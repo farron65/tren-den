@@ -172,7 +172,7 @@ export function useWorkout(initialWorkout: Workout) {
                 } 
                 : exercise
             )})
-        ), 100);
+        ), 1000);
     }
 
     function resetRestTime(exerciseID: string, setID: string) {

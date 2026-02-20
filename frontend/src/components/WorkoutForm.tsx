@@ -32,7 +32,7 @@ interface WorkoutProps {
 
 export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
-    const { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
+    const { workoutForm, inputRestTime, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
         workout_name: "",
         date: "",
         exercises: []
@@ -163,6 +163,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         if (inputRestTime.includes(":")) {
             inputRestTime = inputRestTime.split(":").join("");
         }
+        if (inputRestTime.length > 3) return;
+
         setRestTime({setID: targetSetID, time: inputRestTime })
         if (inputRestTime.length > 2 && inputRestTime.length < 4) {
             newRestTime = parseInt(inputRestTime.charAt(0)) * 60000;
@@ -223,10 +225,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                     const prevWeight = prevSet?.weight;
                     const prevReps = prevSet?.reps;
 
-                    let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
-                    if (!TOTAL_REST_TIME) {
-                        TOTAL_REST_TIME = set.rest_time // to turn s to ms;
-                    }
+                    let TOTAL_REST_TIME = set.original_rest_time;
 
                     const restProgress = Math.max(0, ((set.rest_time / TOTAL_REST_TIME) * 100)); // for css
           
@@ -281,11 +280,8 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                                         if (!set.completed) {
                                             countdown(exercise.id, set.id);
                                         }
-                                        else {
-                                            if (requestsInFlight.current[set.id]) {
-                                                requestsInFlight.current[set.id] = false;
-                                                resetRestTime(exercise.id, set.id);
-                                            }
+                                        else if (set.isRunning) {
+                                            resetRestTime(exercise.id, set.id);
                                         }
                                     }}
                                     >

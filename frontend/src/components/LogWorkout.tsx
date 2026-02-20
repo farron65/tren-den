@@ -310,6 +310,8 @@ export default function LogWorkout() {
         if (inputRestTime.includes(":")) {
             inputRestTime = inputRestTime.split(":").join("");
         }
+
+        if (inputRestTime.length > 3) return;
         setRestTime({setID: targetSetID, time: inputRestTime })
         if (inputRestTime.length > 2 && inputRestTime.length < 4) {
             newRestTime = parseInt(inputRestTime.charAt(0)) * 60000;
@@ -431,7 +433,7 @@ export default function LogWorkout() {
                                         if (!set.completed) {
                                             countdown(exercise.id, set.id);
                                         }
-                                        else {
+                                        else if (set.isRunning) {
                                             resetRestTime(exercise.id, set.id);
                                         }
                                     }}
