@@ -4,9 +4,13 @@ interface Set {
     id: string
     weight: number,
     reps: number,
+
     completed: boolean,
     deleting?: boolean,
-    rest_time: number
+
+    rest_time: number,
+    original_rest_time: number,
+    isRunning: boolean 
 }
 
 interface Exercise {
@@ -30,13 +34,7 @@ export function useWorkout(initialWorkout: Workout) {
         time: "",
     });
 
-    // Track which set is currently has an active rest timer.
-    // Keyed by set ID to allow multiple sets to exist but only one to run.
-    const requestsInFlight = useRef<Record<string, boolean>>({});
-
-    // Stores each set's original rest time before the countdown starts.
-    // Used to restore correct values one the timer ends or switches
-    const updatedSetRestTimes = useRef<Record<string, number>>({});
+    const intervalID = useRef<number | null>(null);
     
     function ChangeWorkoutValues(newWorkout_name: string) {
         const updatedWorkout = {...workoutForm, workout_name: newWorkout_name}
@@ -55,7 +53,7 @@ export function useWorkout(initialWorkout: Workout) {
 
     function AddNewSet(id: string) {
         const newSet = workoutForm.exercises.map((exercise) => exercise.id == id
-            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, rest_time: exercise.rest_time * 1000}]}
+            ? {...exercise, sets: [...exercise.sets, {id: crypto.randomUUID(), weight: 0.0, reps: 0, completed: false, rest_time: exercise.rest_time * 1000, original_rest_time: exercise.rest_time * 1000, isRunning: false}]}
             : exercise
         )
         setWorkoutForm({...workoutForm, exercises: newSet});
@@ -76,27 +74,6 @@ export function useWorkout(initialWorkout: Workout) {
             : exercise
         )
         setWorkoutForm({...workoutForm, exercises: updatedSet})
-    }
-
-    function ToggleSetCompleted(exerciseId: string, setId: string, prevWeight?: number, prevReps?: number, prevWorkoutWeight?: number, prevWorkoutReps?: number) {
-
-        setWorkoutForm({
-            ...workoutForm,
-            exercises: workoutForm.exercises.map(ex =>
-            ex.id === exerciseId
-                ? {
-                    ...ex,
-                    sets: ex.sets.map(s =>
-                    s.id === setId
-                        ? { ...s, completed: !s.completed,
-                                weight: !s.weight ? prevWeight || prevWorkoutWeight || s.weight : s.weight,
-                                reps: !s.reps ? prevReps || prevWorkoutReps || s.reps : s.reps}
-                        : s
-                    )
-                }
-                : ex
-            )
-        });
     }
 
     function DeleteSet(exerciseID: string, setID: string) {
@@ -129,91 +106,86 @@ export function useWorkout(initialWorkout: Workout) {
             }))
         }, 220);
     }
+        function ToggleSetCompleted(exerciseId: string, setId: string, prevWeight?: number, prevReps?: number, prevWorkoutWeight?: number, prevWorkoutReps?: number) {
 
-    function stopAllOtherRestTimers(setID: string) {
-        
-        for (const key of Object.keys(requestsInFlight.current)) {
-            if (key !== setID) {
-                requestsInFlight.current[key] = false;
-            }
-        }
-
-        // Each set restores its own rest time from ref updatedSetRestTimers
-        setWorkoutForm((prevState) => ({
-            ...prevState,
-            exercises: prevState.exercises.map((exercise) => (
-                {...exercise,
-                    sets: exercise.sets.map((set) => {
-                        if (set.id === setID) {
-                            return set;
-                        } else if (set.completed) {
-                            return {...set, rest_time: updatedSetRestTimes.current[set.id]};
-                        } else if (requestsInFlight.current[set.id] === false) {
-                            return {...set, rest_time: exercise.rest_time*1000};
-                        } else {
-                            return set;
-                        }
-                    })
+        setWorkoutForm({
+            ...workoutForm,
+            exercises: workoutForm.exercises.map(ex =>
+            ex.id === exerciseId
+                ? {
+                    ...ex,
+                    sets: ex.sets.map(s =>
+                    s.id === setId
+                        ? { ...s, completed: !s.completed,
+                                weight: !s.weight ? prevWeight || prevWorkoutWeight || s.weight : s.weight,
+                                reps: !s.reps ? prevReps || prevWorkoutReps || s.reps : s.reps
+                            }
+                        : s
+                    )
                 }
+                : ex
+            )
+        });
+    }
+
+    function stopAllOtherRestTimers(targetSetID: string) {
+
+        setWorkoutForm((prevState) => ({
+            ...prevState, 
+            exercises: prevState.exercises.map((exercise) => (
+                {...exercise, sets: exercise.sets.map((set) => {
+                if (set.id === targetSetID) {
+                    return {...set, isRunning: true};
+                }
+                else {
+                    return {...set, rest_time: set.original_rest_time, isRunning: false};
+                    }
+                })}
             ))
         }))
     }
 
-    async function sleep(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
     // Starts or stops a rest timer for a specific set
     // Saves the set's original rest time in ref before countdown
-    async function countdown(exerciseTargetID: string, setID: string) {
+    async function countdown(exerciseTargetID: string, targetSetID: string) {
         
-        const targetExercise: Exercise | undefined = workoutForm.exercises.find((exercise) => exercise.id === exerciseTargetID)
-        if (!targetExercise) return;
-        const targetSet = targetExercise.sets.find((set) => set.id === setID)
-        if (!targetSet) return;
-        let setRestTime = targetSet?.rest_time;
-        if (!setRestTime) return;
-        
-        if (!requestsInFlight.current[setID]) {
-            // Cache the original rest time so it can be restored later
-            updatedSetRestTimes.current[setID] = setRestTime; 
-            stopAllOtherRestTimers(setID);
-            requestsInFlight.current[setID] = true
-
-            while (setRestTime > 0 && requestsInFlight.current[setID]) {
-
-                await sleep(1000);
-
-                setRestTime -= 1000;
-                if (!requestsInFlight.current[setID]) {
-                    return;
-                }
-      
-                setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => 
-                    exercise.id === exerciseTargetID
-                    ? {...exercise, sets: exercise.sets.map((set) => set.id === setID
-                        ? {...set, rest_time: setRestTime!}
-                        : set)}
-                    : exercise
-                )}))
-            }
-
-            resetRestTime(exerciseTargetID, setID);
+        if(intervalID.current) {
+            clearInterval(intervalID.current);
+            intervalID.current = null;
         }
+        stopAllOtherRestTimers(targetSetID);
 
-        else {
-            requestsInFlight.current[setID] = false;
-            resetRestTime(exerciseTargetID, setID);
-            return;
-        }
+        intervalID.current = setInterval(() => setWorkoutForm((prev) => 
+            ({...prev, exercises: prev.exercises.map((exercise) => exercise.id === exerciseTargetID
+                ? {...exercise, sets: exercise.sets.map((set) => {
+                    if (set.id === targetSetID) {
+                        if (set.rest_time >= 1000) {
+                            return {...set, rest_time: set.rest_time - 1000};
+                        }
+                        clearInterval(intervalID.current!)
+                        intervalID.current = null;
+                        return {...set, rest_time: set.original_rest_time, isRunning: false}
+                    }
+                    else {
+                        return set;
+                    }})
+                } 
+                : exercise
+            )})
+        ), 100);
     }
 
     function resetRestTime(exerciseID: string, setID: string) {
-        // Restore a set's rest time to its cached original value
-        // Used when countdown ends or is manually stopped
+
+        // to stop the countdown function
+        if(intervalID.current) {
+            clearInterval(intervalID.current);
+            intervalID.current = null;
+        }
+
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, sets: exercise.sets.map((set) => set.id === setID 
-                ? {...set, rest_time: updatedSetRestTimes.current[setID]}
+                ? {...set, rest_time: set.original_rest_time}
                 : set)}
             : exercise
         )}))
@@ -224,11 +196,11 @@ export function useWorkout(initialWorkout: Workout) {
     function updateSetTime(exerciseID: string, setID: string, newRestTime: number) {
         setWorkoutForm((prevState) => ({...prevState, exercises: prevState.exercises.map((exercise) => exercise.id === exerciseID
             ? {...exercise, rest_time: newRestTime/1000, sets: exercise.sets.map((set) => set.id === setID
-                ? {...set, rest_time: newRestTime}
+                ? {...set, rest_time: newRestTime, original_rest_time: newRestTime}
                 : set)}
             : exercise
         )}))
     }
 
-    return { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
+    return { workoutForm, inputRestTime, setWorkoutForm, setRestTime, ChangeWorkoutValues, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime}
 }

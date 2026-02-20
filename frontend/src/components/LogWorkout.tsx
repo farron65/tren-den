@@ -14,9 +14,13 @@ interface Set {
     id: string
     weight: number,
     reps: number,
+
     completed: boolean,
-    rest_time: number,
     deleting?: boolean
+
+    rest_time: number,
+    original_rest_time: number,
+    isRunning: boolean
 }
 
 interface Exercise {
@@ -28,7 +32,7 @@ interface Exercise {
 
 export default function LogWorkout() {
 
-    const { workoutForm, inputRestTime, requestsInFlight, updatedSetRestTimes, setRestTime, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
+    const { workoutForm, inputRestTime, setRestTime, setWorkoutForm, AddExercise, GetExerciseRestTime, DeleteExercise, AddNewSet, ChangeSetValues, ToggleSetCompleted, DeleteSet, countdown, resetRestTime, updateSetTime } = useWorkout({
             workout_name: "",
             date: "",
             exercises: []
@@ -89,9 +93,18 @@ export default function LogWorkout() {
                     throw new Error(`Response status: ${response.status}`);
                 }
                 const result = await response.json();
+
+                const normalizedData = {
+                    ...result, exercises: result.exercises.map((ex: Exercise) => ({
+                        ...ex, sets: ex.sets.map((set: Set) => ({
+                            ...set, original_rest_time: set.rest_time, isRunning: false
+                            }))
+                        })
+                    ) 
+                }
                 
-                setWorkoutForm(result); // editable workout
-                setOriginalTemplate(result.previous_workout_data); // UI "Previous" column
+                setWorkoutForm(normalizedData); // editable workout
+                setOriginalTemplate(normalizedData.previous_workout_data); // UI "Previous" column
                 // templateRef.current = result.previous_workout_data; // keep ref in sync
                 originalTemplateRef.current = result.previous_workout_data; // immutable snapshot
             }
@@ -363,14 +376,9 @@ export default function LogWorkout() {
                     const previousWeight = previousSet?.weight;
                     const previousReps = previousSet?.reps;
                     
-                    if (!set.rest_time) set.rest_time = 180000;
-                    
-                    let TOTAL_REST_TIME = updatedSetRestTimes.current[set.id];
-                    if (!TOTAL_REST_TIME) {
-                        TOTAL_REST_TIME = set.rest_time;
-                    }
+                    let TOTAL_REST_TIME = set.original_rest_time;
                     const restProgress = Math.max(0, ((set.rest_time / TOTAL_REST_TIME) * 100)); // for css
-        
+    
                     return (
                         <div key={set.id} className={`set-row ${set.deleting ? "deleting" : ""}`}>
                             <div className={`set-row-content ${set.completed ? "checked" : ""}`}>
@@ -424,10 +432,7 @@ export default function LogWorkout() {
                                             countdown(exercise.id, set.id);
                                         }
                                         else {
-                                            if (requestsInFlight.current[set.id]) {
-                                                requestsInFlight.current[set.id] = false;
-                                                resetRestTime(exercise.id, set.id);
-                                            }
+                                            resetRestTime(exercise.id, set.id);
                                         }
                                     }}
                                     >
