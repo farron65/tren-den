@@ -26,7 +26,7 @@ async function refreshAccessToken(baseURL: string) {
         const response = await fetch(url, requestOptions);
     
         if (!response.ok) {
-            throw new Error("Error");
+            throw new Error("Refresh failed");
         }
     
         const result = await response.json();
@@ -36,10 +36,12 @@ async function refreshAccessToken(baseURL: string) {
         return result.access_token;      
     })();
 
-    const result = await refreshPromise;
-    refreshPromise = null;
-    return result;
-
+    try {
+        return await refreshPromise;
+    }
+    finally {
+        refreshPromise = null;
+    }
 }
 
 export async function authenticatedFetch(path: string, method: string, body?: object, customHeaders?: object) {

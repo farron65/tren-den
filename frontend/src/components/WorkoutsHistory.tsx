@@ -35,7 +35,8 @@ export default function WorkoutsHistory() {
                 setWorkouts(result);
             }
             catch(error) {
-                alert(error);
+                console.error("Request failed:", error);
+                throw error;
             }
         };
         fetchWorkouts();

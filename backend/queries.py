@@ -1,11 +1,16 @@
-from models import User, Workout, Exercise
 from sqlalchemy import func, desc
+from sqlalchemy.orm import selectinload
+
 from sqlmodel import select
+from models import User, Workout, Exercise
 from database import SessionDep
 
 def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
-    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date))).first() # type: ignore
-    
+    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+        .join(Workout)
+        .where(Workout.user == current_user)
+        .order_by(desc(Workout.date))).first() # type: ignore
+
     if not user_exercise:
         return None
     user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
@@ -20,7 +25,11 @@ def get_user_workout(workout_id: int, current_user: User, session: SessionDep) -
     return user_workout if user_workout else None
 
 def get_exercise_history(exercise_name: str, current_user: User, session: SessionDep):
-    exercises_history = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date))).all() # type: ignore
+    exercises_history = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+        .join(Workout)
+        # .options(selectinload(Exercise.sets)).options(selectinload(Exercise.workout))  #type: ignore
+        .where(Workout.user == current_user)
+        .order_by(desc(Workout.date))).all() # type: ignore
     current_volume = sum([s.weight * s.reps for s in exercises_history[0].sets])
     
     change_3 = None

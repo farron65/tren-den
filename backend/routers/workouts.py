@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException
 
 from auth_utils import get_current_active_user
 
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
+
 from sqlalchemy import desc
 from database import SessionDep
 
@@ -36,7 +38,7 @@ async def post_workout(workout: WorkoutCreate, current_user: Annotated[User, Dep
 async def get_user_workouts(
     current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     
-    query = select(Workout).order_by(desc(Workout.date)).where(Workout.user == current_user) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
+    query = select(Workout).options(selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
     user_workouts = session.exec(query).all()
         
     return user_workouts

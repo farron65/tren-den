@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends
 
 from sqlmodel import select
 from sqlalchemy import func, desc, asc
+from sqlalchemy.orm import selectinload
 
 from typing import Annotated
-
 from database import SessionDep
-
 from models import User, Workout, Exercise, SetDetails
 
 from auth_utils import get_current_active_user
@@ -17,7 +16,11 @@ router = APIRouter()
 @router.get("/analytics/{exercise_name}")
 async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
 
-    user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower()).join(Workout).where(Workout.user == current_user).order_by(asc(Workout.date))).all() # type: ignore
+    user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+        .join(Workout)
+        .options(selectinload(Exercise.sets)).options(selectinload(Exercise.workout)) # type: ignore
+        .where(Workout.user == current_user)
+        .order_by(asc(Workout.date))).all() # type: ignore
 
     if not user_exercises:
         return []
@@ -64,9 +67,12 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
 
 @router.get("/recent") 
 async def get_recent_exercises(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_exercises = session.exec(select(Exercise).join(Workout).where(Workout.user == current_user).order_by(desc(Workout.date)).limit(25)).all() # type: ignore
-    unique_ex_names = set()
+    user_exercises = session.exec(select(Exercise).join(Workout)
+        .where(Workout.user == current_user)
+        .options(selectinload(Exercise.sets)) # type: ignore
+        .order_by(desc(Workout.date)).limit(25)).all() # type: ignore
     
+    unique_ex_names = set()
     user_exercises_data = []
     
     if not user_exercises:

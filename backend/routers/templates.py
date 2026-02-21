@@ -2,18 +2,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlmodel import select
-
-from typing import Annotated
+from sqlalchemy.orm import selectinload
 
 from database import SessionDep
 
 from models import User, Template, Exercise, SetDetails
-
 from schemas import ExerciseCreate, TemplateCreate, TemplateResponse, TemplateSummary, TemplateResponseWithAddData
 
 from auth_utils import get_current_active_user
-
 from queries import get_exercise_sets
+
+from typing import Annotated
 
 router = APIRouter()
 
@@ -39,7 +38,7 @@ async def post_template(template: TemplateCreate, session: SessionDep, current_u
 
 @router.get("", response_model=list[TemplateSummary])
 async def get_user_templates(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_templates = session.exec(select(Template).where(Template.user == current_user)).all()
+    user_templates = session.exec(select(Template).where(Template.user_id == current_user.id).options(selectinload(Template.exercises))).all()  # type: ignore pylance is bugging 😔
     return user_templates
 
 @router.get("/{template_id}", response_model=TemplateResponseWithAddData)
