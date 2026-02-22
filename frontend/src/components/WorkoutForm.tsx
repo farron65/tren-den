@@ -68,15 +68,13 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight, 
                     reps: set.reps,
-                    rest_time: set.rest_time
+                    rest_time: set.original_rest_time
                 }))
             }))
         }
-
         try {
             if (isTemplate) {
                 const {date, ...templateToSend} = dataToSend;
-     
                 const response = await authenticatedFetch("/templates", "POST", templateToSend);
                 
                 if (!response.ok) {

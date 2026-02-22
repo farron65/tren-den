@@ -129,7 +129,7 @@ export default function LogWorkout() {
                 sets: exercise.sets.map((set) => ({
                     weight: set.weight,
                     reps: set.reps,
-                    rest_time: set.rest_time
+                    rest_time: set.original_rest_time
                 }))
             }))
         }
