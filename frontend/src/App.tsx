@@ -15,6 +15,7 @@ import TemplateList from "./components/TemplateList";
 import TemplateView from "./components/TemplateView";
 import EditWorkoutForm from "./components/EditWorkoutForm";
 import Graphs from "./components/Graphs";
+import ImportWorkout from "./components/ImportWorkout";
 import { useState } from "react";
 
 
@@ -91,6 +92,9 @@ function App() {
                     </Route>
                     <Route path={"/analytics"}
                         element={<Graphs/>}>
+                    </Route>
+                    <Route path={"/import-workout"}
+                        element={<ImportWorkout/>}>
                     </Route>
                 </Route>
             </Routes>

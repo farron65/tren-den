@@ -34,6 +34,7 @@ export default function Sidebar() {
                 <NavLink to="/create-template">Create Template</NavLink>
                 <NavLink to="/templates">Templates</NavLink>
                 <NavLink to="/analytics">Analytics</NavLink>
+                <NavLink to="/import-workout">Import Workout</NavLink>
             </nav>
         </aside>
     </>

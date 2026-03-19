@@ -1,0 +1,173 @@
+/* ===== Import Page ===== */
+.import-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+    color: #eaeaea;
+}
+
+/* ===== Header ===== */
+.import-header {
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+}
+
+.import-title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+/* ===== Two Column Layout ===== */
+.import-body {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 32px;
+    align-items: start;
+}
+
+/* ===== Instructions ===== */
+.import-instructions {
+    background: #0b0b0b;
+    border: 1px solid #151515;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.import-instructions-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #8a8a8a;
+    text-transform: uppercase;
+}
+
+.import-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.import-step-number {
+    font-size: 22px;
+    font-weight: 900;
+    color: #b00000;
+    line-height: 1;
+    min-width: 24px;
+}
+
+.import-step-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #aaaaaa;
+    line-height: 1.6;
+}
+
+.import-step-text strong {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.import-supported {
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 1px;
+    border-top: 1px solid #1a1a1a;
+    padding-top: 14px;
+}
+
+.import-supported span {
+    color: #2c8863;
+    font-weight: 800;
+}
+
+/* ===== Right Side ===== */
+.import-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ===== Textarea ===== */
+.import-textarea {
+    width: 100%;
+    min-height: 420px;
+    background: #0b0b0b;
+    border: 1px solid #1a1a1a;
+    color: #eaeaea;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: monospace;
+    padding: 20px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    line-height: 1.7;
+}
+
+.import-textarea:focus {
+    border-color: #b00000;
+}
+
+.import-textarea::placeholder {
+    color: #444;
+}
+
+/* ===== Submit Button ===== */
+.import-btn {
+    background: #ffffff;
+    border: none;
+    color: #000;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    padding: 14px 32px;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.25s ease, color 0.25s ease, transform 0.05s ease;
+}
+
+.import-btn:hover {
+    background-color: #2c8863;
+    color: #fff;
+}
+
+.import-btn:active {
+    transform: scale(0.97);
+    filter: brightness(0.92);
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 650px) {
+    .import-body {
+        grid-template-columns: 1fr;
+    }
+
+    .import-textarea {
+        min-height: 280px;
+    }
+}
+
+@media (max-width: 450px) {
+    .import-page {
+        padding: 16px 12px 32px;
+    }
+
+    .import-title {
+        font-size: 20px;
+    }
+
+    .import-textarea {
+        font-size: 12px;
+        padding: 14px;
+    }
+
+    .import-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}
