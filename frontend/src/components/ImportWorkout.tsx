@@ -2,13 +2,41 @@ import { useState } from "react"
 import { authenticatedFetch } from "../api/apiClient";
 
 import "./importworkout.css";
+import { useNavigate } from "react-router-dom";
 
 export default function ImportWorkout() {
     const [importWorkout, setImportWorkout] = useState("");
+    const navigate = useNavigate();
 
     function parseImportWorkout() {
+
         const lines = importWorkout.trim().split("\n\n");
-        let jsonWorkout = {
+        if (lines.length < 2) {
+            alert("Invalid format");
+            return null;
+        }
+
+        const datePattern = /^\w+, \w+ \d+, \d+ at \d+:\d+$/;
+        const setPattern = /^Set \d+: \d+ lb × \d+$/;
+        if (!datePattern.test(lines[0].split("\n")[1])) {
+           alert("Invalid format. Maybe you have a trailing whitespace?");
+           return null;
+        }
+        let isValid = true;
+        lines.slice(1, lines.length).forEach(line => {
+                line.split("\n").slice(1).filter((s) => !s.startsWith("https")).forEach((s) => {
+                    if (!setPattern.test(s)) {
+                        isValid = false;
+                    }
+                })
+           }
+        );
+        if (!isValid) {
+            alert("Invalid set format.");
+            return null;
+        }
+        
+        const jsonWorkout = {
             "workout_name": lines[0].split("\n")[0],
             "date": new Date(lines[0].split("\n")[1].split(", ").slice(1).toString().replace("at", "")).toISOString(),
             "exercises": lines.slice(1, lines.length).map((ex) => ({
@@ -26,12 +54,17 @@ export default function ImportWorkout() {
     }
 
     async function handleSubmit() {
+        const workout = parseImportWorkout();
+        if (workout == null) {
+            return;
+        }
         try {
-            const response = await authenticatedFetch("/workouts", "POST", parseImportWorkout());
+            const response = await authenticatedFetch("/workouts", "POST", workout);
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
             }
             alert("Success");
+            navigate("/workouts");
         }
         catch (error) {
             alert(error);
@@ -52,7 +85,7 @@ export default function ImportWorkout() {
                     </div>
                     <div className="import-step">
                         <span className="import-step-number">2</span>
-                        <p className="import-step-text">Tap the workout you want to import, then tap <strong>Share → Copy Workout</strong>.</p>
+                        <p className="import-step-text">Tap the workout you want to import, then tap <strong>Share &#8594; Copy Workout</strong>.</p>
                     </div>
                     <div className="import-step">
                         <span className="import-step-number">3</span>
