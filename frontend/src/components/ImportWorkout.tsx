@@ -6,10 +6,31 @@ import { useNavigate } from "react-router-dom";
 
 export default function ImportWorkout() {
     const [importWorkout, setImportWorkout] = useState("");
+    const [app, setApp] = useState("strong");
+
     const navigate = useNavigate();
 
-    function parseImportWorkout() {
+    async function handleSubmit() {
+        let workout;
+        if (app === "strong") {workout = handleStrongApp()}
+        else if (app === "hevy") {workout = handleHevyApp()}
+        if (workout == null) {
+            return;
+        }
+        try {
+            const response = await authenticatedFetch("/workouts", "POST", workout);
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            alert("Success");
+            navigate("/workouts");
+        }
+        catch (error) {
+            alert(error);
+        }
+    }
 
+    function handleStrongApp() {
         const lines = importWorkout.trim().split("\n\n");
         if (lines.length < 2) {
             alert("Invalid format");
@@ -35,8 +56,8 @@ export default function ImportWorkout() {
             alert("Invalid set format.");
             return null;
         }
-        
-        const jsonWorkout = {
+
+         const jsonWorkout = {
             "workout_name": lines[0].split("\n")[0],
             "date": new Date(lines[0].split("\n")[1].split(", ").slice(1).toString().replace("at", "")).toISOString(),
             "exercises": lines.slice(1, lines.length).map((ex) => ({
@@ -53,22 +74,49 @@ export default function ImportWorkout() {
         return jsonWorkout;
     }
 
-    async function handleSubmit() {
-        const workout = parseImportWorkout();
-        if (workout == null) {
-            return;
+    function handleHevyApp() {
+        const lines = importWorkout.trim().split("\n\n");
+        if (lines.length < 2) {
+            alert("Invalid format");
+            return null;
         }
-        try {
-            const response = await authenticatedFetch("/workouts", "POST", workout);
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-            alert("Success");
-            navigate("/workouts");
+
+        const datePattern = /^\w+, \w+ \d+, \d+ at \d+:\d+\w+$/;
+        const setPattern = /^Set \d+: \d+(\.\d)? lbs x \d+$/;
+        if (!datePattern.test(lines[0].split("\n")[1])) {
+           alert("Invalid format. Maybe you have a trailing whitespace?");
+           return null;
         }
-        catch (error) {
-            alert(error);
+        let isValid = true;
+        lines.slice(1, lines.length).forEach(line => {
+                line.split("\n").slice(1).filter((s) => !s.startsWith("https") && !s.startsWith("@hevyapp")).forEach((s) => {
+                    if (!setPattern.test(s)) {
+                        isValid = false;
+                    }
+                })
+           }
+        );
+        if (!isValid) {
+            alert("Invalid set format.");
+            return null;
         }
+
+         const jsonWorkout = {
+            "workout_name": lines[0].split("\n")[0],
+            "date": new Date(lines[0].split("\n")[1].split(", ").slice(1).toString().replace("at", "").replace("am", "").replace("pm", "")).toISOString(),
+            "exercises": lines.slice(1, lines.length).map((ex) => ({
+                "exercise_name": ex.split("\n")[0],
+                "rest_time": 180,
+                "sets": ex.split("\n").slice(1).filter((s) => !s.startsWith("https")).map((s) => 
+                ({
+                    "weight": Number(s.split(" ")[2]),
+                    "reps": Number(s.split(" ")[5]),
+                    "rest_time": 180000
+                }))
+            }))
+        }
+        return jsonWorkout;
+
     }
 
     return (
@@ -94,6 +142,13 @@ export default function ImportWorkout() {
                     <p className="import-supported">Supported: <span>Strong</span> — more apps coming soon</p>
                 </div>
                 <div className="import-form">
+                    <div className="import-select-wrapper">
+                        <label className="import-select-label">App</label>
+                        <select className="import-select" onChange={e => setApp(e.target.value)}>
+                            <option value="strong">Strong</option>
+                            <option value="hevy">Hevy</option>
+                        </select>
+                    </div>
                     <textarea
                         className="import-textarea"
                         onChange={e => setImportWorkout(e.target.value)}
