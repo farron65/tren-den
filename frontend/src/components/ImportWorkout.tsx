@@ -104,10 +104,10 @@ export default function ImportWorkout() {
          const jsonWorkout = {
             "workout_name": lines[0].split("\n")[0],
             "date": new Date(lines[0].split("\n")[1].split(", ").slice(1).toString().replace("at", "").replace("am", "").replace("pm", "")).toISOString(),
-            "exercises": lines.slice(1, lines.length).map((ex) => ({
+            "exercises": lines.slice(1, lines.length).filter((ex) => !ex.split("\n")[0].startsWith("@hevyapp")).map((ex) => ({
                 "exercise_name": ex.split("\n")[0],
                 "rest_time": 180,
-                "sets": ex.split("\n").slice(1).filter((s) => !s.startsWith("https")).map((s) => 
+                "sets": ex.split("\n").slice(1).map((s) => 
                 ({
                     "weight": Number(s.split(" ")[2]),
                     "reps": Number(s.split(" ")[5]),
