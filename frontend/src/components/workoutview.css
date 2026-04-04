@@ -162,6 +162,25 @@
     color: #777;
 }
 
+.load-more-btn {
+    display: block;
+    margin: 28px auto 0;
+    background: #0b0b0b;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 14px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    cursor: pointer;
+    transition: border 0.15s ease, color 0.15s ease;
+}
+
+.load-more-btn:hover {
+    border-color: #b00000;
+    color: #ff2b2b;
+}
+
 /* ===== Animations ===== */
 @keyframes fadeUp {
     from {

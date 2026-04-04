@@ -5,6 +5,14 @@ import { authenticatedFetch } from "../api/apiClient";
 
 import "./workouthistory.css";
 
+interface PaginatedWorkouts {
+    workouts: Workout[],
+    total: number,
+    skip: number,
+    limit: number,
+    has_more: boolean
+}
+
 interface Workout {
     id: string,
     workout_name: string,
@@ -13,7 +21,13 @@ interface Workout {
 
 export default function WorkoutsHistory() {
 
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [paginatedWorkouts, setPaginatedWorkouts] = useState<PaginatedWorkouts>({
+        workouts: [],
+        total: 0,
+        skip: 0,
+        limit: 10,
+        has_more: true
+    });
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     const navigate = useNavigate();
@@ -21,6 +35,12 @@ export default function WorkoutsHistory() {
     const [modal, setModal] = useState(false);
     const [modalText, setModalText] = useState("");
     const [workoutID, setWorkoutID] = useState("");
+
+    const toggleModal = (workout_name: string, workout_id: string, ) => {
+        setWorkoutID(workout_id);
+        setModalText(workout_name)
+        setModal(!modal);
+    }
 
     useEffect(() => {
         const fetchWorkouts = async () => {
@@ -32,7 +52,7 @@ export default function WorkoutsHistory() {
                 }
 
                 const result = await response.json();
-                setWorkouts(result);
+                setPaginatedWorkouts(result);
             }
             catch(error) {
                 console.error("Request failed:", error);
@@ -50,8 +70,8 @@ export default function WorkoutsHistory() {
             if (!response.ok) return;
 
             alert("Successfully deleted workout");
-            const updatedWorkouts = workouts.filter((workout) => workout.id != targetID);
-            setWorkouts(updatedWorkouts);
+            const updatedWorkouts = paginatedWorkouts.workouts.filter((workout) => workout.id != targetID);
+            setPaginatedWorkouts({...paginatedWorkouts, workouts: updatedWorkouts});
         }
         catch (error) {
             alert(error);
@@ -61,11 +81,19 @@ export default function WorkoutsHistory() {
         }
     }
 
-    const toggleModal = (workout_name: string, workout_id: string, ) => {
-        setWorkoutID(workout_id);
-        setModalText(workout_name)
-        setModal(!modal);
+    async function loadMoreWorkouts(){
+        if (!paginatedWorkouts.has_more) {
+            return;
+        }
+        const response = await authenticatedFetch(`/workouts?skip=${paginatedWorkouts.workouts.length}&limit=${paginatedWorkouts.limit}`, "GET");
+        if (!response.ok) {
+            return;
+        }
+
+        const result = await response.json();
+        setPaginatedWorkouts({...paginatedWorkouts, has_more: result.has_more, workouts: [...paginatedWorkouts.workouts, ...result.workouts]});
     }
+
 
     function getWorkoutDate(workoutDate: Date) {
         const dt = new Date(workoutDate)
@@ -77,7 +105,7 @@ export default function WorkoutsHistory() {
         return `${month} ${day}, ${year}`; 
     }
 
-    if (workouts.length == 0){
+    if (paginatedWorkouts.workouts.length == 0){
         return (
             <div className="page app empty-state">
                 <header className="header">
@@ -117,7 +145,7 @@ export default function WorkoutsHistory() {
             </header>
 
             <section className="history">
-            {workouts.map((workout) => (
+            {paginatedWorkouts.workouts.map((workout) => (
                 <div key={workout.id} className="workout-card">
                 <Link
                     to={`/workouts/${workout.id}`}
@@ -155,7 +183,7 @@ export default function WorkoutsHistory() {
                 </div>
             ))}
             </section>
-
+            {paginatedWorkouts.has_more && <button className="load-more-btn" onClick={loadMoreWorkouts}>LOAD MORE</button>}
             {modal && (
             <div className="modal">
                 <div className="overlay" onClick={() => setModal(false)}>
