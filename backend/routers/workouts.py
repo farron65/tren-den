@@ -1,17 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from auth_utils import get_current_active_user
 
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from database import SessionDep
 
 from typing import Annotated
 
 from models import User, Workout, Exercise, SetDetails
-from schemas import WorkoutCreate, WorkoutResponse
+from schemas import WorkoutCreate, WorkoutResponse, PaginatedWorkoutResponse
 
 from queries import get_user_workout
 
@@ -34,14 +34,29 @@ async def post_workout(workout: WorkoutCreate, current_user: Annotated[User, Dep
     session.refresh(db_workout)
     return db_workout
 
-@router.get("",response_model=list[WorkoutResponse])
+@router.get("", response_model=PaginatedWorkoutResponse)
 async def get_user_workouts(
-    current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 10):
     
-    query = select(Workout).options(selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
+    count_result = session.exec(select(func.count()).select_from(Workout).where(Workout.user == current_user))
+    total = count_result.one() or 0
+    
+    query = select(Workout).options(
+                selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)).offset(skip).limit(limit) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
     user_workouts = session.exec(query).all()
-        
-    return user_workouts
+    
+    has_more = skip + len(user_workouts) < total
+    
+    
+    return PaginatedWorkoutResponse(
+        workouts=[WorkoutResponse.model_validate(workout) for workout in user_workouts],
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=has_more,
+    )
 
 @router.get("/{workout_id}", response_model=WorkoutResponse)
 async def get_own_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):

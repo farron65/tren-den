@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 
 class Token(BaseModel):
@@ -40,6 +40,8 @@ class Set(BaseModel):
     rest_time: int
     
 class SetInDB(Set):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
 
 class ExerciseCreate(BaseModel):
@@ -61,12 +63,16 @@ class ExerciseSummary(BaseModel):
     exercise_name: str
     
 class ExerciseResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     exercise_name: str
     rest_time: int
     sets: list[SetInDB]
     
 class WorkoutResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     workout_name: str 
     date: datetime
@@ -102,3 +108,10 @@ class WorkoutUpdate(BaseModel):
 class DeleteAccountRequest(BaseModel):
     password: str
     confirmation: str
+    
+class PaginatedWorkoutResponse(BaseModel):
+    workouts: list[WorkoutResponse]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool
