@@ -165,20 +165,27 @@
 .load-more-btn {
     display: block;
     margin: 28px auto 0;
-    background: #0b0b0b;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
-    padding: 14px 32px;
-    font-size: 13px;
+    background: transparent;
+    border: 1px solid #333;
+    color: #888;
+    padding: 14px 48px;
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.4px;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: border 0.15s ease, color 0.15s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .load-more-btn:hover {
     border-color: #b00000;
     color: #ff2b2b;
+    transform: translateY(-2px);
+}
+
+.load-more-btn:active {
+    transform: scale(0.96);
+    border-color: #ff2b2b;
+    color: #ffffff;
 }
 
 /* ===== Animations ===== */
