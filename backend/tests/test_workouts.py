@@ -165,14 +165,13 @@ def test_get_workouts_success(client: TestClient, create_and_login_user):
     
     assert response.status_code == 200
     response_data = response.json()
-    # print(data)
-    assert len(response_data) == len(wk_dates)
+    assert len(response_data["workouts"]) == len(wk_dates)
     
     # reverse loop, since the endpoint returns workouts in descending order
     date_obj = [wk_dates[i] for i in range(len(wk_dates)-1, -1, -1)] 
     for dt in range(len(wk_dates)):
         # to slice '2026-12-12T00:00:00' --> '2026-12-12'
-        assert response_data[dt]["date"][:10] == date_obj[dt]
+        assert response_data["workouts"][dt]["date"][:10] == date_obj[dt]
     
 def test_get_workouts_bad_token(client: TestClient, create_and_login_user):
     user_token = create_and_login_user["access_token"] + "1"
