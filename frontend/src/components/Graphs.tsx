@@ -134,16 +134,8 @@ export default function Graphs() {
                             Set {i+1}: {set.weight} lbs x {set.reps}
                         </div>
                     ))}
-                    {point.volume_change &&
-                        <>
-                            {point.volume_change > 0 &&
-                                <strong>Volume +{point.volume_change}% vs last session</strong>
-                            }
-
-                            {point.volume_change < 0 &&
-                                <strong>Volume {point.volume_change}% vs last session</strong>
-                            }
-                        </>
+                    {
+                        <strong>Volume {point.volume_change > 0 ? "+" : ""} {point.volume_change}% last session</strong>
                     }
                 </div>
             </div>
@@ -172,7 +164,7 @@ export default function Graphs() {
                 {exerciseData?.summary && 
                     <div className="graph-summary">
                         <div className="graph-summary-title">
-                            Latest workout vs recent average
+                            Latest workout vs recent average (volume)
                         </div>
 
                         {exerciseData.summary.avg_last_3 !== null && (
