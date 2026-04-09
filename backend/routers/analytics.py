@@ -18,7 +18,7 @@ async def search_exercises(exercise_name: str, current_user: Annotated[User, Dep
     if not exercise_name:
         raise HTTPException(400, "Invalid Exercise Name")
     user_exercises = session.exec(select(Exercise.exercise_name, func.max(Workout.date)) # You can't order by the things you haven't 'select' -ed
-                        .where(func.lower(Exercise.exercise_name).contains(exercise_name))
+                        .where(func.lower(Exercise.exercise_name).contains(exercise_name.lower()))
                         .join(Workout).where(Workout.user == current_user)
                         .order_by(desc(func.max(Workout.date))).group_by(Exercise.exercise_name)).all() # type: ignore
 
