@@ -18,7 +18,6 @@ interface ChartPoint {
         reps: number
     },
     volume_change: number
-
 }
 
 interface AnalyticsResponse {
@@ -29,10 +28,17 @@ interface AnalyticsResponse {
     }
 }
 
+interface SearchedExercises {
+    [key: string]: string
+}
+
 export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<AnalyticsResponse | null>(null);
     const [selectedMetric, setSelectedMetric] = useState("weight");
+
+    const [searchedExercise, setSearchedExercise] = useState<SearchedExercises>({});
+    const [inputFieldValue, setInputFieldValue] = useState("");
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
 
@@ -69,11 +75,16 @@ export default function Graphs() {
     ) => {
         let timeoutTimer: ReturnType<typeof setTimeout>;
 
-        return (...args: T) => {
+        return {
+            run: (...args: T) => {
             clearTimeout(timeoutTimer);
             timeoutTimer = setTimeout(() => {
                 callback(...args);
-            }, delay)
+            }, delay)},
+
+            cancel: () => {
+                clearTimeout(timeoutTimer);
+            }
         }
     };
 
@@ -96,10 +107,41 @@ export default function Graphs() {
         }
     }
 
-    const debouncedRequest = useRef(debounce(getExerciseData, 1000));
+    async function SearchExercises(targetExName: string) {
+        if (targetExName === "") return;
+        try {
+            const response = await authenticatedFetch(`/exercises/?exercise_name=${targetExName}`, "GET");
+    
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+    
+            const result = await response.json();
+            setSearchedExercise(result);
+
+        }
+        catch (error) {
+            alert(error);
+        }
+    }
+
+    const debouncedRequest = useRef(debounce(SearchExercises, 1000));
 
     function ChangeInputValues(exerciseName: string) {
-        debouncedRequest.current(exerciseName);
+        if (exerciseName !== "") {
+            setInputFieldValue(exerciseName);
+            debouncedRequest.current.run(exerciseName);
+        }
+        else {
+            debouncedRequest.current.cancel()
+            setInputFieldValue("");
+            setSearchedExercise({});
+        }
+    }
+
+    function selectExercise(exerciseName: string) {
+        setInputFieldValue(exerciseName);
+        setSearchedExercise({});
     }
 
     const formatXAxis = (tickItem: string | number) => {
@@ -206,7 +248,24 @@ export default function Graphs() {
             <div className="graph-controls">
                 <div className="graph-input">
                     <label> Exercise: </label>
-                    <input type="text" placeholder="e.g. Bench Press" onChange={(e) => ChangeInputValues(e.target.value)}/>
+                    <input type="text" placeholder="e.g. Bench Press" value={inputFieldValue} onChange={(e) => ChangeInputValues(e.target.value)}/>
+                    {Object.keys(searchedExercise).length > 0 && (
+                        <ul className="exercise-dropdown">
+                            {Object.keys(searchedExercise).map((name) => (
+                                <li key={name} onClick={function()
+                                    { 
+                                        selectExercise(name);
+                                        getExerciseData(name);
+                                    }}>
+                                    {name}
+                                    <span className="exercise-date">
+                                        {new Date(searchedExercise[name]).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})}
+                                    </span>
+
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
                 <div className="graph-select">
                     <label>Metric</label>
