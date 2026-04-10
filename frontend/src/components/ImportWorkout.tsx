@@ -47,6 +47,7 @@ export default function ImportWorkout() {
         lines.slice(1, lines.length).forEach(line => {
                 line.split("\n").slice(1).filter((s) => !s.startsWith("https")).forEach((s) => {
                     if (!setPattern.test(s)) {
+                        console.log(s);
                         isValid = false;
                     }
                 })
