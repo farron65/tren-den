@@ -65,7 +65,6 @@ export function usePreviousSets() {
         // if (!targetExName) return;
 
         try {
-            console.log("Called");
             const response = await authenticatedFetch(`/exercises/${targetExName}`, "GET");
 
             if (!response.ok) {
@@ -86,7 +85,6 @@ export function usePreviousSets() {
     }
 
     function ShowPreviousSets(targetExName: string, setIndex: number) {
-        console.log(targetExName, workoutExercises);
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
