@@ -55,16 +55,17 @@ export function usePreviousSets() {
             fetchExercises();
         }, []);
 
-    async function GetPreviousSets(targetExName: string, allExercises: Exercise[]) {
-        const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
+    async function GetPreviousSets(targetExName: string) {
+        // const exerciseInWorkout = allExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
 
-        if (exerciseInWorkout) {
-            return;
-        }
+        // if (exerciseInWorkout) {
+        //     return;
+        // }
 
-        if (!targetExName) return;
+        // if (!targetExName) return;
 
         try {
+            console.log("Called");
             const response = await authenticatedFetch(`/exercises/${targetExName}`, "GET");
 
             if (!response.ok) {
@@ -72,6 +73,7 @@ export function usePreviousSets() {
             }
 
             const previousSetData = await response.json();
+
 
             if (previousSetData) {
                 setWorkoutExercises(exercises => [...exercises, previousSetData])
@@ -84,6 +86,7 @@ export function usePreviousSets() {
     }
 
     function ShowPreviousSets(targetExName: string, setIndex: number) {
+        console.log(targetExName, workoutExercises);
         const originalExercise = workoutExercises.find(exercise => exercise.exercise_name.toLowerCase() === targetExName.toLowerCase());
         
         if (!originalExercise) {
@@ -97,5 +100,5 @@ export function usePreviousSets() {
         return [previousOriginalSet.weight, previousOriginalSet.reps]
     }
 
-    return { workoutExercises, debouncedRequest, ShowPreviousSets}
+    return { workoutExercises, debouncedRequest, GetPreviousSets, ShowPreviousSets}
 }

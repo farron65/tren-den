@@ -9,6 +9,7 @@ import deleteButtonIcon from "../assets/delete.png";
 import checkIcon from "../assets/check.png";
 import { useWorkout } from "./useWorkout";
 import { usePreviousSets } from "./usePreviousSets";
+import { useExerciseSearch } from "./useExerciseSearch";
 
 interface Set {
     id: string
@@ -38,7 +39,10 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         exercises: []
     })
 
-    const { workoutExercises, debouncedRequest, ShowPreviousSets} = usePreviousSets();
+    const { searchedExercise, debouncedExerciseSearch, setSearchedExercise} = useExerciseSearch();
+    const [activeExerciseInput, setActiveExerciseInput] = useState("");
+
+    const { GetPreviousSets, ShowPreviousSets} = usePreviousSets();
     
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -139,10 +143,17 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     }
     
     function ChangeExerciseName(id: string, newExerciseName: string) {
+        setActiveExerciseInput(id);
         const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == id ? {...exercise, exercise_name: newExerciseName, rest_time: GetExerciseRestTime(newExerciseName)} : exercise);
         setWorkoutForm({...workoutForm, exercises: updatedExerciseName});
 
-        debouncedRequest.current(newExerciseName, workoutExercises);
+        if (newExerciseName !== "") {
+            debouncedExerciseSearch.current.run(newExerciseName);
+        }
+        else {
+            debouncedExerciseSearch.current.cancel()
+            setSearchedExercise({});
+        }
     }
 
     function getSetRestTime(setRestTime: number) {
@@ -179,19 +190,44 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
         }
     }
 
+    function selectExercise(exerciseName: string, targetExID: string) {
+        setSearchedExercise({});
+
+        const updatedExerciseName = workoutForm.exercises.map((exercise) => exercise.id == targetExID ? {...exercise, exercise_name: exerciseName, rest_time: GetExerciseRestTime(exerciseName)} : exercise);
+        setWorkoutForm({...workoutForm, exercises: updatedExerciseName});
+    }
+
     const exercises = workoutForm.exercises.map((exercise) => (
         <section key={exercise.id} className="exercise-block">
             {/* Exercise header */}
             <div className="exercise-header">
-                <input
-                    className="exercise-name"
-                    value={exercise.exercise_name}
-                    placeholder="Exercise name"
-                    onChange={(e) =>
-                    ChangeExerciseName(exercise.id, e.target.value)
-                    }
-                />
+                <div className="exercise-search-header">
+                    <input
+                        className="exercise-name"
+                        value={exercise.exercise_name}
+                        placeholder="Exercise name"
+                        onChange={(e) =>
+                        ChangeExerciseName(exercise.id, e.target.value)
+                        }
+                    />
+                    {Object.keys(searchedExercise).length > 0 && exercise.id === activeExerciseInput && (
+                        <ul className="exercise-dropdown">
+                                {Object.keys(searchedExercise).map((name) => (
+                                    <li key={name} onClick={function()
+                                        { 
+                                            selectExercise(name, exercise.id);
+                                            GetPreviousSets(name);
+                                        }}>
+                                        {name}
+                                        <span className="exercise-date">
+                                            {new Date(searchedExercise[name]).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})}
+                                        </span>
 
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                </div>
                 <button
                     className="delete-btn"
                     onClick={() => {
