@@ -21,7 +21,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
         exercises: []
     })
 
-    const { workoutExercises, debouncedRequest, ShowPreviousSets } = usePreviousSets();
+    const { debouncedRequest, ShowPreviousSets } = usePreviousSets();
 
     const [confirmExerciseId, setConfirmExerciseId] = useState<string | null>(null);
     const [confirmExerciseName, setConfirmExerciseName] = useState("");
@@ -130,7 +130,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             : exercise
         );
         setWorkoutForm({...workoutForm, exercises: updatedExercise});
-        debouncedRequest.current(newExerciseName, workoutExercises)
+        debouncedRequest.current(newExerciseName)
     }
 
     function ChangeFormDate(newDate: string) {
