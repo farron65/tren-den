@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
 import "./graph.css";
 import sadFaceIcon from "../assets/sad.png";
 import happyFaceIcon from "../assets/happiness.png";
 import { authenticatedFetch } from "../api/apiClient";
+import { useExerciseSearch } from "./useExerciseSearch";
 
 interface ChartPoint {
     workout_name: string,
@@ -28,16 +29,12 @@ interface AnalyticsResponse {
     }
 }
 
-interface SearchedExercises {
-    [key: string]: string
-}
-
 export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<AnalyticsResponse | null>(null);
     const [selectedMetric, setSelectedMetric] = useState("weight");
 
-    const [searchedExercise, setSearchedExercise] = useState<SearchedExercises>({});
+    const {searchedExercise, debouncedExerciseSearch, setSearchedExercise} = useExerciseSearch();
     const [inputFieldValue, setInputFieldValue] = useState("");
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 450);
@@ -69,25 +66,6 @@ export default function Graphs() {
         ? { top: 10, right: 8, bottom: 0, left: -20 }
         : { top: 20, right: 32, bottom: 0, left: 0 };
 
-    const debounce = <T extends unknown[]> (
-        callback: (...args: T) => void,
-        delay: number,
-    ) => {
-        let timeoutTimer: ReturnType<typeof setTimeout>;
-
-        return {
-            run: (...args: T) => {
-            clearTimeout(timeoutTimer);
-            timeoutTimer = setTimeout(() => {
-                callback(...args);
-            }, delay)},
-
-            cancel: () => {
-                clearTimeout(timeoutTimer);
-            }
-        }
-    };
-
     async function getExerciseData(exerciseName: string) {
         if (!exerciseName) return;
 
@@ -107,33 +85,13 @@ export default function Graphs() {
         }
     }
 
-    async function SearchExercises(targetExName: string) {
-        if (targetExName === "") return;
-        try {
-            const response = await authenticatedFetch(`/exercises/?exercise_name=${targetExName}`, "GET");
-    
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-    
-            const result = await response.json();
-            setSearchedExercise(result);
-
-        }
-        catch (error) {
-            alert(error);
-        }
-    }
-
-    const debouncedRequest = useRef(debounce(SearchExercises, 1000));
-
     function ChangeInputValues(exerciseName: string) {
         if (exerciseName !== "") {
             setInputFieldValue(exerciseName);
-            debouncedRequest.current.run(exerciseName);
+            debouncedExerciseSearch.current.run(exerciseName);
         }
         else {
-            debouncedRequest.current.cancel()
+            debouncedExerciseSearch.current.cancel()
             setInputFieldValue("");
             setSearchedExercise({});
         }
