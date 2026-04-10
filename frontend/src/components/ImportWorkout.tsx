@@ -38,7 +38,7 @@ export default function ImportWorkout() {
         }
 
         const datePattern = /^\w+, \w+ \d+, \d+ at \d+:\d+$/;
-        const setPattern = /^Set \d+: \d+ lb × \d+$/;
+        const setPattern = /^Set \d+: \d+(\.\d)? lb × \d+$/;
         if (!datePattern.test(lines[0].split("\n")[1])) {
            alert("Invalid format. Maybe you have a trailing whitespace?");
            return null;
