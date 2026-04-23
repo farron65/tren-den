@@ -1,21 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from sqlmodel import select
-
 from typing import Annotated
 
 from database import SessionDep
 
 from models import User
 
-from schemas import UserSignUp,UserRead, DeleteAccountRequest
+from schemas import UserBase, DeleteAccountRequest
 
-from auth_utils import authenticate_user, hash_password, get_current_active_user, create_access_token, create_refresh_token
+from auth_utils import authenticate_user, get_current_active_user
 
 router = APIRouter()
 
-@router.get("/me", response_model=UserRead)
-async def read_users_me(current_user = Depends(get_current_active_user)):
+@router.get("/me", response_model=UserBase)
+async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
     return current_user
 
 @router.delete("/delete/me")
