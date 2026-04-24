@@ -1,0 +1,51 @@
+.about-page {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  grid-template-rows: auto 1fr;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.about-profile {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.about-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-color: #2e2e2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.about-avatar svg {
+  width: 48px;
+  height: 48px;
+  fill: #6b7280;
+}
+
+.about-info h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.about-info p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.about-calendar {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}

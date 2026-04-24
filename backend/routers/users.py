@@ -12,7 +12,7 @@ from auth_utils import authenticate_user, get_current_active_user
 
 router = APIRouter()
 
-@router.get("/me", response_model=UserBase)
+@router.get("/about", response_model=UserBase)
 async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
     return current_user
 

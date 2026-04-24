@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState } from "react";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
@@ -16,7 +17,7 @@ import TemplateView from "./components/TemplateView";
 import EditWorkoutForm from "./components/EditWorkoutForm";
 import Graphs from "./components/Graphs";
 import ImportWorkout from "./components/ImportWorkout";
-import { useState } from "react";
+import About from "./components/About";
 
 
 type ProtectedRouteProps = {
@@ -54,6 +55,11 @@ function App() {
                     <ProtectedRoute token={access_token}>
                         <AppLayout/>
                     </ProtectedRoute>}>
+                    <Route
+                        path={"/about"}
+                        element={<About/>}>
+
+                    </Route>
                     <Route
                         path={"/workouts"}
                         element={<WorkoutsHistory/>}>

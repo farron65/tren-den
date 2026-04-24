@@ -30,6 +30,7 @@ export default function Sidebar() {
 
             <nav className="nav">
                 <NavLink to="/workouts">Home</NavLink>
+                <NavLink to="/about">About</NavLink>
                 <NavLink to="/create-workout">Start Workout</NavLink>
                 <NavLink to="/create-template">Create Template</NavLink>
                 <NavLink to="/templates">Templates</NavLink>

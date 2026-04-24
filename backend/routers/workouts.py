@@ -11,7 +11,7 @@ from database import SessionDep
 from typing import Annotated
 
 from models import User, Workout, Exercise, SetDetails
-from schemas import WorkoutCreate, WorkoutResponse, PaginatedWorkoutResponse
+from schemas import WorkoutCreate, WorkoutResponse, PaginatedWorkoutResponse, WorkoutCalendar
 
 from queries import get_user_workout
 
@@ -57,7 +57,12 @@ async def get_user_workouts(
         limit=limit,
         has_more=has_more,
     )
-
+    
+@router.get("/calendar", response_model=list[WorkoutCalendar])
+async def get_workout_calendar(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    user_workouts = session.exec(select(Workout).order_by(desc(Workout.date)).where(Workout.user == current_user)).all() # type: ignore
+    return user_workouts
+    
 @router.get("/{workout_id}", response_model=WorkoutResponse)
 async def get_own_workout(workout_id: int, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     user_workout = session.exec(select(Workout).where(Workout.user == current_user).where(Workout.id == workout_id)).first()

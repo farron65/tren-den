@@ -1,0 +1,85 @@
+.calendar-container {
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 16px;
+  padding: 24px;
+  width: 360px;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.calendar-header span {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.calendar-nav {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2e2e2e;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-nav:hover {
+  background: #3e3e3e;
+}
+
+.calendar-day-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.calendar-cell {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  margin: 2px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-cell:hover {
+  background: #2e2e2e;
+}
+
+.calendar-cell.inactive {
+  color: #3e3e3e;
+  cursor: default;
+}
+
+.calendar-cell.hasWorkout {
+  background: #059669;
+  color: white;
+}
+
+.calendar-cell.hasWorkout:hover {
+  background: #047857;
+}

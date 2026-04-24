@@ -115,3 +115,9 @@ class PaginatedWorkoutResponse(BaseModel):
     skip: int
     limit: int
     has_more: bool
+    
+class WorkoutCalendar(BaseModel):
+    workout_name: str
+    date: datetime
+    id: int
+    
