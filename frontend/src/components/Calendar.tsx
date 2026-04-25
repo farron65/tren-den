@@ -15,6 +15,7 @@ export default function Calendar() {
     const [calendar, setCalendar] = useState<Dictionary>();
     const navigate = useNavigate();
 
+    const [hoveredCell, setHoveredCell] = useState<number | null>(null);
 
     const year = current.getFullYear();
     const month = current.getMonth();
@@ -90,16 +91,27 @@ export default function Calendar() {
                     if (calendar && calendar[dateKey]) {
                     }
                     return (
-                        <button key={i}
-                            onClick={() => {
-                                if (cell.current && calendar && calendar[dateKey]) {
-                                    navigate(`/workouts/${calendar[dateKey]["id"]}`)
-                                }
-                            }}
-                            className={`calendar-cell ${!cell.current ? "inactive" : cell.current && calendar && calendar[dateKey] ? "hasWorkout" : ""}`}
-                            >
-                            {cell.day}
-                        </button> 
+                        <div key={i} style={{ position: "relative" }}>
+                            <button 
+                                onClick={() => {
+                                    if (cell.current && calendar && calendar[dateKey]) {
+                                        navigate(`/workouts/${calendar[dateKey]["id"]}`)
+                                    }
+                                }}
+                                onMouseEnter={() => setHoveredCell(i)}
+                                onMouseLeave={() => setHoveredCell(null)}
+                                className={`calendar-cell ${!cell.current ? "inactive" : cell.current && calendar && calendar[dateKey] ? "hasWorkout" : ""}`}
+                                >
+                                {cell.day}
+                            </button>
+                            
+                            {hoveredCell === i && calendar && calendar[dateKey] && cell.current &&
+                                <div className="calendar-popup">
+                                    <p className="popup-workout-name">{calendar[dateKey]["workout_name"]}</p>
+                                    <p className="popup-date">{dateKey}</p>
+                                </div>
+                            }
+                        </div>
                     )
                 })}
             </div>

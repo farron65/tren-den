@@ -83,3 +83,30 @@
 .calendar-cell.hasWorkout:hover {
   background: #047857;
 }
+
+.calendar-popup {
+  background: rgb(17, 13, 13);
+  border: 1px solid #059669;
+  border-radius: 10px;
+  padding: 10px 14px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.popup-workout-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #34d399;
+  margin: 0 0 4px 0;
+}
+
+.popup-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+}
