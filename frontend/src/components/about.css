@@ -83,3 +83,35 @@
   position: sticky;
   top: 24px;
 }
+
+.about-motivation {
+  padding: 20px 24px;
+  background: #111;
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #059669;
+  border-radius: 14px;
+}
+
+.motivation-text {
+  font-size: 0.95rem;
+  color: #d1d5db;
+  font-style: italic;
+  margin: 0 0 10px 0;
+  line-height: 1.6;
+}
+
+.motivation-sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .about-page {
+    grid-template-columns: 1fr;
+  }
+
+  .about-calendar {
+    position: static;
+  }
+}

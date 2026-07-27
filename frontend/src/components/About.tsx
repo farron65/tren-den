@@ -87,6 +87,21 @@ export default function About() {
                     <span className="stat-value">{userStats.current_month_workouts}</span>
                 </div>
             </div>
+
+            <div className="about-motivation">
+                <p className="motivation-text">
+                    Everyone has something keeping them comfortable. Your phone. A job that pays enough. 
+                    A life that's safe enough to stay in but not good enough to be proud of. 
+                    Comfort doesn't feel like a trap — that's what makes it dangerous.
+                </p>
+                <p className="motivation-text">
+                    Anything that feels safe but quietly keeps you from becoming who you're supposed to be — that's the enemy. 
+                    Not failure. Comfort.
+                </p>
+                <p className="motivation-sub">
+                    {userStats.total_workouts} workouts logged. {userStats.current_month_workouts} this month. You showed up. Keep going.
+                </p>
+            </div>
         </div>
 
         <div className="about-calendar">
