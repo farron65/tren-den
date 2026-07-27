@@ -44,7 +44,7 @@ async def get_user_workouts(
     total = count_result.one() or 0
     
     query = select(Workout).options(
-                selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)).offset(skip).limit(limit) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
+            selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)).offset(skip).limit(limit) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
     user_workouts = session.exec(query).all()
     
     has_more = skip + len(user_workouts) < total

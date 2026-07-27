@@ -9,12 +9,24 @@ interface User {
     email: string,
 }
 
+interface UserStats {
+    total_workouts: number,
+    current_month_workouts: number,
+
+}
+
 export default function About() {
     const [user, setUser] = useState<User>({
         username: "",
         email: "",
     });
 
+    const [userStats, setUserStats] = useState<UserStats>({
+        total_workouts: 0,
+        current_month_workouts: 0,
+    })
+
+    // To get user img
     useEffect(() => {
         const getUser = async () => {
             try {
@@ -32,9 +44,27 @@ export default function About() {
         getUser();
     }, []);
 
-    return (
-        <>
-        <div className="about-page">
+    // to get user stats
+    useEffect(() => {
+        const getUser = async () => {
+            try {
+                const response = await authenticatedFetch("/stats", "GET");
+                if (!response.ok) {
+                    return;
+                }
+                const result = await response.json();
+                setUserStats(result);
+            }
+            catch(error) {
+                throw error;
+            }
+        }
+        getUser();
+    }, []);
+
+   return (
+    <div className="about-page">
+        <div className="about-left">
             <div className="about-profile">
                 <div className="about-avatar">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -47,10 +77,21 @@ export default function About() {
                 </div>
             </div>
 
-            <div className="about-calendar">
-                <Calendar/>
+            <div className="about-stats">
+                <div className="stat-item">
+                    <span className="stat-label">Total Workouts</span>
+                    <span className="stat-value">{userStats.total_workouts}</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-label">This Month</span>
+                    <span className="stat-value">{userStats.current_month_workouts}</span>
+                </div>
             </div>
         </div>
-        </>
-    )
+
+        <div className="about-calendar">
+            <Calendar/>
+        </div>
+    </div>
+    );
 }
