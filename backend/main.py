@@ -18,9 +18,9 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.get("/predict")
+@app.get("/health")
 async def predict():
-    return "Success"
+    return "OK"
 
 app.include_router(users.router, prefix="", tags=["users"])
 app.include_router(auth.router, prefix="", tags=["auth"])
