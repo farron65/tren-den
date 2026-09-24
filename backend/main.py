@@ -3,12 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import users, auth, workouts, templates, analytics
 
+import os
+
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-    "https://trenden.netlify.app"
-]
+origins = os.getenv("CORS_ORIGINS", "").split(",")
 
 app.add_middleware(
     CORSMiddleware,
