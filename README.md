@@ -18,7 +18,6 @@ I built this project to design and ship my first complete full-stack application
 - Automatic cascade deletes for nested entities
 - Backend analytics API that returns historical exercise data
 - Progress visualization using line charts
-- Deployed frontend and backend
 
 ---
 
@@ -46,6 +45,22 @@ I built this project to design and ship my first complete full-stack application
 ---
 
 ## Local Development
+
+### Running with Docker
+
+1. Clone the repository
+2. Create `backend/.env` with the required variables (see `.env.example`)
+3. Run:
+```bash
+   docker compose up --build
+```
+
+4. Visit the app:
+    - Frontend: http://localhost:8080
+    - Backend: http://localhost:8000
+
+
+### Running manually
 
 ### Backend
 
