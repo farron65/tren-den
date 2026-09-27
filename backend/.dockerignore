@@ -12,6 +12,3 @@ __pycache__/
 
 # Database
 *.db
-
-# Migrations
-migrations/
