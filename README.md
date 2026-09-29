@@ -39,7 +39,7 @@ included for free. Let's go, LET'S GET JACKED 🦅
 
 ### DevOps
 - Docker (multi-stage builds)
-- Docker Compose
+- Docker Compose (backend, frontend, and local PostgreSQL)
 
 ---
 
@@ -61,6 +61,9 @@ included for free. Let's go, LET'S GET JACKED 🦅
 ```bash
    docker compose up --build
 ```
+   This starts the backend, frontend, and a local PostgreSQL database. Migrations run automatically on startup,
+   so the database is ready to use - no manual setup needed.
+
 4. Visit the app:
     - Frontend: http://localhost:8080
     - Backend: http://localhost:8000
