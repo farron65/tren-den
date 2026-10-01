@@ -13,3 +13,4 @@ resend
 alembic
 httpx
 pytest
+tzdata
