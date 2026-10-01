@@ -1,17 +1,17 @@
 from fastapi.testclient import TestClient
 
-def test_read_me(client: TestClient, create_and_login_user):
+def test_read_about(client: TestClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
     response = client.get(
-        "/me",
+        "/about",
         headers={"Authorization": f"Bearer {token}"}
     )
     
     assert response.status_code == 200
 
-def test_me_unauthorized(client: TestClient):
-    response = client.get("/me")
+def test_about_unauthorized(client: TestClient):
+    response = client.get("/about")
     assert response.status_code == 401
     
     data = response.json()
