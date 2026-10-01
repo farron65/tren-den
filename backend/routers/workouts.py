@@ -13,26 +13,13 @@ from typing import Annotated
 from models import User, Workout, Exercise, SetDetails
 from schemas import WorkoutCreate, WorkoutResponse, PaginatedWorkoutResponse, WorkoutCalendar
 
-from queries import get_user_workout
+from queries import create_workout, get_user_workout
 
 router = APIRouter()
 
 @router.post("", response_model=WorkoutResponse)
 async def post_workout(workout: WorkoutCreate, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    
-    db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
-    
-    for exercise in workout.exercises:
-        db_exercise = Exercise(exercise_name=exercise.exercise_name, rest_time=exercise.rest_time, workout=db_workout)
-        
-        for set in exercise.sets:
-            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
-            
-    session.add(db_workout)
-    session.flush()
-    session.commit()
-    session.refresh(db_workout)
-    return db_workout
+    return create_workout(workout, current_user, session)
 
 @router.get("", response_model=PaginatedWorkoutResponse)
 async def get_user_workouts(

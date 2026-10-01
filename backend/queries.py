@@ -1,9 +1,25 @@
 from sqlalchemy import func, desc
-from sqlalchemy.orm import selectinload
 
 from sqlmodel import select
-from models import User, Workout, Exercise
+from models import User, Workout, Exercise, SetDetails
+from schemas import WorkoutCreate
+
 from database import SessionDep
+
+def create_workout(workout: WorkoutCreate, current_user: User, session: SessionDep) -> Workout:
+    db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
+        
+    for exercise in workout.exercises:
+        db_exercise = Exercise(exercise_name=exercise.exercise_name, rest_time=exercise.rest_time, workout=db_workout)
+        
+        for set in exercise.sets:
+            db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
+            
+    session.add(db_workout)
+    session.flush()
+    session.commit()
+    session.refresh(db_workout)
+    return db_workout
 
 def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
     user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
