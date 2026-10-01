@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import users, auth, workouts, templates, analytics
+from routers import users, auth, workouts, templates, analytics, imports
 
 import os
 
@@ -26,3 +26,4 @@ app.include_router(auth.router, prefix="", tags=["auth"])
 app.include_router(workouts.router, prefix="/workouts", tags=["workouts"])
 app.include_router(templates.router, prefix="/templates", tags=["templates"])
 app.include_router(analytics.router, prefix="/exercises", tags=["exercises"])
+app.include_router(imports.router, prefix="/import", tags=["imports"])

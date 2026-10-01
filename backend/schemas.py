@@ -121,3 +121,5 @@ class WorkoutCalendar(BaseModel):
     date: datetime
     id: int
     
+class ImportRequest(BaseModel):
+    text: str
