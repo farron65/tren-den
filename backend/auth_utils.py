@@ -3,12 +3,12 @@ import bcrypt
 import jwt
 import secrets
 
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
 
-from config import SECRET_KEY, ALGORITHM
+from config import SECRET_KEY, ALGORITHM, BOT_API_KEY
 from database import SessionDep
 
 from sqlmodel import select
@@ -17,6 +17,8 @@ from models import User, RefreshToken
 # OAuth2 scheme that extracts JWT tokens from Authorization headers
 # tokenUrl tells FastAPI docs where to authenticate (the /login endpoint)
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
+
+api_key_header = APIKeyHeader(name="X-API-Key")
 
 def hash_password(password: str):
     hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -91,3 +93,7 @@ def get_current_active_user(user: Annotated[User, Depends(get_current_user)]):
     if not user.disabled:
         return user
     raise HTTPException(400, "Inactive")
+
+def verify_bot_key(api_key: str = Depends(api_key_header)):
+    if not secrets.compare_digest(api_key.encode(), BOT_API_KEY.encode()):
+        raise HTTPException(401, "Invalid API key")
