@@ -8,6 +8,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 ALGORITHM = os.getenv("ALGORITHM", "")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))
 RESEND_EMAIL_API_KEY = os.getenv("RESEND_EMAIL_API_KEY", "")
+
 BOT_API_KEY = os.getenv("BOT_API_KEY", "")
 if not BOT_API_KEY:
     raise RuntimeError("BOT_API_KEY is not set")
+
+BOT_USERNAME = os.getenv("BOT_USERNAME", "")
+if not BOT_USERNAME:
+    raise RuntimeError("BOT_USERNAME is not set")
