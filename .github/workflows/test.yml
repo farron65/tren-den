@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://user:password@host:port/dbname
+      DATABASE_URL: postgresql://user:password@host:9000/dbname
       SECRET_KEY: your-secret-key-here
       ACCESS_TOKEN_EXPIRE_MINUTES: 15
       ALGORITHM: HS256
