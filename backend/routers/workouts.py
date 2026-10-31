@@ -14,6 +14,14 @@ from models import User, Workout, Exercise, SetDetails
 from schemas import WorkoutCreate, WorkoutResponse, PaginatedWorkoutResponse, WorkoutCalendar
 
 from queries import create_workout, get_user_workout
+import os
+import time
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+
+# Temporary: toggle eager/lazy loading for prod measurement. Defaults to eager.
+EAGER_LOADING = os.getenv("EAGER_LOADING", "true").lower() == "true"
 
 router = APIRouter()
 
@@ -26,24 +34,30 @@ async def get_user_workouts(
     current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 10):
-    
+
+    start = time.perf_counter()
+
     count_result = session.exec(select(func.count()).select_from(Workout).where(Workout.user == current_user))
     total = count_result.one() or 0
-    
-    query = select(Workout).options(
-            selectinload(Workout.exercises).options(selectinload(Exercise.sets))).where(Workout.user == current_user).order_by(desc(Workout.date)).offset(skip).limit(limit) # type: ignore -- .order_by(Workout.date.desc()) type checker 😭
+
+    query = select(Workout).where(Workout.user == current_user).order_by(desc(Workout.date)).offset(skip).limit(limit)  # type: ignore
+    if EAGER_LOADING:
+        query = query.options(selectinload(Workout.exercises).options(selectinload(Exercise.sets)))  # type: ignore
     user_workouts = session.exec(query).all()
-    
+
     has_more = skip + len(user_workouts) < total
-    
-    
-    return PaginatedWorkoutResponse(
+
+    response = PaginatedWorkoutResponse(
         workouts=[WorkoutResponse.model_validate(workout) for workout in user_workouts],
         total=total,
         skip=skip,
         limit=limit,
         has_more=has_more,
     )
+
+    logger.info("GET /workouts eager=%s skip=%d limit=%d took=%.4fs",
+                EAGER_LOADING, skip, limit, time.perf_counter() - start)
+    return response
     
 @router.get("/calendar", response_model=list[WorkoutCalendar])
 async def get_workout_calendar(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
