@@ -39,3 +39,4 @@ typing_extensions==4.15.0
 tzdata==2026.4
 urllib3==2.6.3
 uvicorn==0.42.0
+asyncpg==0.32.0
