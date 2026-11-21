@@ -1,17 +1,19 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
+
 from datetime import datetime, timedelta
 
-from models import User, Workout
+from models import User, Workout, Exercise
 
 from auth_utils import create_access_token
 
-def test_post_workout_success(client: TestClient, create_and_login_user, create_workout, session_fixture):
+async def test_post_workout_success(client: AsyncClient, create_and_login_user, create_workout, session_fixture):
     user_token = create_and_login_user["access_token"]
     
-    user_workout = create_workout()
-    response = client.post(
+    user_workout = await create_workout()
+    response = await client.post(
         "/workouts",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -20,17 +22,22 @@ def test_post_workout_success(client: TestClient, create_and_login_user, create_
         json=user_workout
     )
     
-    user_obj = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.username == "user")
-    ).first()
+    )
+
+    user_obj = result.scalars().first()
     
     assert response.status_code == 200
     
     response_data = response.json()
     
-    db_workout = session_fixture.exec(
-        select(Workout).where(Workout.id == response_data["id"]).where(Workout.user == user_obj)
-    ).first()
+    result = await session_fixture.execute(
+        select(Workout).where(Workout.id == response_data["id"]).where(Workout.user == user_obj).options(
+            (selectinload(Workout.exercises).selectinload(Exercise.sets)) #type: ignore
+        )
+    )
+    db_workout = result.scalars().first()
     
     assert db_workout.workout_name == response_data["workout_name"]
     assert db_workout.date == datetime.fromisoformat(response_data["date"])
@@ -49,10 +56,10 @@ def test_post_workout_success(client: TestClient, create_and_login_user, create_
             assert db_set.reps == response_set["reps"]
             assert db_set.rest_time == response_set["rest_time"]
             
-def test_post_workout_bad_token(client: TestClient, create_and_login_user):
+async def test_post_workout_bad_token(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"] + "1"
     
-    response = client.post(
+    response = await client.post(
         "/workouts",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -66,7 +73,7 @@ def test_post_workout_bad_token(client: TestClient, create_and_login_user):
     assert response.status_code == 401
     assert response_data == {"detail": "Could not validate credentials"}
     
-def test_post_workout_exp_token(client: TestClient, create_user):
+async def test_post_workout_exp_token(client: AsyncClient, create_user):
     user_credentials = create_user.json()
     
     token_exp = timedelta(minutes=-59)
@@ -90,7 +97,7 @@ def test_post_workout_exp_token(client: TestClient, create_user):
         ]
     }
     
-    response = client.post(
+    response = await client.post(
         "/workouts",
         headers={
             "Authorization": f"Bearer {expired_access_token}"
@@ -100,7 +107,7 @@ def test_post_workout_exp_token(client: TestClient, create_user):
     
     assert response.status_code == 401
     
-def test_post_workout_invalid_field(client: TestClient, create_and_login_user):
+async def test_post_workout_invalid_field(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"]
     
     user_workout = {
@@ -109,7 +116,7 @@ def test_post_workout_invalid_field(client: TestClient, create_and_login_user):
         "exercises": []
     }
     
-    response = client.post(
+    response = await client.post(
         "/workouts",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -119,7 +126,7 @@ def test_post_workout_invalid_field(client: TestClient, create_and_login_user):
     )
     assert response.status_code == 422
     
-def test_get_workouts_success(client: TestClient, create_and_login_user):
+async def test_get_workouts_success(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"]
     wk_dates = ["2026-02-13", "2026-02-14", "2026-02-19"]
     
@@ -147,7 +154,7 @@ def test_get_workouts_success(client: TestClient, create_and_login_user):
             ]
         }
         
-        client.post(
+        await client.post(
             "/workouts",
             headers={
                 "Authorization": f"Bearer {user_token}",
@@ -156,7 +163,7 @@ def test_get_workouts_success(client: TestClient, create_and_login_user):
             json=user_workout
         )
     
-    response = client.get(
+    response = await client.get(
         "/workouts",
         headers={
             "Authorization": f"Bearer {user_token}"
@@ -173,10 +180,10 @@ def test_get_workouts_success(client: TestClient, create_and_login_user):
         # to slice '2026-12-12T00:00:00' --> '2026-12-12'
         assert response_data["workouts"][dt]["date"][:10] == date_obj[dt]
     
-def test_get_workouts_bad_token(client: TestClient, create_and_login_user):
+async def test_get_workouts_bad_token(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"] + "1"
     
-    response = client.get(
+    response = await client.get(
         "/workouts",
         headers={
                 "Authorization": f"Bearer {user_token}",
@@ -186,10 +193,10 @@ def test_get_workouts_bad_token(client: TestClient, create_and_login_user):
     
     assert response.status_code == 401
     
-def test_get_individual_workout_success(client: TestClient, create_and_login_user, create_workout):
+async def test_get_individual_workout_success(client: AsyncClient, create_and_login_user, create_workout):
     user_token = create_and_login_user["access_token"]
-    create_workout()
-    response = client.get(
+    await create_workout()
+    response = await client.get(
         "/workouts/1",
         headers={
                 "Authorization": f"Bearer {user_token}",
@@ -199,10 +206,10 @@ def test_get_individual_workout_success(client: TestClient, create_and_login_use
     
     assert response.status_code == 200
     
-def test_get_workout_not_exist(client: TestClient, create_and_login_user):
+async def test_get_workout_not_exist(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"]
         
-    response = client.get(
+    response = await client.get(
         "/workouts/-1",
         headers={
             "Authorization": f"Bearer {user_token}"
@@ -212,9 +219,9 @@ def test_get_workout_not_exist(client: TestClient, create_and_login_user):
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
     
-def test_update_workout_success(client: TestClient, create_and_login_user, create_workout):
+async def test_update_workout_success(client: AsyncClient, create_and_login_user, create_workout):
     user_token = create_and_login_user["access_token"]
-    create_workout()
+    await create_workout()
     updated_workout = {
         "workout_name": "Upper",
         "date": "2026-12-12",
@@ -254,7 +261,7 @@ def test_update_workout_success(client: TestClient, create_and_login_user, creat
         ]
     }
     
-    response = client.put(
+    response = await client.put(
         "/workouts/1",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -272,10 +279,10 @@ def test_update_workout_success(client: TestClient, create_and_login_user, creat
     assert response_data["date"][:10] == updated_workout["date"]
     assert len(response_data["exercises"]) == len(updated_workout["exercises"])
     
-def test_update_workout_not_found(client: TestClient, create_and_login_user, create_workout):
+async def test_update_workout_not_found(client: AsyncClient, create_and_login_user, create_workout):
     user_token = create_and_login_user["access_token"]
-    workout = create_workout()
-    response = client.put(
+    workout = await create_workout()
+    response = await client.put(
         "/workouts/-1",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -287,7 +294,7 @@ def test_update_workout_not_found(client: TestClient, create_and_login_user, cre
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
     
-def test_update_workout_invalid_fields(client: TestClient, create_and_login_user):
+async def test_update_workout_invalid_fields(client: AsyncClient, create_and_login_user):
     user_token = create_and_login_user["access_token"]
     
     updated_workout = {
@@ -312,7 +319,7 @@ def test_update_workout_invalid_fields(client: TestClient, create_and_login_user
         ]
     }
     
-    response = client.put(
+    response = await client.put(
         "/workouts/-1",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -323,10 +330,10 @@ def test_update_workout_invalid_fields(client: TestClient, create_and_login_user
     
     assert response.status_code == 422
     
-def test_update_workout_bad_token(client: TestClient, create_and_login_user, create_workout):
+async def test_update_workout_bad_token(client: AsyncClient, create_and_login_user, create_workout):
     user_token = create_and_login_user["access_token"] + "1"
-    workout = create_workout()
-    response = client.put(
+    workout = await create_workout()
+    response = await client.put(
         "/workouts/-1",
         headers={
             "Authorization": f"Bearer {user_token}",
@@ -337,10 +344,10 @@ def test_update_workout_bad_token(client: TestClient, create_and_login_user, cre
     
     assert response.status_code == 401
     
-def test_delete_workout_success(client: TestClient, create_and_login_user, create_workout):
+async def test_delete_workout_success(client: AsyncClient, create_and_login_user, create_workout):
     user_token = create_and_login_user["access_token"]
-    create_workout()
-    response = client.request(
+    await create_workout()
+    response = await client.request(
         "DELETE",
         "/workouts/1",
         headers={
@@ -350,7 +357,7 @@ def test_delete_workout_success(client: TestClient, create_and_login_user, creat
     
     assert response.status_code == 200
     
-    response = client.get(
+    response = await client.get(
         "/workouts/1",
         headers={
             "Authorization": f"Bearer {user_token}"
@@ -359,10 +366,10 @@ def test_delete_workout_success(client: TestClient, create_and_login_user, creat
     
     assert response.status_code == 404
     
-def test_delete_workout_not_found(client: TestClient, create_and_login_user):
+async def test_delete_workout_not_found(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
 
-    response = client.request(
+    response = await client.request(
         "DELETE",
         "/workouts/1",
         headers={
@@ -373,9 +380,9 @@ def test_delete_workout_not_found(client: TestClient, create_and_login_user):
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
     
-def test_delete_workout_bad_token(client: TestClient, create_and_login_user):
+async def test_delete_workout_bad_token(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"] + "1"
-    response = client.request(
+    response = await client.request(
         "DELETE",
         "/workouts/1",
         headers={
