@@ -19,7 +19,8 @@ router = APIRouter()
 @router.post("/signup", response_model=UserBase)
 async def signup(user: UserSignUp, session: SessionDep):
 
-    existing_user = session.exec(select(User).where(User.username == user.username)).first()
+    result = await session.execute(select(User).where(User.username == user.username))
+    existing_user = result.scalars().all()
     
     if existing_user:
         raise HTTPException(409, "User already exists")
@@ -28,13 +29,13 @@ async def signup(user: UserSignUp, session: SessionDep):
         db_user = User(username=user.username, email = user.email, hashed_password=user_password)
     
     session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
+    await session.commit()
+    await session.refresh(db_user)
     return user
 
 @router.post("/login", response_model=Token)
 async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(session, form_data.username, form_data.password)
+    user = await authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(401, "Not authorized")
     
@@ -46,12 +47,13 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
         data={"sub": user.username}, expires_delta=access_token_expire
     )
     
-    refresh_token = create_refresh_token(user.id, session)
+    refresh_token = await create_refresh_token(user.id, session)
     return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 @router.post("/auth/refresh", response_model=Token)
 async def refresh_token_endpoint(session: SessionDep, refresh_token: str = Form( )):
-    token = session.exec(select(RefreshToken).where(RefreshToken.refresh_token == refresh_token)).first()
+    result = await session.execute(select(RefreshToken).where(RefreshToken.refresh_token == refresh_token))
+    token = result.scalars().first()
     
     if not token or token.revoked:
         raise HTTPException(401, "Invalid refresh token")
@@ -66,20 +68,21 @@ async def refresh_token_endpoint(session: SessionDep, refresh_token: str = Form(
     
     token.revoked = True
     session.add(token)
-    session.commit()
+    await session.commit()
     
     new_access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(minutes=15)
     )
     
-    new_refresh_token = create_refresh_token(user.id, session)
+    new_refresh_token = await create_refresh_token(user.id, session)
     
     return Token(access_token=new_access_token, refresh_token=new_refresh_token, token_type="bearer")
 
 @router.post("/forgot-password")
 async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
-    user_in_db = session.exec(select(User).where(User.email == user_email.email)).first()
+    result = await session.execute(select(User).where(User.email == user_email.email))
+    user_in_db = result.scalars().first()
     
     if not user_in_db:
         return {"message": "Successfully sent the email"} # to fool the hackers 😀
@@ -90,8 +93,8 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     user_in_db.reset_token = reset_token
     user_in_db.reset_token_exp = reset_token_exp
     
-    session.commit()
-    session.refresh(user_in_db)
+    await session.commit()
+    await session.refresh(user_in_db)
     
     email.send_password_reset_email(user_in_db.email, user_in_db.username, reset_token)
     
@@ -99,7 +102,8 @@ async def forgot_password(user_email: UserForgotPassword, session: SessionDep):
     
 @router.post("/reset-password")
 async def reset_password(reset_forgot_password: UserResetPassword, session: SessionDep):
-    user_in_db = session.exec(select(User).where(User.reset_token == reset_forgot_password.token)).first()
+    result = await session.execute(select(User).where(User.reset_token == reset_forgot_password.token))
+    user_in_db = result.scalars().first()
     if not user_in_db:
         raise HTTPException(404, "Reset token doesn't exist")
     
@@ -113,7 +117,7 @@ async def reset_password(reset_forgot_password: UserResetPassword, session: Sess
     user_in_db.reset_token = None
     user_in_db.reset_token_exp = None
     
-    session.commit()
-    session.refresh(user_in_db)
+    await session.commit()
+    await session.refresh(user_in_db)
     
     return {"message": "Successfully updated user's password"}

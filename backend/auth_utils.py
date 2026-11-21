@@ -27,14 +27,14 @@ def hash_password(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
-def get_user(session: SessionDep, username: str):
+async def get_user(session: SessionDep, username: str):
     # Returns None instead of raising exception to prevent username enumeration
     # Callers can check for None and provide a generic "invalid credentials" error
-    existing_user = session.exec(select(User).where(User.username == username)).first()
-    return existing_user if existing_user else None
+    result = await session.execute(select(User).where(User.username == username))
+    return result.scalars().first()
 
-def authenticate_user(session, username: str, password: str):
-    user = get_user(session, username)
+async def authenticate_user(session, username: str, password: str):
+    user = await get_user(session, username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -55,20 +55,20 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(user_id: int, session: SessionDep) -> str:
+async def create_refresh_token(user_id: int, session: SessionDep) -> str:
     
     refresh_token = secrets.token_urlsafe(32)
     exp = datetime.now(timezone.utc) + timedelta(days=7)
     
     token = RefreshToken(refresh_token=refresh_token, user_id=user_id, exp=exp, revoked=False)
     session.add(token)
-    session.commit()
-    session.refresh(token)
+    await session.commit()
+    await session.refresh(token)
     
     return refresh_token
     
      
-def get_current_user(token: Annotated[str, Depends(oauth2)], session: SessionDep):
+async def get_current_user(token: Annotated[str, Depends(oauth2)], session: SessionDep):
     credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
@@ -84,7 +84,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2)], session: SessionDep
             raise credentials_exception
     except Exception:
         raise credentials_exception
-    user = get_user(session, username)
+    user = await get_user(session, username)
     if user is None:
         raise credentials_exception
     return user
