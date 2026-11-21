@@ -1,26 +1,34 @@
 from fastapi.testclient import TestClient
+from httpx import AsyncClient, ASGITransport
 import pytest
 from main import app
 
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.pool import StaticPool
 from database import get_session
+
+import asyncio
 
 from schemas import Token
 
 connect_args = {"check_same_thread": False}
-engine = create_engine("sqlite:///:memory:", connect_args=connect_args, poolclass=StaticPool)
+engine = create_async_engine("sqlite+aiosqlite:///:memory:", connect_args=connect_args, poolclass=StaticPool)
 
-SQLModel.metadata.create_all(engine)
+async def async_engine_create():
+    async with engine.begin() as connection:
+        await connection.run_sync(SQLModel.metadata.create_all)
+
+asyncio.run(async_engine_create())
 
 # Override the production get_session dependency
 # so that all routes use the test database instead
 @pytest.fixture(scope="function", autouse=True)
-def session_fixture():
-    connection = engine.connect() # create a new connection to the engine
-    transaction = connection.begin() # start it
+async def session_fixture():
+    connection = await engine.connect() # create a new connection to the engine
+    transaction = await connection.begin() # start it
     
-    session = Session(bind=connection) # bind session to same connection
+    session = AsyncSession(bind=connection) # bind session to same connection
     def override_get_session(): # a function that will override 'get_session' since fastapi doesn't know how to call fixtures
         yield session # use by FastAPI routes
             
@@ -28,19 +36,23 @@ def session_fixture():
    
     yield session # make session available for tests
     
-    session.close() # close ORM session
-    transaction.rollback() # undo all sql operations done prior
-    connection.close() # terminate the connection between the db and api
+    await session.close() # close ORM session
+    await transaction.rollback() # undo all sql operations done prior
+    await connection.close() # terminate the connection between the db and api
     app.dependency_overrides.pop(get_session) # reset the override function for the new override in the future if not done, it will persist
  
 @pytest.fixture
-def client():
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
+        yield ac
     # Tell FastAPI to use the test session instead of the real DB session
-    return TestClient(app)
 
 @pytest.fixture()
-def create_user(client: TestClient):
-    response = client.post(
+async def create_user(client: AsyncClient):
+    response = await client.post(
         "/signup",
         json={
             "username": "user",
@@ -52,8 +64,8 @@ def create_user(client: TestClient):
     return response
 
 @pytest.fixture
-def create_and_login_user(client: TestClient) -> Token:
-    client.post(
+async def create_and_login_user(client: AsyncClient) -> Token:
+    await client.post(
         "/signup",
         json={
             "username": "user",
@@ -62,7 +74,7 @@ def create_and_login_user(client: TestClient) -> Token:
         }
     )
     
-    response = client.post(
+    response = await client.post(
         "/login",
         data={
             "username": "user",
@@ -85,9 +97,9 @@ def email_mock(monkeypatch):
     return called
 
 @pytest.fixture
-def create_workout(client: TestClient, create_and_login_user):
+async def create_workout(client: AsyncClient, create_and_login_user):
     
-    def _create_workout(dt: str = "2026-02-02", exercises: list | None = None):
+    async def _create_workout(dt: str = "2026-02-02", exercises: list | None = None):
         token = create_and_login_user["access_token"]
         
         if exercises is None:
@@ -137,7 +149,7 @@ def create_workout(client: TestClient, create_and_login_user):
             "exercises": exercises
         }
         
-        response = client.post(
+        response = await client.post(
             "/workouts",
             headers={
                 "Authorization": f"Bearer {token}" 
@@ -152,7 +164,7 @@ def create_workout(client: TestClient, create_and_login_user):
     return _create_workout
 
 @pytest.fixture
-def create_30_workouts(client: TestClient, create_and_login_user):
+async def create_30_workouts(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     EXERCISE_NAMES = [
         "Bench Press", "Squat", "Deadlift", "Overhead Press", "Barbell Row",
@@ -184,8 +196,7 @@ def create_30_workouts(client: TestClient, create_and_login_user):
                 ]
             }]
         }
-        print(user_workout)
-        response = client.post(
+        response = await client.post(
             "/workouts",
             headers={
                 "Authorization": f"Bearer {token}" 
@@ -196,7 +207,7 @@ def create_30_workouts(client: TestClient, create_and_login_user):
         assert response.status_code == 200
     
 @pytest.fixture
-def create_template(client: TestClient, create_and_login_user):
+async def create_template(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     user_template = {
         "workout_name": "Upper A",
@@ -241,7 +252,7 @@ def create_template(client: TestClient, create_and_login_user):
         ]
     }
     
-    response = client.post(
+    response = await client.post(
         "/templates",
         headers={
             "Authorization": f"Bearer {token}" 
