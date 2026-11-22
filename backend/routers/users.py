@@ -22,18 +22,21 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_active
 
 @router.get("/stats")
 async def get_user_stats(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    total_workouts = len(session.exec(select(Workout).where(Workout.user == current_user)).all())
-    current_month_workouts = len(session.exec(select(Workout).where(Workout.user == current_user).where(extract("MONTH", Workout.date) == datetime.datetime.now().month)).all()) # type: ignore
+    result = await session.execute(select(Workout).where(Workout.user == current_user))
+    total_workouts = len(result.scalars().all())
+    
+    result = await session.execute(select(Workout).where(Workout.user == current_user).where(extract("MONTH", Workout.date) == datetime.datetime.now().month)) # type: ignore
+    current_month_workouts = len(result.scalars().all())
     
     return {"total_workouts": total_workouts, "current_month_workouts": current_month_workouts}
 
 @router.delete("/delete/me")
 async def delete_user(deletion_conf: DeleteAccountRequest, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user = authenticate_user(session, current_user.username, deletion_conf.password)
+    user = await authenticate_user(session, current_user.username, deletion_conf.password)
     if user:
         if deletion_conf.confirmation.lower() == "yes":
-            session.delete(user)
-            session.commit()
+            await session.delete(user)
+            await session.commit()
             return {"Success": True}
         
         raise HTTPException(400, "Bad Request")    
