@@ -29,12 +29,14 @@ async def create_workout(workout: WorkoutCreate, current_user: User, session: Se
     )
     return result.scalars().one()
 
-def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
-    user_exercise = session.execute(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+async def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
+    result = await session.execute(
+        select(Exercise).options(selectinload(Exercise.sets)) # type: ignore
+        .where(func.lower(Exercise.exercise_name) == exercise_name.lower())
         .join(Workout)
         .where(Workout.user == current_user)
-        .order_by(desc(Workout.date))).first() # type: ignore
-
+        .order_by(desc(Workout.date))) # type: ignore
+    user_exercise = result.scalars().first()
     if not user_exercise:
         return None
     user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
