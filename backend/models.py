@@ -27,7 +27,10 @@ class Template(SQLModel, table=True):
 class Workout(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workout_name: str = Field(index=True)
-    date: datetime = Field(index=True)
+    date: datetime = Field(
+        sa_type=DateTime(timezone=True), #type: ignore
+        index=True,
+    )
     
     user_id: int | None = Field(default=None, foreign_key="user.id")
     user: User | None = Relationship(back_populates="workouts")
