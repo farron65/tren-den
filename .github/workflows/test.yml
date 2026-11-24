@@ -13,9 +13,9 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      DATABASE_URL: postgresql://user:password@host:9000/dbname
+      DATABASE_URL: postgresql+asyncpg://user:password@host:9000/dbname
       SECRET_KEY: your-secret-key-here
       ACCESS_TOKEN_EXPIRE_MINUTES: 15
       ALGORITHM: HS256
