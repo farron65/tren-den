@@ -2,13 +2,13 @@ import { useState } from "react"
 import { authenticatedFetch } from "../api/apiClient";
 
 import "./importworkout.css";
-import { useNavigate } from "react-router-dom";
+import { useToast } from "./useToast";
 
 export default function ImportWorkout() {
     const [importWorkout, setImportWorkout] = useState("");
     const [app, setApp] = useState("strong");
 
-    const navigate = useNavigate();
+    const showToast = useToast();
 
     async function handleSubmit() {
         let workout;
@@ -20,27 +20,28 @@ export default function ImportWorkout() {
         try {
             const response = await authenticatedFetch("/workouts", "POST", workout);
             if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
+                showToast("Couldn't import the workout. Please try again.", "error");
+                return;
             }
-            alert("Success");
-            navigate("/workouts");
+            showToast(`Imported "${workout.workout_name}".`);
+            setImportWorkout(""); // clear the box so it's ready for the next one (and can't be imported twice by accident)
         }
-        catch (error) {
-            alert(error);
+        catch {
+            showToast("Can't reach the server. The workout wasn't imported.", "error");
         }
     }
 
     function handleStrongApp() {
         const lines = importWorkout.trim().split("\n\n");
         if (lines.length < 2) {
-            alert("Invalid format");
+            showToast("That doesn't look like a Strong workout. Paste the full text you copied from the app.", "error");
             return null;
         }
 
         const datePattern = /^\w+, \w+ \d+, \d+ at \d+:\d+$/;
         const setPattern = /^Set \d+: \d+(\.\d)? lb × \d+$/;
         if (!datePattern.test(lines[0].split("\n")[1])) {
-           alert("Invalid format. Maybe you have a trailing whitespace?");
+           showToast("Couldn't read the date on the second line. Check for extra spaces at the end of it.", "error");
            return null;
         }
         let isValid = true;
@@ -54,7 +55,7 @@ export default function ImportWorkout() {
            }
         );
         if (!isValid) {
-            alert("Invalid set format.");
+            showToast(`Some set lines are in the wrong format. Expected something like "Set 1: 135 lb × 8".`, "error");
             return null;
         }
 
@@ -78,14 +79,14 @@ export default function ImportWorkout() {
     function handleHevyApp() {
         const lines = importWorkout.trim().split("\n\n");
         if (lines.length < 2) {
-            alert("Invalid format");
+            showToast("That doesn't look like a Hevy workout. Paste the full text you copied from the app.", "error");
             return null;
         }
 
         const datePattern = /^\w+, \w+ \d+, \d+ at \d+:\d+\w+$/;
         const setPattern = /^Set \d+: \d+(\.\d)? lbs x \d+$/;
         if (!datePattern.test(lines[0].split("\n")[1])) {
-           alert("Invalid format. Maybe you have a trailing whitespace?");
+           showToast("Couldn't read the date on the second line. Check for extra spaces at the end of it.", "error");
            return null;
         }
         let isValid = true;
@@ -98,7 +99,7 @@ export default function ImportWorkout() {
            }
         );
         if (!isValid) {
-            alert("Invalid set format.");
+            showToast(`Some set lines are in the wrong format. Expected something like "Set 1: 135 lbs x 8".`, "error");
             return null;
         }
 
@@ -152,6 +153,7 @@ export default function ImportWorkout() {
                     </div>
                     <textarea
                         className="import-textarea"
+                        value={importWorkout}
                         onChange={e => setImportWorkout(e.target.value)}
                         placeholder="Paste your Strong workout here..."
                     />

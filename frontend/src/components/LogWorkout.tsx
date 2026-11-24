@@ -6,6 +6,7 @@ import { authenticatedFetch } from "../api/apiClient";
 import "./workoutform.css";
 
 import { useWorkout } from "./useWorkout";
+import { useToast } from "./useToast";
 
 import deleteButtonIcon from "../assets/delete.png";
 import checkIcon from "../assets/check.png";
@@ -81,6 +82,7 @@ export default function LogWorkout() {
     const debouncedRequest = useRef(debounce(getPreviousSets, 1000));
     
     const navigate = useNavigate();
+    const showToast = useToast();
     const templateId = useParams();
 
 
@@ -134,38 +136,43 @@ export default function LogWorkout() {
             }))
         }
 
+        let workoutSaved = false;
         try {
             const saveWorkout = await authenticatedFetch(`/workouts`, "POST", dataToSend);
             if (!saveWorkout.ok) {
-                throw new Error(`Response status: ${saveWorkout.status}`);
+                showToast("Couldn't save your workout. Please try again.", "error");
+                return;
             }
-            alert("You are a beast 💪🏆");
+            workoutSaved = true;
 
+            let templateResponse;
             if (method === "Save") {
                 const exercises = dataToSend.exercises;
-
-                const response = await authenticatedFetch(`/templates/${templateId.id}`, "PATCH", exercises);
-                if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
-                }
-                alert("Successfully saved workout, without changing the workout template");
+                templateResponse = await authenticatedFetch(`/templates/${templateId.id}`, "PATCH", exercises);
             }
-
             else if (method === "Update") {
                 const { date, ...updatedWorkout} = dataToSend;
-                const response = await authenticatedFetch(`/templates/${templateId.id}`, "PUT", updatedWorkout);
-    
-                if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
-                }
-                alert("Successfully saved workout, and updated the workout template");
+                templateResponse = await authenticatedFetch(`/templates/${templateId.id}`, "PUT", updatedWorkout);
             }
 
+            if (templateResponse && !templateResponse.ok) {
+                showToast("Workout saved, but the template couldn't be updated.", "error");
+            }
+            else {
+                showToast(method === "Update"
+                    ? "Workout saved and template updated. You are a beast 💪🏆"
+                    : "Workout saved. You are a beast 💪🏆");
+            }
             navigate("/workouts");
-
         }
-        catch (error) {
-            alert(error);
+        catch {
+            if (workoutSaved) {
+                showToast("Workout saved, but the template couldn't be updated.", "error");
+                navigate("/workouts");
+            }
+            else {
+                showToast("Can't reach the server. Your workout wasn't saved.", "error");
+            }
         }
     }
 
@@ -225,7 +232,7 @@ export default function LogWorkout() {
 
         const validWorkout = template.every(isValidData)
         if (!validWorkout) {
-            alert("All fields must be filled")
+            showToast("Fill in every exercise name and rep count before finishing.", "error");
             return;
         }
 
