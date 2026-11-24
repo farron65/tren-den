@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from sqlmodel import select, distinct
+from sqlmodel import select
 from sqlalchemy import func, desc, asc
 from sqlalchemy.orm import selectinload
 
@@ -17,19 +17,24 @@ router = APIRouter()
 async def search_exercises(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
     if not exercise_name:
         raise HTTPException(400, "Invalid Exercise Name")
-    user_exercises = session.exec(select(Exercise.exercise_name, func.max(Workout.date)) # You can't order by the things you haven't 'select' -ed
-                        .where(func.lower(Exercise.exercise_name).contains(exercise_name.lower()))
-                        .join(Workout).where(Workout.user == current_user)
-                        .order_by(desc(func.max(Workout.date))).group_by(Exercise.exercise_name)).all() # type: ignore
-
-    return dict(user_exercises)
+    
+    result = await session.execute(
+            select(Exercise.exercise_name, func.max(Workout.date)) # You can't order by the things you haven't 'select' -ed
+            .where(func.lower(Exercise.exercise_name).contains(exercise_name.lower()))
+            .join(Workout).where(Workout.user == current_user)
+            .order_by(desc(func.max(Workout.date))).group_by(Exercise.exercise_name)
+            )
+    user_exercises = result.all()
+    
+    return dict(user_exercises) # type: ignore
 
 @router.get("/recent") 
 async def get_recent_exercises(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_exercises = session.exec(select(Exercise).join(Workout)
+    result = await session.execute(select(Exercise).join(Workout)
         .where(Workout.user == current_user)
         .options(selectinload(Exercise.sets)) # type: ignore
-        .order_by(desc(Workout.date)).limit(25)).all() # type: ignore
+        .order_by(desc(Workout.date)).limit(25)) # type: ignore
+    user_exercises = result.scalars().all()
     
     unique_ex_names = set()
     user_exercises_data = []
@@ -50,11 +55,12 @@ async def get_recent_exercises(current_user: Annotated[User, Depends(get_current
 @router.get("/analytics/{exercise_name}")
 async def get_exercise_analytics(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
 
-    user_exercises = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+    result = await session.execute(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
         .join(Workout)
         .options(selectinload(Exercise.sets)).options(selectinload(Exercise.workout)) # type: ignore
         .where(Workout.user == current_user)
-        .order_by(asc(Workout.date))).all() # type: ignore
+        .order_by(asc(Workout.date))) # type: ignore
+    user_exercises = result.scalars().all()
 
     if not user_exercises:
         return []
@@ -92,7 +98,7 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
                     ],
                 "volume_change": volume_change if ex > 0 else None
             })
-    summary = get_exercise_history(exercise_name, current_user, session)
+    summary = await get_exercise_history(exercise_name, current_user, session)
     
     return {
         "data": user_exercise_data,
@@ -101,7 +107,7 @@ async def get_exercise_analytics(exercise_name: str, current_user: Annotated[Use
 
 @router.get("/{exercise_name}")
 async def get_exercise_data(exercise_name: str, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    user_exercise_data = get_exercise_sets(exercise_name, current_user, session)
+    user_exercise_data = await get_exercise_sets(exercise_name, current_user, session)
         
     return user_exercise_data   
 

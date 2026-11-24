@@ -37,6 +37,7 @@ async def get_exercise_sets(exercise_name: str, current_user: User, session: Ses
         .where(Workout.user == current_user)
         .order_by(desc(Workout.date))) # type: ignore
     user_exercise = result.scalars().first()
+    
     if not user_exercise:
         return None
     user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
@@ -53,11 +54,13 @@ async def get_user_workout(workout_id: int, current_user: User, session: Session
     return result.scalars().first()
 
 async def get_exercise_history(exercise_name: str, current_user: User, session: SessionDep):
-    exercises_history = await session.execute(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+    result = await session.execute(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
         .join(Workout)
-        # .options(selectinload(Exercise.sets)).options(selectinload(Exercise.workout))  #type: ignore
+        .options(selectinload(Exercise.sets)) #type: ignore
         .where(Workout.user == current_user)
-        .order_by(desc(Workout.date))).all() # type: ignore
+        .order_by(desc(Workout.date))) # type: ignore
+    exercises_history = result.scalars().all()
+    
     current_volume = sum([s.weight * s.reps for s in exercises_history[0].sets])
     
     change_3 = None
