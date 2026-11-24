@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { authenticatedFetch } from "../api/apiClient";
+import { useToast } from "./useToast";
 
 import "./workoutview.css";
 
@@ -38,6 +39,7 @@ export default function WorkoutView() {
     });
 
     const navigate = useNavigate();
+    const showToast = useToast();
 
     useEffect(() => {
         const fetchWorkout = async () => {
@@ -74,18 +76,17 @@ export default function WorkoutView() {
         try {
             const newWorkoutTemplate = await authenticatedFetch(`/templates`, "POST", dataToSend);
             if (!newWorkoutTemplate.ok) {
-                if (newWorkoutTemplate.status === 409) {
-                    alert(`Template with name: '${workout.workout_name}' already exists. Please update the current workout name, to save it as a template.`);
-                    return;
-                }
-                throw new Error(`Response status: ${newWorkoutTemplate.status}`);
+                showToast(newWorkoutTemplate.status === 409
+                    ? `A template named "${workout.workout_name}" already exists. Rename the workout to save it as a template.`
+                    : "Couldn't create the template. Please try again.", "error");
+                return;
             }
 
-            alert(`New template with name: '${workout.workout_name}' has been created successfully`);
+            showToast(`Template "${workout.workout_name}" created.`);
             navigate("/templates");
         }
-        catch (error) {
-            alert(error);
+        catch {
+            showToast("Can't reach the server. The template wasn't created.", "error");
         }
     }
 
