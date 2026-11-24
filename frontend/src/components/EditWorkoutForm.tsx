@@ -8,6 +8,7 @@ import checkIcon from "../assets/check.png";
 import { useWorkout } from "./useWorkout";
 import { usePreviousSets } from "./usePreviousSets";
 import { authenticatedFetch } from "../api/apiClient";
+import { useToast } from "./useToast";
 
 interface WorkoutProps {
     isTemplate: boolean
@@ -30,6 +31,7 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
     const [loading, setLoading] = useState(true);
 
     const navigate = useNavigate();
+    const showToast = useToast();
 
     const formID = useParams();
 
@@ -89,28 +91,29 @@ export default function EditWorkoutForm({isTemplate}: WorkoutProps) {
             }
 
             if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
+                showToast(`Couldn't save your ${isTemplate ? "template" : "workout"} changes. Please try again.`, "error");
+                return;
             }
 
             const result = await response.json();
 
             if (isTemplate) {
-                alert("Successfully saved template changes");
+                showToast("Template changes saved.");
 
                 return (
                     navigate(`/templates/${result.id}`)
                 )
             }
             else {
-                alert("Successfully saved workout changes");
+                showToast("Workout changes saved.");
 
                 return (
                     navigate(`/workouts/${result.id}`)
                 )
             }
         }
-        catch (error) {
-            alert(error);
+        catch {
+            showToast("Can't reach the server. Your changes weren't saved.", "error");
         }
     }
 

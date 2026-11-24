@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
 import { authenticatedFetch } from "../api/apiClient";
+import { useToast } from "./useToast";
 
 import "./workouthistory.css";
 
@@ -31,6 +32,7 @@ export default function WorkoutsHistory() {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     const navigate = useNavigate();
+    const showToast = useToast();
 
     const [modal, setModal] = useState(false);
     const [modalText, setModalText] = useState("");
@@ -67,14 +69,17 @@ export default function WorkoutsHistory() {
         try {
             const response = await authenticatedFetch(`/workouts/${targetID}`, "DELETE");
 
-            if (!response.ok) return;
+            if (!response.ok) {
+                showToast("Couldn't delete the workout. Please try again.", "error");
+                return;
+            }
 
-            alert("Successfully deleted workout");
+            showToast("Workout deleted.");
             const updatedWorkouts = paginatedWorkouts.workouts.filter((workout) => workout.id != targetID);
             setPaginatedWorkouts({...paginatedWorkouts, workouts: updatedWorkouts});
         }
-        catch (error) {
-            alert(error);
+        catch {
+            showToast("Can't reach the server. The workout wasn't deleted.", "error");
         }
         finally {
             setModal(!modal);

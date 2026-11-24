@@ -8,6 +8,7 @@ import "./workoutform.css";
 import deleteButtonIcon from "../assets/delete.png";
 import checkIcon from "../assets/check.png";
 import { useWorkout } from "./useWorkout";
+import { useToast } from "./useToast";
 import { usePreviousSets } from "./usePreviousSets";
 import { useExerciseSearch } from "./useExerciseSearch";
 
@@ -50,6 +51,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
     // const requestsInFlight = useRef<Record<string, boolean>>({});
 
     const navigate = useNavigate();
+    const showToast = useToast();
 
     async function handleSubmit(e: React.FormEvent) {
 
@@ -59,7 +61,7 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
 
         const validData = workoutForm.exercises.every(isValidData);
         if (!validData) {
-            alert("All fields must be filled");
+            showToast("Fill in every exercise name and rep count before finishing.", "error");
             return;
         }
     
@@ -82,32 +84,35 @@ export default function WorkoutForm({isTemplate}: WorkoutProps) {
                 const response = await authenticatedFetch("/templates", "POST", templateToSend);
                 
                 if (!response.ok) {
-                    if (response.status === 409) {
-                        alert("Template with this kind of name already exists.");
-                        return;
-                    }
-                    throw new Error(`Response status: ${response.status}`);
+                    showToast(response.status === 409
+                        ? "A template with this name already exists."
+                        : "Couldn't create the template. Please try again.", "error");
+                    return;
                 }
                 const result = await response.json();
-                alert("Successfully created a new template");
-    
+                showToast("Template created.");
+
                 return (
                     navigate(`/templates/${result.id}`)
                 );
             }
             else {
                 const response = await authenticatedFetch("/workouts", "POST", dataToSend);
+                if (!response.ok) {
+                    showToast("Couldn't save your workout. Please try again.", "error");
+                    return;
+                }
 
                 const result = await response.json();
-                alert("Successfully created a new workout");
-    
+                showToast("Workout saved. You are a beast 💪🏆");
+
                 return (
                     navigate(`/workouts/${result.id}`)
                 );
             }
         }
-        catch (error) {
-            alert(error);
+        catch {
+            showToast("Can't reach the server. Nothing was saved.", "error");
         }
     }
 

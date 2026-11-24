@@ -7,6 +7,7 @@ import ForgetPassword from "./components/ForgetPassword";
 import ResetPassword from "./components/ResetPassword";
 
 import AppLayout from "./components/AppLayout";
+import ToastProvider from "./components/ToastProvider";
 
 import WorkoutsHistory from "./components/WorkoutsHistory";
 import WorkoutView from "./components/WorkoutView";
@@ -44,6 +45,7 @@ function App() {
 
     return (
         <BrowserRouter>
+          <ToastProvider>
             <Routes>
 
                 <Route path={"/signup"} element={<Signup/>}></Route>
@@ -104,6 +106,7 @@ function App() {
                     </Route>
                 </Route>
             </Routes>
+          </ToastProvider>
         </BrowserRouter>
     )
 }
