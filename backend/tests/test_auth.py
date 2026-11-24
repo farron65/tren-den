@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from sqlmodel import select
 from models import User, RefreshToken
@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from auth_utils import verify_password
 
-def test_signup_success(create_user):
+async def test_signup_success(create_user):
     response = create_user
     
     assert response.status_code == 200
@@ -14,8 +14,8 @@ def test_signup_success(create_user):
     assert data["username"] == "user"
     assert data["email"] == "user@email.com"
 
-def test_signup_duplicate(client: TestClient, create_user):
-    response = client.post(
+async def test_signup_duplicate(client: AsyncClient, create_user):
+    response = await client.post(
         "/signup",
         json={
             "username": "user",
@@ -26,10 +26,10 @@ def test_signup_duplicate(client: TestClient, create_user):
     
     assert response.status_code == 409
     
-def test_login_success(client: TestClient, create_user):
+async def test_login_success(client: AsyncClient, create_user):
     user_credentials = create_user.json()
     
-    response = client.post(
+    response = await client.post(
         "/login",
         data={
             "username": user_credentials["username"],
@@ -39,8 +39,8 @@ def test_login_success(client: TestClient, create_user):
     
     assert response.status_code == 200
     
-def test_login_wrong_password(client: TestClient, create_user):
-    response = client.post(
+async def test_login_wrong_password(client: AsyncClient, create_user):
+    response = await client.post(
         "/login",
         data={
             "username": "user",
@@ -50,8 +50,8 @@ def test_login_wrong_password(client: TestClient, create_user):
     
     assert response.status_code == 401
     
-def test_login_nonexistent_user(client: TestClient, create_user):
-    response = client.post(
+async def test_login_nonexistent_user(client: AsyncClient, create_user):
+    response = await client.post(
         "/login",
         data={
             "username": "auth_user",
@@ -61,31 +61,33 @@ def test_login_nonexistent_user(client: TestClient, create_user):
     
     assert response.status_code == 401
         
-def test_refresh_token_success(client: TestClient, create_and_login_user, session_fixture):
+async def test_refresh_token_success(client: AsyncClient, create_and_login_user, session_fixture):
     token = create_and_login_user["refresh_token"]
     
-    user_refresh_token = session_fixture.exec(
+    result = await session_fixture.execute(
         select(RefreshToken).where(RefreshToken.refresh_token == token)
-    ).first()
+    )
+    user_refresh_token = result.scalars().first()
     
-    response = client.post(
+    response = await client.post(
         "/auth/refresh",
         data={
             "refresh_token": user_refresh_token.refresh_token
         }
     )
     
-    user_refresh_token = session_fixture.exec(
+    result = await session_fixture.execute(
         select(RefreshToken).where(RefreshToken.refresh_token == token)
-    ).first()
+    )
+    user_refresh_token = result.scalars().first()
     
     assert response.status_code == 200
     assert user_refresh_token.revoked is True
 
-def test_refresh_token_invalid(client: TestClient, create_and_login_user):
+async def test_refresh_token_invalid(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"] + "1"
     
-    response = client.post(
+    response = await client.post(
         "/auth/refresh",
         data={
             "refresh_token": token
@@ -94,10 +96,10 @@ def test_refresh_token_invalid(client: TestClient, create_and_login_user):
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid refresh token"}
     
-def test_refresh_token_revoked(client: TestClient, create_and_login_user, session_fixture):
+async def test_refresh_token_revoked(client: AsyncClient, create_and_login_user, session_fixture):
     token = create_and_login_user["refresh_token"]
     
-    response = client.post(
+    response = await client.post(
         "/auth/refresh",
         data={
             "refresh_token": token
@@ -106,11 +108,12 @@ def test_refresh_token_revoked(client: TestClient, create_and_login_user, sessio
     
     assert response.status_code == 200
     
-    user_refresh_token = session_fixture.exec(
+    result = await session_fixture.execute(
         select(RefreshToken).where(RefreshToken.refresh_token == token)
-    ).first()
+    )
+    user_refresh_token = result.scalars().first()
     
-    response = client.post(
+    response = await client.post(
         "/auth/refresh",
         data={
             "refresh_token": token
@@ -121,16 +124,16 @@ def test_refresh_token_revoked(client: TestClient, create_and_login_user, sessio
     assert user_refresh_token.revoked is True
     assert response.json() == {"detail": "Invalid refresh token"}
     
-def test_refresh_token_expired(client: TestClient, create_and_login_user, session_fixture):
+async def test_refresh_token_expired(client: AsyncClient, create_and_login_user, session_fixture):
     token = create_and_login_user["refresh_token"]
     
-    user_refresh_token = session_fixture.exec(
+    result = await session_fixture.execute(
         select(RefreshToken).where(RefreshToken.refresh_token == token)
-    ).first()
+    )
+    user_refresh_token = result.scalars().first()
     user_refresh_token.exp = datetime.now()
-
-    session_fixture.commit()
-    response = client.post(
+    await session_fixture.commit()
+    response = await client.post(
         "/auth/refresh",
         data={
             "refresh_token": user_refresh_token.refresh_token
@@ -140,8 +143,8 @@ def test_refresh_token_expired(client: TestClient, create_and_login_user, sessio
     assert response.json() == {"detail": "Refresh token is expired"}
 
     
-def test_forgot_password_success(client: TestClient, create_user, email_mock):
-    response = client.post(
+async def test_forgot_password_success(client: AsyncClient, create_user, email_mock):
+    response = await client.post(
         "/forgot-password",
         json={
             "email": create_user.json()["email"]
@@ -151,8 +154,8 @@ def test_forgot_password_success(client: TestClient, create_user, email_mock):
     assert response.status_code == 200
     assert email_mock["value"] is True
     
-def test_forgot_password_nonexistent_email(client: TestClient, email_mock):
-    response = client.post(
+async def test_forgot_password_nonexistent_email(client: AsyncClient, email_mock):
+    response = await client.post(
         "/forgot-password",
         json={
             "email": "random_email@gmail.com"
@@ -162,8 +165,8 @@ def test_forgot_password_nonexistent_email(client: TestClient, email_mock):
     assert response.status_code == 200
     assert email_mock["value"] is False
     
-def test_forgot_password_invalid_email(client: TestClient, email_mock):
-    response = client.post(
+async def test_forgot_password_invalid_email(client: AsyncClient, email_mock):
+    response = await client.post(
         "/forgot-password",
         json={
             "email": "invalid email"
@@ -173,21 +176,22 @@ def test_forgot_password_invalid_email(client: TestClient, email_mock):
     assert response.status_code == 422
     assert email_mock["value"] is False
     
-def test_reset_password_success(client: TestClient, create_user, session_fixture):
+async def test_reset_password_success(client: AsyncClient, create_user, session_fixture):
     user_credentials = create_user.json()
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
     
     user_old_hash_password = user.hashed_password
 
     user.reset_token = "test_token"
     user.reset_token_exp = datetime.now() + timedelta(minutes=10)
     
-    session_fixture.commit()
+    await session_fixture.commit()
     
-    response = client.post(
+    response = await client.post(
         "/reset-password",
         json={
             "token": user.reset_token,
@@ -195,9 +199,10 @@ def test_reset_password_success(client: TestClient, create_user, session_fixture
         }
     )
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
     
     assert response.status_code == 200
     assert user.reset_token is None
@@ -206,20 +211,21 @@ def test_reset_password_success(client: TestClient, create_user, session_fixture
     assert verify_password("test123", user.hashed_password) is False
     assert user_old_hash_password != user.hashed_password
     
-def test_reset_password_no_token(client: TestClient, create_user, session_fixture):
+async def test_reset_password_no_token(client: AsyncClient, create_user, session_fixture):
     user_credentials = create_user.json()
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
 
     user.reset_token = "test_token"
     user.reset_token_exp = datetime.now() + timedelta(minutes=10)
     user_old_password = user.hashed_password
     
-    session_fixture.commit()
+    await session_fixture.commit()
     
-    response = client.post(
+    response = await client.post(
         "/reset-password",
         json={
             "token": "invalid token",
@@ -227,9 +233,10 @@ def test_reset_password_no_token(client: TestClient, create_user, session_fixtur
         }
     )
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
     
     assert response.status_code == 404
     assert user_old_password == user.hashed_password
@@ -237,19 +244,20 @@ def test_reset_password_no_token(client: TestClient, create_user, session_fixtur
     assert user.reset_token_exp is not None
     assert response.json() == {"detail": "Reset token doesn't exist"}
     
-def test_reset_password_no_exp(client: TestClient, create_user, session_fixture):
+async def test_reset_password_no_exp(client: AsyncClient, create_user, session_fixture):
     user_credentials = create_user.json()
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
-
+    )
+    user = result.scalars().first()
+    
     user.reset_token = "test_token"
     user_old_password = user.hashed_password
     
-    session_fixture.commit()
+    await session_fixture.commit()
     
-    response = client.post(
+    response = await client.post(
         "/reset-password",
         json={
             "token": user.reset_token,
@@ -257,9 +265,10 @@ def test_reset_password_no_exp(client: TestClient, create_user, session_fixture)
         }
     )
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
     
     assert response.status_code == 404
     assert user_old_password == user.hashed_password
@@ -267,20 +276,21 @@ def test_reset_password_no_exp(client: TestClient, create_user, session_fixture)
     assert user.reset_token_exp is None
     assert response.json() == {"detail": "Not Found"}
     
-def test_reset_password_token_expired(client: TestClient, create_user, session_fixture):
+async def test_reset_password_token_expired(client: AsyncClient, create_user, session_fixture):
     user_credentials = create_user.json()
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
 
     user.reset_token = "test_token"
     user.reset_token_exp = datetime.now() - timedelta(minutes=10)
     user_old_password = user.hashed_password
 
-    session_fixture.commit()
+    await session_fixture.commit()
     
-    response = client.post(
+    response = await client.post(
         "/reset-password",
         json={
             "token": user.reset_token,
@@ -288,9 +298,10 @@ def test_reset_password_token_expired(client: TestClient, create_user, session_f
         }
     )
     
-    user = session_fixture.exec(
+    result = await session_fixture.execute(
         select(User).where(User.email == user_credentials["email"])
-    ).first()
+    )
+    user = result.scalars().first()
     
     assert response.status_code == 401
     assert user_old_password == user.hashed_password
