@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import DateTime
 from datetime import datetime, timezone
 
 class User(SQLModel, table=True):
@@ -26,7 +27,10 @@ class Template(SQLModel, table=True):
 class Workout(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workout_name: str = Field(index=True)
-    date: datetime = Field(index=True)
+    date: datetime = Field(
+        sa_type=DateTime(timezone=True), #type: ignore
+        index=True,
+    )
     
     user_id: int | None = Field(default=None, foreign_key="user.id")
     user: User | None = Relationship(back_populates="workouts")
@@ -61,6 +65,10 @@ class RefreshToken(SQLModel, table=True):
     user_id: int = Field(nullable=False, foreign_key="user.id")
     user: User = Relationship(back_populates="refresh_tokens")
     
-    exp: datetime = Field(nullable=False)
+    exp: datetime = Field(sa_type=DateTime(timezone=True), nullable=False) #type: ignore
     revoked: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_type=DateTime(timezone=True), #type: ignore
+        index=True,
+    )

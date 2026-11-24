@@ -1,12 +1,14 @@
 from sqlalchemy import func, desc
 
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
+
 from models import User, Workout, Exercise, SetDetails
 from schemas import WorkoutCreate
 
 from database import SessionDep
 
-def create_workout(workout: WorkoutCreate, current_user: User, session: SessionDep) -> Workout:
+async def create_workout(workout: WorkoutCreate, current_user: User, session: SessionDep) -> Workout:
     db_workout = Workout(workout_name=workout.workout_name, date=workout.date, user=current_user)
         
     for exercise in workout.exercises:
@@ -16,17 +18,26 @@ def create_workout(workout: WorkoutCreate, current_user: User, session: SessionD
             db_set = SetDetails(weight=set.weight, reps=set.reps, exercise=db_exercise)
             
     session.add(db_workout)
-    session.flush()
-    session.commit()
-    session.refresh(db_workout)
-    return db_workout
+    await session.flush() # assigns id without committing
+    workout_id = db_workout.id
+    await session.commit()
+    
+    result = await session.execute(
+        select(Workout)
+        .where(Workout.id == workout_id)
+        .options(selectinload(Workout.exercises).selectinload(Exercise.sets)) # type: ignore
+    )
+    return result.scalars().one()
 
-def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
-    user_exercise = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+async def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDep):
+    result = await session.execute(
+        select(Exercise).options(selectinload(Exercise.sets)) # type: ignore
+        .where(func.lower(Exercise.exercise_name) == exercise_name.lower())
         .join(Workout)
         .where(Workout.user == current_user)
-        .order_by(desc(Workout.date))).first() # type: ignore
-
+        .order_by(desc(Workout.date))) # type: ignore
+    user_exercise = result.scalars().first()
+    
     if not user_exercise:
         return None
     user_exercise_data = {"id": user_exercise.id, "exercise_name": user_exercise.exercise_name, "rest_time": user_exercise.rest_time, "sets": []}
@@ -36,16 +47,20 @@ def get_exercise_sets(exercise_name: str, current_user: User, session: SessionDe
 
     return user_exercise_data 
 
-def get_user_workout(workout_id: int, current_user: User, session: SessionDep) -> Workout | None:
-    user_workout = session.exec(select(Workout).where(Workout.id == workout_id).where(Workout.user == current_user)).first()
-    return user_workout if user_workout else None
+async def get_user_workout(workout_id: int, current_user: User, session: SessionDep) -> Workout | None:
+    result = await session.execute(select(Workout).where(Workout.id == workout_id).where(Workout.user == current_user).options(
+        (selectinload(Workout.exercises).selectinload(Exercise.sets)) # type: ignore
+    ))
+    return result.scalars().first()
 
-def get_exercise_history(exercise_name: str, current_user: User, session: SessionDep):
-    exercises_history = session.exec(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
+async def get_exercise_history(exercise_name: str, current_user: User, session: SessionDep):
+    result = await session.execute(select(Exercise).where(func.lower(Exercise.exercise_name) == exercise_name.lower())
         .join(Workout)
-        # .options(selectinload(Exercise.sets)).options(selectinload(Exercise.workout))  #type: ignore
+        .options(selectinload(Exercise.sets)) #type: ignore
         .where(Workout.user == current_user)
-        .order_by(desc(Workout.date))).all() # type: ignore
+        .order_by(desc(Workout.date))) # type: ignore
+    exercises_history = result.scalars().all()
+    
     current_volume = sum([s.weight * s.reps for s in exercises_history[0].sets])
     
     change_3 = None

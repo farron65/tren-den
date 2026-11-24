@@ -1,9 +1,10 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
+import pytest
 
-def test_create_template_duplicate(client: TestClient, create_and_login_user, create_template):
+async def test_create_template_duplicate(client: AsyncClient, create_and_login_user, create_template):
     token = create_and_login_user["access_token"]
     
-    response = client.post(
+    response = await client.post(
         "/templates",
         headers={
             "Authorization": f"Bearer {token}" 
@@ -13,11 +14,11 @@ def test_create_template_duplicate(client: TestClient, create_and_login_user, cr
     
     assert response.status_code == 409
     
-def test_get_template_success_with_prev_data(client: TestClient, create_and_login_user, create_workout):
+async def test_get_template_success_with_prev_data(client: AsyncClient, create_and_login_user, create_workout):
     token = create_and_login_user["access_token"]
-    user_workout = create_workout("2026-02-02")
+    user_workout = await create_workout("2026-02-02")
     
-    client.post(
+    await client.post(
         "/workouts",
         headers={
             "Authorization": f"Bearer {token}" 
@@ -28,7 +29,7 @@ def test_get_template_success_with_prev_data(client: TestClient, create_and_logi
     del user_workout["date"]
     
     
-    client.post(
+    await client.post(
         "/templates",
         headers={
             "Authorization": f"Bearer {token}" 
@@ -36,7 +37,7 @@ def test_get_template_success_with_prev_data(client: TestClient, create_and_logi
         json=user_workout
     )
     
-    response = client.get(
+    response = await client.get(
         "/templates/1",
         headers={
             "Authorization": f"Bearer {token}"
@@ -53,10 +54,11 @@ def test_get_template_success_with_prev_data(client: TestClient, create_and_logi
         template_exercises = [i["exercise_name"] for i in template_data["exercises"]] # since exercises is a list[dict]
         assert ex["exercise_name"] in template_exercises
     
-def test_get_template_success_wo_prev_data(client: TestClient, create_and_login_user, create_template):
+@pytest.mark.usefixtures("create_template")
+async def test_get_template_success_wo_prev_data(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.get(
+    response = await client.get(
         "/templates/1",
         headers={
             "Authorization": f"Bearer {token}"
@@ -66,11 +68,10 @@ def test_get_template_success_wo_prev_data(client: TestClient, create_and_login_
     assert response.status_code == 200
     response_data = response.json()
     assert response_data["previous_workout_data"] == []
-    
-def test_patch_template_values(client: TestClient, create_and_login_user, create_template):
+
+@pytest.mark.usefixtures("create_template")
+async def test_patch_template_values(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
-    template = create_template
-    # print(template)
     updated_exercises = [
         {
             "exercise_name": "Chest Fly",
@@ -106,7 +107,7 @@ def test_patch_template_values(client: TestClient, create_and_login_user, create
         }
     ]
     
-    response = client.patch(
+    response = await client.patch(
         "/templates/1",
         headers={
             "Authorization": f"Bearer {token}"
@@ -116,12 +117,13 @@ def test_patch_template_values(client: TestClient, create_and_login_user, create
     
     assert response.status_code == 200
     
-    updated_template = client.get(
+    response = await client.get(
         "/templates/1",
         headers={
             "Authorization": f"Bearer {token}"
         }
-    ).json()
+    )
+    updated_template = response.json()
     
     assert len(updated_template["exercises"]) == len(updated_exercises)
     
@@ -136,3 +138,57 @@ def test_patch_template_values(client: TestClient, create_and_login_user, create
             assert template_sets[j]["weight"] == updated_sets[j]["weight"]
             assert template_sets[j]["reps"] == updated_sets[j]["reps"]
             assert template_sets[j]["rest_time"] == updated_sets[j]["rest_time"]
+            
+async def test_update_template(client: AsyncClient, create_and_login_user, create_template):
+    token = create_and_login_user["access_token"]
+    template_id = create_template["id"]
+    updated_template = {
+        "workout_name": "Lower A",
+        "exercises": [
+            {
+                "exercise_name": "Squat",
+                "rest_time": 240,
+                "sets": [
+                    {"weight": 180, "reps": 5, "rest_time": 240},
+                    {"weight": 180, "reps": 5, "rest_time": 240},
+                    {"weight": 170, "reps": 6, "rest_time": 240}
+                ]
+            }
+        ]
+    }
+    
+    response = await client.put(
+        f"/templates/{template_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json=updated_template
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["workout_name"] == "Lower A"
+    assert len(data["exercises"]) == 1
+    assert data["exercises"][0]["exercise_name"] == "Squat"
+    assert data["exercises"][0]["rest_time"] == 240
+    assert len(data["exercises"][0]["sets"]) == 3
+    
+    # read it back to check the update was saved and the old exercises are gone
+    response = await client.get(
+        f"/templates/{template_id}",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    
+    saved = response.json()
+    assert saved["workout_name"] == "Lower A"
+    assert [ex["exercise_name"] for ex in saved["exercises"]] == ["Squat"]
+    assert len(saved["exercises"][0]["sets"]) == 3
+
+async def test_update_template_not_found(client: AsyncClient, create_and_login_user):
+    token = create_and_login_user["access_token"]
+    
+    response = await client.put(
+        "/templates/999",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"workout_name": "Nope", "exercises": []}
+    )
+    
+    assert response.status_code == 400

@@ -1,5 +1,4 @@
-from sqlmodel import create_engine, Session
-
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from typing import Annotated
 from fastapi import Depends
 
@@ -12,14 +11,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("Database url is missing")
 
-engine = create_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL)
 
-def get_session():
+async def get_session():
     # Provides a db session for each request
     # Session is automatically closed after the request completes
-    with Session(engine) as session:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
 
 # Type alias shortcut. Provides a database session via dependency injection
-SessionDep = Annotated[Session, Depends(get_session)]
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
 

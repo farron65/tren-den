@@ -1,26 +1,25 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
-def test_read_about(client: TestClient, create_and_login_user):
+async def test_read_about(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.get(
+    response = await client.get(
         "/about",
         headers={"Authorization": f"Bearer {token}"}
     )
-    
     assert response.status_code == 200
 
-def test_about_unauthorized(client: TestClient):
-    response = client.get("/about")
+async def test_about_unauthorized(client: AsyncClient):
+    response = await client.get("/about")
     assert response.status_code == 401
     
     data = response.json()
     assert "detail" in data
 
-def test_delete_user(client: TestClient, create_and_login_user):
+async def test_delete_user(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.request(
+    response = await client.request(
         "DELETE",
         "/delete/me",
         headers={"Authorization": f"Bearer {token}"},
@@ -35,10 +34,10 @@ def test_delete_user(client: TestClient, create_and_login_user):
     data = response.json()
     assert data["Success"] == True
     
-def test_delete_wrong_password(client: TestClient, create_and_login_user):
+async def test_delete_wrong_password(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.request(
+    response = await client.request(
         "DELETE",
         "/delete/me",
         headers={"Authorization": f"Bearer {token}"},
@@ -50,10 +49,10 @@ def test_delete_wrong_password(client: TestClient, create_and_login_user):
     
     assert response.status_code == 401
 
-def test_delete_no_confirmation(client: TestClient, create_and_login_user):
+async def test_delete_no_confirmation(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.request(
+    response = await client.request(
         "DELETE",
         "/delete/me",
         headers={"Authorization": f"Bearer {token}"},
@@ -68,8 +67,8 @@ def test_delete_no_confirmation(client: TestClient, create_and_login_user):
     data = response.json()
     assert "detail" in data
     
-def test_delete_user_no_credentials(client: TestClient):
-    response = client.request(
+async def test_delete_user_no_credentials(client: AsyncClient):
+    response = await client.request(
         "DELETE",
         "/delete/me",
         json={

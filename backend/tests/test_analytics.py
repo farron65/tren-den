@@ -1,8 +1,8 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
-def test_get_exercise_analytics_success(client: TestClient, create_and_login_user, create_workout):
+async def test_get_exercise_analytics_success(client: AsyncClient, create_and_login_user, create_workout):
     token = create_and_login_user["access_token"]
-    create_workout("2025-02-02")
+    await create_workout("2025-02-02")
     exercise_name = "Chest Fly"
     
     wk2 = [
@@ -53,9 +53,9 @@ def test_get_exercise_analytics_success(client: TestClient, create_and_login_use
         }
     ]
     
-    create_workout("2025-02-07", wk2)
-    create_workout("2025-02-10", wk3)
-    create_workout("2025-02-12", latest_wk)
+    await create_workout("2025-02-07", wk2)
+    await create_workout("2025-02-10", wk3)
+    await create_workout("2025-02-12", latest_wk)
     
     latest_wk_session_volume = sum([s["weight"] * s["reps"] for s in latest_wk[0]["sets"]])
     first_wk_session_volume = 100*8*2
@@ -67,7 +67,7 @@ def test_get_exercise_analytics_success(client: TestClient, create_and_login_use
     avg_3 = round((latest_wk_session_volume / previous_3_volume -1) * 100, 1)
 
     
-    response = client.get(
+    response = await client.get(
         f"/exercises/analytics/{exercise_name}",
         headers={
             "Authorization": f"Bearer {token}",
@@ -109,10 +109,10 @@ def test_get_exercise_analytics_success(client: TestClient, create_and_login_use
     assert volumes_data[3]["reps"] == 8
     assert volumes_data[3]["volume_change"] == -27.3
     
-def test_get_exercise_analytics_empty(client: TestClient, create_and_login_user):
+async def test_get_exercise_analytics_empty(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.get(
+    response = await client.get(
         "exercises/analytics/chest fly",
         headers={
             "Authorization": f"Bearer {token}"
@@ -122,8 +122,8 @@ def test_get_exercise_analytics_empty(client: TestClient, create_and_login_user)
     assert response.status_code == 200
     assert response.json() == []
 
-def test_get_exercise_analytics_auth_boundaries(client: TestClient, create_workout):
-    create_workout("2025-02-02")
+async def test_get_exercise_analytics_auth_boundaries(client: AsyncClient, create_workout):
+    await create_workout("2025-02-02")
     exercise_name = "Chest Fly"
     
     wk2 = [
@@ -174,11 +174,11 @@ def test_get_exercise_analytics_auth_boundaries(client: TestClient, create_worko
         }
     ]
     
-    create_workout("2025-02-07", wk2)
-    create_workout("2025-02-10", wk3)
-    create_workout("2025-02-12", latest_wk)
+    await create_workout("2025-02-07", wk2)
+    await create_workout("2025-02-10", wk3)
+    await create_workout("2025-02-12", latest_wk)
     
-    client.post(
+    await client.post(
         "/signup",
         json={
             "username": "second_user",
@@ -187,15 +187,16 @@ def test_get_exercise_analytics_auth_boundaries(client: TestClient, create_worko
         }
     )
     
-    second_user_token = client.post(
+    result = await client.post(
         "/login",
         data={
             "username": "second_user",
             "password": "test123"
         }
-    ).json()["access_token"]
+    )
+    second_user_token = result.json()["access_token"]
         
-    response = client.get(
+    response = await client.get(
         f"/exercises/analytics/{exercise_name}",
         headers={
             "Authorization": f"Bearer {second_user_token}",
@@ -206,9 +207,9 @@ def test_get_exercise_analytics_auth_boundaries(client: TestClient, create_worko
     assert response.json() == []
 
 
-def test_get_exercise_analytics_case_insensitive(client: TestClient, create_and_login_user, create_workout):
+async def test_get_exercise_analytics_case_insensitive(client: AsyncClient, create_and_login_user, create_workout):
     token = create_and_login_user["access_token"]
-    create_workout("2025-02-02")
+    await create_workout("2025-02-02")
     exercise_name = "chest fly"
     
     wk2 = [
@@ -225,9 +226,9 @@ def test_get_exercise_analytics_case_insensitive(client: TestClient, create_and_
         }
     ]
     
-    create_workout("2025-02-03", wk2)
+    await create_workout("2025-02-03", wk2)
     
-    response = client.get(
+    response = await client.get(
         "/exercises/analytics/CHEST FLY",
         headers={
             "Authorization": f"Bearer {token}"
@@ -237,13 +238,13 @@ def test_get_exercise_analytics_case_insensitive(client: TestClient, create_and_
     assert response.status_code == 200
     assert len(response.json()["data"]) == 2
     
-def test_get_recent_exercises_success(client: TestClient, create_and_login_user, create_workout):
+async def test_get_recent_exercises_success(client: AsyncClient, create_and_login_user, create_workout):
     token = create_and_login_user["access_token"]
     
-    create_workout("2026-02-02")
-    create_workout("2026-02-04")
+    await create_workout("2026-02-02")
+    await create_workout("2026-02-04")
     
-    response = client.get(
+    response = await client.get(
         "/exercises/recent",
         headers={
             "Authorization": f"Bearer {token}"
@@ -257,10 +258,10 @@ def test_get_recent_exercises_success(client: TestClient, create_and_login_user,
     assert "chest fly" == response_data[0]["exercise_name"].lower()
     assert "lat pulldown" == response_data[1]["exercise_name"].lower()
     
-def test_get_recent_exercises_empty(client: TestClient, create_and_login_user):
+async def test_get_recent_exercises_empty(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.get(
+    response = await client.get(
         "/exercises/recent",
         headers={
             "Authorization": f"Bearer {token}"
@@ -270,9 +271,9 @@ def test_get_recent_exercises_empty(client: TestClient, create_and_login_user):
     assert response.status_code == 200
     assert response.json() == []
     
-def test_get_recent_check_limit(client: TestClient, create_and_login_user, create_30_workouts):
+async def test_get_recent_check_limit(client: AsyncClient, create_and_login_user, create_30_workouts):
     token = create_and_login_user["access_token"]
-    response = client.get(
+    response = await client.get(
         "/exercises/recent",
         headers={
             "Authorization": f"Bearer {token}"
@@ -282,12 +283,12 @@ def test_get_recent_check_limit(client: TestClient, create_and_login_user, creat
     assert response.status_code == 200
     assert len(response.json()) == 25
     
-def test_get_exercise_data_success(client: TestClient, create_and_login_user, create_workout):
+async def test_get_exercise_data_success(client: AsyncClient, create_and_login_user, create_workout):
     token = create_and_login_user["access_token"]
     
-    create_workout("2025-02-02")
+    await create_workout("2025-02-02")
     
-    response = client.get(
+    response = await client.get(
         "/exercises/chest fly",
         headers={
             "Authorization": f"Bearer {token}"
@@ -297,10 +298,10 @@ def test_get_exercise_data_success(client: TestClient, create_and_login_user, cr
     assert response.status_code == 200
     assert "chest fly" in response.json()["exercise_name"].lower()
     
-def test_get_exercise_data_empty(client: TestClient, create_and_login_user):
+async def test_get_exercise_data_empty(client: AsyncClient, create_and_login_user):
     token = create_and_login_user["access_token"]
     
-    response = client.get(
+    response = await client.get(
         "/exercises/chest_fly",
         headers={
             "Authorization": f"Bearer {token}"
@@ -310,10 +311,10 @@ def test_get_exercise_data_empty(client: TestClient, create_and_login_user):
     assert response.status_code == 200
     assert response.json() == None
     
-def test_get_exercise_data_auth_boundaries(client: TestClient, create_workout):
-    create_workout("2025-02-02")
+async def test_get_exercise_data_auth_boundaries(client: AsyncClient, create_workout):
+    await create_workout("2025-02-02")
     
-    client.post(
+    await client.post(
         "/signup",
         json={
             "username": "second_user",
@@ -322,15 +323,16 @@ def test_get_exercise_data_auth_boundaries(client: TestClient, create_workout):
         }
     )
     
-    second_user_token = client.post(
+    result = await client.post(
         "/login",
         data={
             "username": "second_user",
             "password": "test123"
         }
-    ).json()["access_token"]
+    )
+    second_user_token = result.json()["access_token"]
         
-    response = client.get(
+    response = await client.get(
         f"/exercises/chest fly",
         headers={
             "Authorization": f"Bearer {second_user_token}",
