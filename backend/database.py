@@ -16,7 +16,7 @@ engine = create_async_engine(DATABASE_URL)
 async def get_session():
     # Provides a db session for each request
     # Session is automatically closed after the request completes
-    async with AsyncSession(engine) as session:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
 
 # Type alias shortcut. Provides a database session via dependency injection

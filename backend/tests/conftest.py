@@ -28,7 +28,7 @@ async def session_fixture():
     connection = await engine.connect() # create a new connection to the engine
     transaction = await connection.begin() # start it
     
-    session = AsyncSession(bind=connection) # bind session to same connection
+    session = AsyncSession(bind=connection, expire_on_commit=False) # bind session to same connection
     def override_get_session(): # a function that will override 'get_session' since fastapi doesn't know how to call fixtures
         yield session # use by FastAPI routes
             

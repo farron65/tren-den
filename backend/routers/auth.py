@@ -6,6 +6,8 @@ from auth_utils import authenticate_user, hash_password, create_access_token, cr
 import secrets
 
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
+
 from datetime import timedelta, datetime, timezone
 from database import SessionDep
 
@@ -52,7 +54,9 @@ async def login(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depe
 
 @router.post("/auth/refresh", response_model=Token)
 async def refresh_token_endpoint(session: SessionDep, refresh_token: str = Form( )):
-    result = await session.execute(select(RefreshToken).where(RefreshToken.refresh_token == refresh_token))
+    result = await session.execute(select(RefreshToken)
+                    .where(RefreshToken.refresh_token == refresh_token)
+                    .options(selectinload(RefreshToken.user))) # type: ignore
     token = result.scalars().first()
     
     if not token or token.revoked:
