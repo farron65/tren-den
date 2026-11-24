@@ -124,7 +124,10 @@ async def update_template(template_id: int, updated_template: TemplateCreate, cu
             db_set = SetDetails(weight=updated_set.weight, reps=updated_set.reps, rest_time=updated_set.rest_time, exercise=db_exercise)
         
         session.add(db_exercise)
+        
     await session.commit() 
+    await session.refresh(user_template)
+    
     result = await session.execute(
             select(Template)
             .where(Template.id == template_id)

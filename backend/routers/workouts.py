@@ -81,8 +81,9 @@ async def update_workout(workout_id: int, updated_workout: WorkoutCreate, curren
         session.add(db_exercise)
 
     await session.commit() # save everything first
-
-    result = await session.execute(  # then fetch it fresh, with relationships loaded
+    await session.refresh(user_workout)
+    
+    result = await session.execute(
         select(Workout)
         .where(Workout.id == workout_id)
         .options(selectinload(Workout.exercises).selectinload(Exercise.sets))  # type: ignore
