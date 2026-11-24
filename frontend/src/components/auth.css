@@ -165,6 +165,35 @@
     font-weight: 900;
 }
 
+/* ===== Error Message ===== */
+.auth-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(176, 0, 0, 0.15);
+    border: 1px solid #b00000;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    color: #f5c2c2;
+    font-size: 14px;
+    font-weight: 700;
+    animation: fadeInUp 220ms ease-out;
+}
+
+.auth-error-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #b00000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+}
+
 /* subtle entrance */
 @keyframes fadeInUp {
     from {
