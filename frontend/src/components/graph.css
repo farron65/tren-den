@@ -231,35 +231,107 @@
 /* ===== Tooltip ===== */
 .graph-tooltip {
     background: #0f0f0f;
-    border: 1px solid #2c8863;
-    border-radius: 6px;
+    border: 1px solid #2c8863; /* overridden inline with the metric's color */
+    border-radius: 8px;
     padding: 12px 14px;
     font-size: 13px;
     color: #eaeaea;
     min-width: 200px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-.graph-tooltip strong {
-    font-weight: 900;
+.graph-tooltip .tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.graph-tooltip .tooltip-title {
+    font-weight: 700;
     font-size: 14px;
     color: #ffffff;
 }
 
 .graph-tooltip .tooltip-date {
     font-size: 12px;
-    color: #9a9a9a;
-    margin-bottom: 6px;
+    color: #8a8a8a;
+    margin: 2px 0 10px;
 }
 
-.graph-tooltip hr {
-    border: none;
-    border-top: 1px solid #1a1a1a;
-    margin: 6px 0;
+.graph-tooltip .tooltip-metric-label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a8a8a;
+}
+
+.graph-tooltip .tooltip-metric-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 2px 0 8px;
+}
+
+.graph-tooltip .tooltip-sets {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+    border-top: 1px solid #1f1f1f;
 }
 
 .graph-tooltip .set-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
     font-size: 12px;
     color: #cfcfcf;
+}
+
+.graph-tooltip .set-number { color: #7a7a7a; }
+
+.graph-tooltip .tooltip-change {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.graph-tooltip .tooltip-change.positive { color: #34d399; }
+.graph-tooltip .tooltip-change.negative { color: #f87171; }
+.graph-tooltip .tooltip-change.stagnation { color: #94a3b8; }
+
+/* Radiating glow behind PR dots. Only transform and opacity animate,
+   which the browser hands to the GPU, so it stays cheap on phones. */
+.pr-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pr-pulse 2.4s ease-out infinite;
+    pointer-events: none;
+}
+
+@keyframes pr-pulse {
+    0%   { transform: scale(0.5); opacity: 0.6; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pr-pulse {
+        animation: none;
+        opacity: 0.25;
+    }
+}
+
+/* PR badge next to the workout name; keep the color in sync with PR_COLOR in Graphs.tsx */
+.graph-tooltip .tooltip-pr {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #fa1515;
+    background: rgba(250, 21, 21, 0.12);
+    border: 1px solid rgba(250, 21, 21, 0.4);
+    border-radius: 999px;
+    padding: 2px 8px;
 }
 
 /* ===== Mobile ===== */
@@ -317,8 +389,9 @@
         min-width: 160px;
     }
 
-    .graph-tooltip strong { font-size: 13px; }
+    .graph-tooltip .tooltip-title { font-size: 13px; }
     .graph-tooltip .tooltip-date { font-size: 11px; }
+    .graph-tooltip .tooltip-metric-value { font-size: 16px; }
     .graph-tooltip .set-line { font-size: 12px; }
 
     .progress-chart text { font-size: 10px; }

@@ -21,6 +21,8 @@ interface ChartPoint {
     volume_change: number
 }
 
+type MetricKey = "weight" | "session_volume" | "best_set_volume";
+
 interface AnalyticsResponse {
     data: ChartPoint[]
     summary: {
@@ -33,7 +35,8 @@ export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<AnalyticsResponse | null>(null);
     const [selectedMetric, setSelectedMetric] = useState("weight");
-    const [selectedRange, setSelectedRange] = useState("6M");
+    // Phones start on a shorter range so the chart isn't crammed on first load
+    const [selectedRange, setSelectedRange] = useState(window.innerWidth <= 450 ? "3M" : "6M");
 
     const {searchedExercise, debouncedExerciseSearch, setSearchedExercise} = useExerciseSearch();
     const [inputFieldValue, setInputFieldValue] = useState("");
@@ -66,19 +69,52 @@ export default function Graphs() {
         "All": null,
     };
 
-    // Above this many points, dots overlap and chop up the line, so hide them
-    const DENSE_POINT_THRESHOLD = 30;
+    // Above this many points, dots overlap and chop up the line, so hide them.
+    // Phones have about a third of the width, so they hit that much sooner.
+    const DENSE_POINT_THRESHOLD = isMobile ? 12 : 30;
 
     const hasAnyData = !!exerciseData?.data && exerciseData.data.length > 0;
 
+    const PR_COLOR = "#fa1515";
+
     // Timestamps let the x-axis space workouts by real time instead of evenly
+    const allPoints = (exerciseData?.data ?? [])
+        .map(point => ({ ...point, timestamp: new Date(point.date).getTime(), isPR: false }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+    // A PR beats every earlier workout on the selected metric (ties don't count).
+    // Runs over the full history before the range filter, so a short range
+    // doesn't turn its first workout into a fake PR.
+    let bestSoFar = -Infinity;
+    allPoints.forEach((point, i) => {
+        const value = point[selectedMetric as MetricKey];
+        point.isPR = i > 0 && value > bestSoFar;
+        bestSoFar = Math.max(bestSoFar, value);
+    });
+
     const rangeDays = RANGE_DAYS[selectedRange];
     const rangeStart = rangeDays === null ? null : Date.now() - rangeDays * 24 * 60 * 60 * 1000;
-    const chartData = (exerciseData?.data ?? [])
-        .map(point => ({ ...point, timestamp: new Date(point.date).getTime() }))
-        .filter(point => rangeStart === null || point.timestamp >= rangeStart);
+    const chartData = allPoints.filter(point => rangeStart === null || point.timestamp >= rangeStart);
 
     const isDense = chartData.length > DENSE_POINT_THRESHOLD;
+
+    // PR dots always show; normal dots are hidden when the chart is dense
+    function renderDot({ cx, cy, index, payload }: { cx?: number, cy?: number, index?: number, payload?: { isPR?: boolean } }) {
+        const key = `dot-${index}`;
+        if (cx == null || cy == null) return <g key={key} />;
+
+        if (payload?.isPR) {
+            return (
+                <g key={key}>
+                    <circle className="pr-pulse" cx={cx} cy={cy} r={9} fill={PR_COLOR} opacity={0.25} />
+                    <circle cx={cx} cy={cy} r={5} fill={PR_COLOR} stroke={DOT_STYLE.stroke} strokeWidth={1.5} />
+                </g>
+            );
+        }
+
+        if (isDense) return <g key={key} />;
+        return <circle key={key} cx={cx} cy={cy} r={4} fill={DOT_STYLE.fill} stroke={DOT_STYLE.stroke} />;
+    }
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 450);
@@ -134,33 +170,36 @@ export default function Graphs() {
         if (!active || !payload.length) return;
 
         const point = payload[0].payload;
+        const metricValue = selectedMetric === "weight"
+            ? `${point.weight} lbs × ${point.reps}`
+            : `${point[selectedMetric]} lbs`;
+        const change: number = point.volume_change;
+        const changeClass = change > 0 ? "positive" : change < 0 ? "negative" : "stagnation";
+
         return (
-            <div className="graph-tooltip">
-                <strong>{point.workout_name}</strong>
+            <div className="graph-tooltip" style={{ borderColor: METRIC_STYLE[selectedMetric].color }}>
+                <div className="tooltip-header">
+                    <span className="tooltip-title">{point.workout_name}</span>
+                    {point.isPR && <span className="tooltip-pr">PR</span>}
+                </div>
                 <div className="tooltip-date">
-                    {new Date(point.date).toLocaleDateString()}
+                    {new Date(point.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </div>
 
-                <hr />
-                <div>
-                    {selectedMetric === "weight" && 
-                        <strong>Heaviest Weight: {point.weight} lbs x {point.reps}</strong>
-                    }
-                    {selectedMetric === "session_volume" && 
-                        <strong>Session Volume: {point.session_volume} lbs </strong>
-                    }
-                    {selectedMetric === "best_set_volume" && 
-                        <strong>Best Set Volume: {point.best_set_volume} lbs </strong>
-                    }
-                    
+                <div className="tooltip-metric-label">{METRIC_NAME[selectedMetric]}</div>
+                <div className="tooltip-metric-value">{metricValue}</div>
+
+                <div className="tooltip-sets">
                     {point.sets.map((set: any, i: number) => (
                         <div key={i} className="set-line">
-                            Set {i+1}: {set.weight} lbs x {set.reps}
+                            <span className="set-number">Set {i+1}</span>
+                            <span>{set.weight} lbs × {set.reps}</span>
                         </div>
                     ))}
-                    {
-                        <strong>Volume {point.volume_change > 0 ? "+" : ""} {point.volume_change}% last session</strong>
-                    }
+                </div>
+
+                <div className={`tooltip-change ${changeClass}`}>
+                    {change > 0 ? "▲" : change < 0 ? "▼" : "•"} {Math.abs(change)}% volume vs last session
                 </div>
             </div>
         )
@@ -232,7 +271,7 @@ export default function Graphs() {
                         stroke={METRIC_STYLE[selectedMetric].color}
                         type="monotone"
                         strokeWidth={isDense ? 2 : 3}
-                        dot={isDense ? false : { r: 4, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke}}
+                        dot={renderDot}
                         activeDot={{ r: 6, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke }}
                     />
                     <Legend />
