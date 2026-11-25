@@ -1,6 +1,8 @@
 from httpx import AsyncClient
+import pytest
 
 from sqlmodel import select
+
 from models import User, RefreshToken
 from datetime import datetime, timedelta
 
@@ -13,8 +15,9 @@ async def test_signup_success(create_user):
     data = response.json()
     assert data["username"] == "user"
     assert data["email"] == "user@email.com"
-
-async def test_signup_duplicate(client: AsyncClient, create_user):
+    
+@pytest.mark.usefixtures("create_user")
+async def test_signup_duplicate(client: AsyncClient):
     response = await client.post(
         "/signup",
         json={
@@ -23,7 +26,6 @@ async def test_signup_duplicate(client: AsyncClient, create_user):
             "password": "test123"
         }
     )
-    
     assert response.status_code == 409
     
 async def test_login_success(client: AsyncClient, create_user):
@@ -39,7 +41,8 @@ async def test_login_success(client: AsyncClient, create_user):
     
     assert response.status_code == 200
     
-async def test_login_wrong_password(client: AsyncClient, create_user):
+@pytest.mark.usefixtures("create_user")
+async def test_login_wrong_password(client: AsyncClient):
     response = await client.post(
         "/login",
         data={
@@ -50,7 +53,8 @@ async def test_login_wrong_password(client: AsyncClient, create_user):
     
     assert response.status_code == 401
     
-async def test_login_nonexistent_user(client: AsyncClient, create_user):
+@pytest.mark.usefixtures("create_user")
+async def test_login_nonexistent_user(client: AsyncClient):
     response = await client.post(
         "/login",
         data={
