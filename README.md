@@ -20,17 +20,19 @@ included for free. Let's go, LET'S GET JACKED 🦅
 - Automatic cascade deletes for nested entities
 - Backend analytics API that returns historical exercise data
 - Progress visualization using line charts
+- Import workouts from Strong and Hevy by pasting the app's shared text, or through a Telegram bot (authenticated with an API key)
 
 ---
 
 ## Tech Stack
 
 ### Backend
-- FastAPI
-- SQLModel (ORM)
+- FastAPI (fully async)
+- SQLModel models with async SQLAlchemy (`AsyncSession`) and `asyncpg`
 - PostgreSQL
+- Alembic (database migrations)
 - Pydantic (data validation & schemas)
-- JWT authentication
+- JWT authentication, bcrypt password hashing
 
 ### Frontend
 - React (Vite)
@@ -40,14 +42,27 @@ included for free. Let's go, LET'S GET JACKED 🦅
 ### DevOps
 - Docker (multi-stage builds)
 - Docker Compose (backend, frontend, and local PostgreSQL)
+- GitHub Actions CI (runs the test suite on every pull request)
+
+---
+
+## Performance
+
+The backend was migrated from blocking database calls to async SQLAlchemy, and load-tested before and after (same machine, fresh database per run):
+
+- **No more deadlock under load.** The old version froze completely at 50–100 concurrent users (FastAPI's thread pool and the database connection pool were waiting on each other). The async version kept serving ~170 reads/s at 100 users.
+- **~10x login throughput.** Load testing showed bcrypt blocking the event loop, capping login at ~5 req/s. Running it in a thread pool raised that to ~54 req/s at 100 concurrent users.
+
+Full results, methodology, and the scripts to rerun them: [`backend/loadtest/`](backend/loadtest/loadtest-results.txt)
 
 ---
 
 ## Current Status
 
-- Deployed and usable
-- Feature-complete v1
-- Maintained as needed 
+- Deployed and in use
+- Recently migrated to async and load-tested
+- Maintained as needed
+
 ---
 
 ## Local Development
@@ -75,15 +90,19 @@ included for free. Let's go, LET'S GET JACKED 🦅
 
 1. Clone the repository
 2. Create a PostgreSQL database
-3. Set environment variables (see `.env.example`):
-   - `DATABASE_URL` - PostgreSQL connection string
+3. Set environment variables in `backend/.env` (see `.env.example`):
+   - `DATABASE_URL` - PostgreSQL connection string. Must use the async driver: `postgresql+asyncpg://user:password@host:port/dbname`
    - `SECRET_KEY` - used to sign JWTs
    - `ACCESS_TOKEN_EXPIRE_MINUTES` - JWT expiration time
    - `ALGORITHM` - JWT signing algorithm (I'm using HS256)
    - `RESEND_EMAIL_API_KEY` - API key for sending emails
    - `CORS_ORIGINS` - comma-separated list of allowed frontend origins (e.g `http://localhost:5173,http://localhost:8080`)
-4. Run:
+   - `BOT_API_KEY` - shared secret the Telegram bot uses to call the import endpoint
+   - `BOT_USERNAME` - the Tren Den user that bot imports are saved to
+4. From `backend/`, apply migrations and start the server:
 ```bash
+   pip install -r requirements.txt
+   alembic upgrade head
    uvicorn main:app --reload
 ```
 
@@ -100,7 +119,7 @@ included for free. Let's go, LET'S GET JACKED 🦅
 
 ## Testing
 
-Backend is tested using pytest and FastAPI's TestClient.
+The backend is tested with pytest, `pytest-asyncio`, and `httpx.AsyncClient`, against an in-memory SQLite database. GitHub Actions runs the suite on every pull request.
 
 Tests cover:
 - Auth endpoints (signup, login, token refresh, password reset)
@@ -108,8 +127,11 @@ Tests cover:
 - Workout CRUD
 - Templates
 - Exercise analytics (happy path, empty states, auth boundaries)
+- Workout imports (Strong parser, bot API key)
 
-To run tests:
+To run tests, from `backend/`:
 ```bash
-pytest 
+pytest
 ```
+
+Load tests live in [`backend/loadtest/`](backend/loadtest/); see `run_version.sh` for usage.
