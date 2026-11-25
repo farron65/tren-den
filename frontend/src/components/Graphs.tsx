@@ -33,6 +33,7 @@ export default function Graphs() {
 
     const [exerciseData, setExercise] = useState<AnalyticsResponse | null>(null);
     const [selectedMetric, setSelectedMetric] = useState("weight");
+    const [selectedRange, setSelectedRange] = useState("6M");
 
     const {searchedExercise, debouncedExerciseSearch, setSearchedExercise} = useExerciseSearch();
     const [inputFieldValue, setInputFieldValue] = useState("");
@@ -55,7 +56,30 @@ export default function Graphs() {
         fill: "#eaeaea",     // same as your text color
         stroke: "#0b0b0b",   // chart background
     };
-    
+
+    // Days covered by each range option; null means show everything
+    const RANGE_DAYS: Record<string, number | null> = {
+        "1M": 30,
+        "3M": 90,
+        "6M": 182,
+        "1Y": 365,
+        "All": null,
+    };
+
+    // Above this many points, dots overlap and chop up the line, so hide them
+    const DENSE_POINT_THRESHOLD = 30;
+
+    const hasAnyData = !!exerciseData?.data && exerciseData.data.length > 0;
+
+    // Timestamps let the x-axis space workouts by real time instead of evenly
+    const rangeDays = RANGE_DAYS[selectedRange];
+    const rangeStart = rangeDays === null ? null : Date.now() - rangeDays * 24 * 60 * 60 * 1000;
+    const chartData = (exerciseData?.data ?? [])
+        .map(point => ({ ...point, timestamp: new Date(point.date).getTime() }))
+        .filter(point => rangeStart === null || point.timestamp >= rangeStart);
+
+    const isDense = chartData.length > DENSE_POINT_THRESHOLD;
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 450);
         window.addEventListener("resize", handleResize);
@@ -145,7 +169,16 @@ export default function Graphs() {
     return (
         <div className="page graph-page">
             <div className="graph-card">
-                {(!exerciseData || !exerciseData.data || exerciseData.data.length === 0) &&
+                {hasAnyData && chartData.length === 0 &&
+                    <div className="graph-empty">
+                        <div className="graph-empty-content">
+                            <div className="graph-empty-row">
+                                <span>No workouts in this time range, try a longer one</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                {!hasAnyData &&
                     <div className="graph-empty">
                         <div className="graph-empty-content">
                             <div className="graph-empty-row">
@@ -187,18 +220,20 @@ export default function Graphs() {
                     </div>
                 
                 }
-                <LineChart className="progress-chart" responsive data={exerciseData?.data}
+                <LineChart className="progress-chart" responsive data={chartData}
                     style={{ width: "100%" }}
                     margin={chartMargin}>
                     <CartesianGrid/>
-                    <XAxis dataKey={"date"} tickFormatter={formatXAxis} padding={{ left: 30, right: 30}}/>
+                    <XAxis dataKey="timestamp" type="number" scale="time" domain={["dataMin", "dataMax"]}
+                        tickFormatter={formatXAxis} tickCount={isMobile ? 4 : 8} padding={{ left: 30, right: 30}}/>
                     <YAxis dataKey={selectedMetric} unit=" lbs" tickCount={6} padding={{ top: 30}}/>
                     <Tooltip cursor={{ strokeDasharray: "3 3"}} offset={isMobile ? 20 : 10} content={SetsToolTip}/>
                     <Line dataKey={selectedMetric} name={METRIC_NAME[selectedMetric]} fill="#1dd617ff"
                         stroke={METRIC_STYLE[selectedMetric].color}
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke}}
-                        activeDot={{ r: 6 }}
+                        type="monotone"
+                        strokeWidth={isDense ? 2 : 3}
+                        dot={isDense ? false : { r: 4, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke}}
+                        activeDot={{ r: 6, fill: DOT_STYLE.fill, stroke: DOT_STYLE.stroke }}
                     />
                     <Legend />
                 </LineChart>
@@ -233,6 +268,16 @@ export default function Graphs() {
                         <option value="weight">Heaviest Weight</option>
                         <option value="session_volume">Session Volume</option>
                         <option value="best_set_volume">Best Set Volume</option>
+                    </select>
+                </div>
+                <div className="graph-select">
+                    <label>Range</label>
+
+                    <select name="range" id="range" value={selectedRange}
+                        onChange={e => setSelectedRange(e.target.value)}>
+                        {Object.keys(RANGE_DAYS).map(range => (
+                            <option key={range} value={range}>{range}</option>
+                        ))}
                     </select>
                 </div>
             </div>
