@@ -79,17 +79,19 @@ export default function Graphs() {
 
     // Timestamps let the x-axis space workouts by real time instead of evenly
     const allPoints = (exerciseData?.data ?? [])
-        .map(point => ({ ...point, timestamp: new Date(point.date).getTime(), isPR: false }))
+        .map(point => ({ ...point, timestamp: new Date(point.date).getTime(), isPR: false, personalBest: 0 }))
         .sort((a, b) => a.timestamp - b.timestamp);
 
     // A PR beats every earlier workout on the selected metric (ties don't count).
+    // personalBest is the record as of each workout, used for "X lbs below PR" in the tooltip.
     // Runs over the full history before the range filter, so a short range
-    // doesn't turn its first workout into a fake PR.
+    // doesn't turn its first workout into a fake PR or a fake record.
     let bestSoFar = -Infinity;
     allPoints.forEach((point, i) => {
         const value = point[selectedMetric as MetricKey];
         point.isPR = i > 0 && value > bestSoFar;
         bestSoFar = Math.max(bestSoFar, value);
+        point.personalBest = bestSoFar;
     });
 
     const rangeDays = RANGE_DAYS[selectedRange];
@@ -173,6 +175,7 @@ export default function Graphs() {
         const metricValue = selectedMetric === "weight"
             ? `${point.weight} lbs × ${point.reps}`
             : `${point[selectedMetric]} lbs`;
+        const belowPR = Math.round((point.personalBest - point[selectedMetric]) * 10) / 10;
         const change: number = point.volume_change;
         const changeClass = change > 0 ? "positive" : change < 0 ? "negative" : "stagnation";
 
@@ -188,6 +191,12 @@ export default function Graphs() {
 
                 <div className="tooltip-metric-label">{METRIC_NAME[selectedMetric]}</div>
                 <div className="tooltip-metric-value">{metricValue}</div>
+                {/* PR workouts already have the badge, so they skip this line */}
+                {!point.isPR && (
+                    <div className="tooltip-below-pr">
+                        {belowPR > 0 ? `${belowPR} lbs below PR` : "Matches PR"}
+                    </div>
+                )}
 
                 <div className="tooltip-sets">
                     {point.sets.map((set: any, i: number) => (
