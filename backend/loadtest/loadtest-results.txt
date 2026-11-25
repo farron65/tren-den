@@ -1,0 +1,166 @@
+TREN DEN LOAD TEST: before vs after the async migration
+=======================================================
+sync  = main at b90421c (before PR #2): async def endpoints calling the
+        blocking session.exec(), psycopg2, sync def dependencies
+async = main at eb12a14 (after PR #2): AsyncSession + asyncpg
+
+Sync vs async sections: earlier runs, raw data not kept.
+Bcrypt fix section: results/results_before_mine.json and results_mine.json.
+
+SETUP
+- Same machine (Windows), Postgres 18 in Docker, 1 uvicorn worker each,
+  access logs off. Default SQLAlchemy pool (5 + 10 overflow = 15 connections).
+- Each version gets its own fresh DB seeded with the same data:
+  20 users x 30 workouts (4 exercises x 3 sets).
+- Closed loop: N virtual users each send a request, wait for the answer,
+  send the next. 3s warmup, then 20s measured. Client timeout 60s.
+- Sync login and writes were rerun on a fresh server, because after its
+  first deadlock the sync server never recovered.
+- The load generator ran on the same machine, so absolute numbers are
+  lower than a real server would give. Compare the two versions with each
+  other, not with production.
+
+SUMMARY
+1. Sync DEADLOCKS under load; async doesn't.
+   Sync froze completely (0 requests completed) at 100 users on reads,
+   50 users on login, and 100 users on writes, and stayed frozen afterwards.
+   Async kept serving at every level tested.
+   Why: sync's dependencies (get_session, get_current_user) run on FastAPI's
+   40-thread pool. Once more requests are in flight than there are DB
+   connections (15), the extra threads block waiting for a connection. A
+   connection is only released when get_session's cleanup runs, and that
+   cleanup needs a thread from the same, now-full, pool. Nothing can finish
+   until SQLAlchemy's 30s pool timeout fails the waiting requests.
+
+2. Async is ~1.5x faster on reads and ~1.6-1.8x faster on writes before
+   sync breaks (10-50 users), with lower median latency throughout.
+
+3. Async's TAIL latency is worse on reads at 50 users (p95 1.2s vs 0.7s).
+   Async lets every request run at once, so they all compete for the same
+   15 DB connections; most are fast (p50 ~100ms) but the unlucky ones queue.
+   Sync was "protected" by being stuck doing one thing at a time.
+   Next lever: pool size, and what each request holds a connection for.
+
+4. LOGIN DID NOT IMPROVE: ~4 logins/sec on both versions.
+   bcrypt.checkpw (~250ms) runs directly in the async endpoint and blocks
+   the event loop, so every other request waits while one password is
+   checked. At 100 users a login takes up to 34s, and it slows down every
+   other endpoint while it runs. The async migration can't fix this. Next
+   step: run the hash check off the event loop (asyncio.to_thread /
+   run_in_threadpool) and re-measure.
+   -> DONE: see BCRYPT FIX at the bottom (~5/s -> ~54/s).
+
+RESULTS
+READS  - GET /workouts, /workouts/{id}, /workouts/calendar, /exercises/recent, /exercises/analytics/{name}
+  users | metric       |       sync |      async | change
+  --------------------------------------------------------------
+     10 | req/sec      |        128 |        193 | 1.5x better
+        | p50 latency  |    73.9 ms |    49.7 ms | 1.5x better
+        | p95 latency  |     119 ms |    82.2 ms | 1.4x better
+        | p99 latency  |     151 ms |     102 ms | 1.5x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+     50 | req/sec      |        121 |        164 | 1.4x better
+        | p50 latency  |     395 ms |     109 ms | 3.6x better
+        | p95 latency  |     686 ms |   1,155 ms | 1.7x worse
+        | p99 latency  |     919 ms |   1,990 ms | 2.2x worse
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+    100 | req/sec      |   DEADLOCK |        170 | 
+        | p50 latency  |          - |     102 ms | 
+        | p95 latency  |          - |   2,487 ms | 
+        | p99 latency  |          - |   4,301 ms | 
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+
+LOGIN  - POST /login (bcrypt password check)
+  users | metric       |       sync |      async | change
+  --------------------------------------------------------------
+     10 | req/sec      |        4.3 |        4.5 | same
+        | p50 latency  |   2,301 ms |   2,261 ms | same
+        | p95 latency  |   2,604 ms |   3,917 ms | 1.5x worse
+        | p99 latency  |   3,492 ms |   4,173 ms | 1.2x worse
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+     50 | req/sec      |   DEADLOCK |        4.0 | 
+        | p50 latency  |          - |  12,379 ms | 
+        | p95 latency  |          - |  16,330 ms | 
+        | p99 latency  |          - |  19,693 ms | 
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+    100 | req/sec      |   DEADLOCK |        4.2 | 
+        | p50 latency  |          - |  15,345 ms | 
+        | p95 latency  |          - |  33,084 ms | 
+        | p99 latency  |          - |  34,300 ms | 
+        | errors       |          0 |          1 | 
+  --------------------------------------------------------------
+
+WRITES - POST /workouts (4 exercises x 3 sets)
+  users | metric       |       sync |      async | change
+  --------------------------------------------------------------
+     10 | req/sec      |       67.8 |        111 | 1.6x better
+        | p50 latency  |     140 ms |    84.3 ms | 1.7x better
+        | p95 latency  |     215 ms |     135 ms | 1.6x better
+        | p99 latency  |     251 ms |     179 ms | 1.4x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+     50 | req/sec      |       52.9 |       95.2 | 1.8x better
+        | p50 latency  |     889 ms |     376 ms | 2.4x better
+        | p95 latency  |   1,572 ms |   1,189 ms | 1.3x better
+        | p99 latency  |   1,882 ms |   1,631 ms | 1.2x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+    100 | req/sec      |   DEADLOCK |       99.4 | 
+        | p50 latency  |          - |     585 ms | 
+        | p95 latency  |          - |   3,099 ms | 
+        | p99 latency  |          - |   4,488 ms | 
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+
+
+
+BCRYPT FIX: login before vs after running bcrypt in a thread
+============================================================
+before = main at a10a950: bcrypt.checkpw called directly in async code
+after  = asyncio.to_thread(verify_password, ...) / to_thread(hash_password, ...)
+Same setup as above; fresh DB and fresh server for each. Machine has
+20 logical cores; asyncio.to_thread's default pool has 24 threads.
+Raw data: results/results_before_mine.json, results/results_mine.json
+
+LOGIN  - POST /login (bcrypt password check)
+  users | metric       |     before |      after | change
+  --------------------------------------------------------------
+     10 | req/sec      |        5.7 |       37.9 | 6.6x better
+        | p50 latency  |   1,745 ms |     261 ms | 6.7x better
+        | p95 latency  |   2,835 ms |     282 ms | 10.1x better
+        | p99 latency  |   2,990 ms |     293 ms | 10.2x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+     50 | req/sec      |        4.1 |       54.1 | 13.2x better
+        | p50 latency  |   8,730 ms |     880 ms | 9.9x better
+        | p95 latency  |  22,892 ms |   1,623 ms | 14.1x better
+        | p99 latency  |  28,825 ms |   2,228 ms | 12.9x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+    100 | req/sec      |        3.6 |       53.9 | 15.0x better
+        | p50 latency  |  14,400 ms |   1,729 ms | 8.3x better
+        | p95 latency  |  23,746 ms |   4,172 ms | 5.7x better
+        | p99 latency  |  31,044 ms |   5,802 ms | 5.4x better
+        | errors       |          0 |          0 | 
+  --------------------------------------------------------------
+
+WHAT CHANGED
+- Login throughput went from ~4-6/s to ~38/s at 10 users and ~54/s at
+  50-100 users (about 7-15x). Before, the event loop checked one
+  password at a time; now several bcrypt checks run in parallel threads
+  (bcrypt releases the GIL while hashing), and the event loop stays free
+  to serve other requests in the meantime.
+- At 100 users, median login latency fell from 14.4s to 1.7s and p95
+  from 23.7s to 4.2s.
+- A single login is NOT faster: each check is still ~250ms of CPU work
+  (one-at-a-time manual tests show ~200ms both before and after). The
+  fix only helps when many requests arrive at once.
+- It levels off around 54/s instead of scaling to 20 cores: bcrypt is
+  CPU-bound, and the load generator was competing for the same CPU.
+  On Render (fewer cores) the ceiling will be lower, but the event loop
+  no longer freezes while passwords are checked.
