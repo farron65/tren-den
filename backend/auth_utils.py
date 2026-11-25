@@ -14,6 +14,8 @@ from database import SessionDep
 from sqlmodel import select
 from models import User, RefreshToken
 
+import asyncio
+
 # OAuth2 scheme that extracts JWT tokens from Authorization headers
 # tokenUrl tells FastAPI docs where to authenticate (the /login endpoint)
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
@@ -27,6 +29,13 @@ def hash_password(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
+
+async def async_hash_password(password: str):
+    return await asyncio.to_thread(hash_password, password)
+
+async def async_verify_password(plain_password: str, hashed_password: str):
+    return await asyncio.to_thread(verify_password, plain_password, hashed_password)
+        
 async def get_user(session: SessionDep, username: str):
     # Returns None instead of raising exception to prevent username enumeration
     # Callers can check for None and provide a generic "invalid credentials" error
@@ -37,9 +46,8 @@ async def authenticate_user(session, username: str, password: str):
     user = await get_user(session, username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not await async_verify_password(password, user.hashed_password):
         return False
-    
     return user
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

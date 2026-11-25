@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
 
 from fastapi.security import OAuth2PasswordRequestForm
-from auth_utils import authenticate_user, hash_password, create_access_token, create_refresh_token
+from auth_utils import authenticate_user, async_hash_password, create_access_token, create_refresh_token
 import secrets
 
 from sqlmodel import select
@@ -27,7 +27,7 @@ async def signup(user: UserSignUp, session: SessionDep):
     if existing_user:
         raise HTTPException(409, "User already exists")
     else:
-        user_password = hash_password(user.password)
+        user_password = await async_hash_password(user.password)
         db_user = User(username=user.username, email = user.email, hashed_password=user_password)
     
     session.add(db_user)
@@ -117,7 +117,7 @@ async def reset_password(reset_forgot_password: UserResetPassword, session: Sess
     if user_in_db.reset_token_exp < datetime.now():
         raise HTTPException(401, "Unauthorized")
     
-    user_in_db.hashed_password = hash_password(reset_forgot_password.new_password)
+    user_in_db.hashed_password = await async_hash_password(reset_forgot_password.new_password)
     user_in_db.reset_token = None
     user_in_db.reset_token_exp = None
     
