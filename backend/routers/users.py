@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from typing import Annotated
 
-from sqlmodel import select
+from sqlmodel import col, select
 from database import SessionDep
-from sqlalchemy import extract
+from sqlalchemy import func
 
 from models import User, Workout
 
@@ -22,12 +22,16 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_active
 
 @router.get("/stats")
 async def get_user_stats(current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
-    result = await session.execute(select(Workout).where(Workout.user == current_user))
-    total_workouts = len(result.scalars().all())
-    
-    result = await session.execute(select(Workout).where(Workout.user == current_user).where(extract("MONTH", Workout.date) == datetime.datetime.now().month)) # type: ignore
-    current_month_workouts = len(result.scalars().all())
-    
+    month_start = datetime.datetime.now(datetime.timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    result = await session.execute(
+            select(
+                func.count(), # total workouts
+                func.count().filter(col(Workout.date) >= month_start), # this month workouts
+            ).select_from(Workout).where(Workout.user_id == current_user.id)
+        )
+    total_workouts, current_month_workouts = result.one()
+
     return {"total_workouts": total_workouts, "current_month_workouts": current_month_workouts}
 
 @router.delete("/delete/me")
