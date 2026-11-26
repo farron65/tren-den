@@ -32,37 +32,27 @@ export default function About() {
     // To get user img
     useEffect(() => {
         const getUser = async () => {
-            try {
-                const response = await authenticatedFetch("/about", "GET");
-                if (!response.ok) {
-                    return;
-                }
-                const result = await response.json();
-                setUser(result);
+            const response = await authenticatedFetch("/about", "GET");
+            if (!response.ok) {
+                return;
             }
-            catch(error) {
-                throw error;
-            }
+            const result = await response.json();
+            setUser(result);
         }
         getUser();
     }, []);
 
     // to get user stats
     useEffect(() => {
-        const getUser = async () => {
-            try {
-                const response = await authenticatedFetch("/stats", "GET");
-                if (!response.ok) {
-                    return;
-                }
-                const result = await response.json();
-                setUserStats(result);
+        const getStats = async () => {
+            const response = await authenticatedFetch("/stats", "GET");
+            if (!response.ok) {
+                return;
             }
-            catch(error) {
-                throw error;
-            }
+            const result = await response.json();
+            setUserStats(result);
         }
-        getUser();
+        getStats();
     }, []);
 
    return (

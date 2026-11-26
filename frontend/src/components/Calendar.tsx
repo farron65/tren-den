@@ -10,6 +10,13 @@ type calendarWorkouts = {
 
 type Dictionary = Record <string, calendarWorkouts>;
 
+// Shape of each item returned by GET /workouts/calendar
+type CalendarApiItem = {
+    id: number;
+    workout_name: string;
+    date: string;
+}
+
 export default function Calendar() {
     const [current, setCurrent] = useState(new Date());
     const [calendar, setCalendar] = useState<Dictionary>();
@@ -64,24 +71,19 @@ export default function Calendar() {
 
     useEffect(() => {
         const fetchWorkouts = async () => {
-            try {
-                const response = await authenticatedFetch("/workouts/calendar", "GET");
-                
-                if (!response.ok) {
-                    return;
-                }
+            const response = await authenticatedFetch("/workouts/calendar", "GET");
 
-                const result = await response.json();
+            if (!response.ok) {
+                return;
+            }
 
-                const dict = result.reduce((acc: Dictionary, item: any) => {
-                    acc[item.date.slice(0,10)] = {"workout_name": item.workout_name, "id": item.id}; // slice till 10th character to get rid of h/m/s in the dates  
-                    return acc;
-                }, {})
-                setCalendar(dict);
-            }
-            catch(error) {
-                throw error;
-            }
+            const result: CalendarApiItem[] = await response.json();
+
+            const dict = result.reduce((acc: Dictionary, item) => {
+                acc[item.date.slice(0,10)] = {"workout_name": item.workout_name, "id": item.id}; // slice till 10th character to get rid of h/m/s in the dates
+                return acc;
+            }, {});
+            setCalendar(dict);
         };
         fetchWorkouts();
     }, []);
