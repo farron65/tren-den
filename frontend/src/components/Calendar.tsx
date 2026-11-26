@@ -28,6 +28,21 @@ export default function Calendar() {
 
     const prevMonth = () => setCurrent(new Date(year, month - 1, 1));
     const nextMonth = () => setCurrent(new Date(year, month + 1, 1));
+    const goToToday = () => setCurrent(new Date());
+
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    const toDateKey = (y: number, m: number, d: number) =>
+        `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const todayKey = toDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const monthPrefix = toDateKey(year, month, 1).slice(0, 8); // "YYYY-MM-"
+    const monthWorkoutCount = calendar
+        ? Object.keys(calendar).filter((key) => key.startsWith(monthPrefix)).length
+        : 0;
+
+    const formatPopupDate = (day: number) =>
+        new Date(year, month, day).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
     // Build grid: leading empty slots + current month days
     const cells = [];
@@ -73,11 +88,23 @@ export default function Calendar() {
 
     return (
         <div className="calendar-container">
-            <h2>Calendar</h2>
             <div className="calendar-header">
-                <button className="calendar-nav" onClick={prevMonth}>&lsaquo;</button>
-                <span>{monthName} {year}</span>
-                <button className="calendar-nav" onClick={nextMonth}>&rsaquo;</button>
+                <div className="calendar-top-row">
+                    <span className="calendar-label">Calendar</span>
+                    <button className="calendar-today-btn" onClick={goToToday} disabled={isCurrentMonth}>
+                        Today
+                    </button>
+                </div>
+                <div className="calendar-nav-group">
+                    <button className="calendar-nav" onClick={prevMonth} aria-label="Previous month">&lsaquo;</button>
+                    <h2 className="calendar-month">{monthName} {year}</h2>
+                    <button className="calendar-nav" onClick={nextMonth} aria-label="Next month">&rsaquo;</button>
+                </div>
+                <p className="calendar-month-count">
+                    {monthWorkoutCount === 0
+                        ? "No workouts"
+                        : `${monthWorkoutCount} workout${monthWorkoutCount === 1 ? "" : "s"}`}
+                </p>
             </div>
 
             <div className="calendar-day-labels">
@@ -87,28 +114,43 @@ export default function Calendar() {
             <div className="calendar-grid">
                 
                 {cells.map((cell, i) => {
-                    const dateKey = `${year}-${String(month+1).padStart(2, "0")}-${String(cell.day).padStart(2, "0")}`;
-                    if (calendar && calendar[dateKey]) {
-                    }
+                    const dateKey = toDateKey(year, month, cell.day);
+                    const workout = cell.current ? calendar?.[dateKey] : undefined;
+                    const isToday = cell.current && dateKey === todayKey;
+
+                    const classes = [
+                        "calendar-cell",
+                        !cell.current && "inactive",
+                        workout && "hasWorkout",
+                        isToday && "today",
+                    ].filter(Boolean).join(" ");
+
+                    // Keep the popup inside the calendar on the edge columns
+                    const column = i % 7;
+                    const popupAlign = column <= 1 ? "align-left" : column >= 5 ? "align-right" : "";
+
                     return (
-                        <div key={i} style={{ position: "relative" }}>
-                            <button 
-                                onClick={() => {
-                                    if (cell.current && calendar && calendar[dateKey]) {
-                                        navigate(`/workouts/${calendar[dateKey]["id"]}`)
-                                    }
-                                }}
-                                onMouseEnter={() => setHoveredCell(i)}
-                                onMouseLeave={() => setHoveredCell(null)}
-                                className={`calendar-cell ${!cell.current ? "inactive" : cell.current && calendar && calendar[dateKey] ? "hasWorkout" : ""}`}
+                        <div key={i} className="calendar-cell-wrapper">
+                            {workout ? (
+                                <button
+                                    className={classes}
+                                    onClick={() => navigate(`/workouts/${workout.id}`)}
+                                    onMouseEnter={() => setHoveredCell(i)}
+                                    onMouseLeave={() => setHoveredCell(null)}
+                                    onFocus={() => setHoveredCell(i)}
+                                    onBlur={() => setHoveredCell(null)}
+                                    aria-label={`${workout.workout_name}, ${formatPopupDate(cell.day)}`}
                                 >
-                                {cell.day}
-                            </button>
-                            
-                            {hoveredCell === i && calendar && calendar[dateKey] && cell.current &&
-                                <div className="calendar-popup">
-                                    <p className="popup-workout-name">{calendar[dateKey]["workout_name"]}</p>
-                                    <p className="popup-date">{dateKey}</p>
+                                    {cell.day}
+                                </button>
+                            ) : (
+                                <div className={classes}>{cell.day}</div>
+                            )}
+
+                            {hoveredCell === i && workout &&
+                                <div className={`calendar-popup ${popupAlign}`}>
+                                    <p className="popup-workout-name">{workout.workout_name}</p>
+                                    <p className="popup-date">{formatPopupDate(cell.day)}</p>
                                 </div>
                             }
                         </div>
