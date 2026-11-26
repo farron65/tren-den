@@ -15,6 +15,9 @@ interface UserStats {
 
 }
 
+const formatCount = (n: number) => (n === 0 ? "None" : String(n));
+const pluralize = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
 export default function About() {
     const [user, setUser] = useState<User>({
         username: "",
@@ -80,11 +83,11 @@ export default function About() {
             <div className="about-stats">
                 <div className="stat-item">
                     <span className="stat-label">Total Workouts</span>
-                    <span className="stat-value">{userStats.total_workouts}</span>
+                    <span className="stat-value">{formatCount(userStats.total_workouts)}</span>
                 </div>
                 <div className="stat-item">
                     <span className="stat-label">This Month</span>
-                    <span className="stat-value">{userStats.current_month_workouts}</span>
+                    <span className="stat-value">{formatCount(userStats.current_month_workouts)}</span>
                 </div>
             </div>
 
@@ -99,7 +102,9 @@ export default function About() {
                     Not failure. Comfort.
                 </p>
                 <p className="motivation-sub">
-                    {userStats.total_workouts} workouts logged. {userStats.current_month_workouts} this month. You showed up. Keep going.
+                    {userStats.total_workouts === 0
+                        ? "No workouts logged yet. Today's a good day to start."
+                        : `${pluralize(userStats.total_workouts, "workout")} logged. ${formatCount(userStats.current_month_workouts)} this month. You showed up. Keep going.`}
                 </p>
             </div>
         </div>
